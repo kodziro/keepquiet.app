@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Noise Meter – Keep Quiet: Visual Noise Level Meter App for Kids & Classrooms</title>
+<meta name="description" content="A fun visual noise meter for kids. Friendly characters react as the room gets louder — perfect classroom noise monitor and quiet-time timer for home. Free on iPhone & iPad, no ads.">
+<link rel="canonical" href="https://keepquiet.app/">
+<link rel="icon" href="assets/icon.jpg">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Noise Meter – Keep Quiet: Visual Noise Level Meter for Kids & Classrooms">
+<meta property="og:description" content="Friendly characters react as the room gets louder. Classroom noise monitor, quiet-time timer and visual sound level meter for kids. Free on iOS, no ads.">
+<meta property="og:url" content="https://keepquiet.app/">
+<meta property="og:image" content="https://keepquiet.app/assets/screenshot-1.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Noise Meter – Keep Quiet: Visual Noise Meter for Kids">
+<meta name="twitter:description" content="Kids see the noise, characters react, the room gets calmer. Free on iPhone & iPad.">
+<meta name="twitter:image" content="https://keepquiet.app/assets/screenshot-1.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Noise Meter - Keep Quiet",
+  "operatingSystem": "iOS 17.6 or later, iPadOS, macOS, visionOS",
+  "applicationCategory": "EducationalApplication",
+  "description": "A visual noise meter for kids. Friendly characters react to sound levels in real time, helping children recognise when it's too loud and learn to self-regulate at home, in the classroom, or in sensory-friendly spaces.",
+  "image": "https://keepquiet.app/assets/icon.jpg",
+  "url": "https://keepquiet.app/",
+  "installUrl": "https://apps.apple.com/app/apple-store/id6744021866?pt=118868513&ct=webnew&mt=8",
+  "author": {"@type": "Person", "name": "Natalia Jakubczyk-Gajewska"},
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+  "aggregateRating": {"@type": "AggregateRating", "ratingValue": "4.8", "ratingCount": "11"}
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type":"Question","name":"What is a visual noise meter for kids?","acceptedAnswer":{"@type":"Answer","text":"A visual noise meter turns sound into something children can see. Noise Meter – Keep Quiet uses the device microphone to measure the room's volume in real time: a friendly character changes expression, the background shifts colour, and a green-to-red bar shows exactly how loud things are — so kids can lower their own volume without being told."}},
+    {"@type":"Question","name":"How do I monitor noise levels in my classroom?","acceptedAnswer":{"@type":"Answer","text":"Open Noise Meter – Keep Quiet on an iPad or mirror it to your interactive whiteboard, pick a character, and let the class watch. As chatter rises the character reacts and the meter climbs toward red, prompting students to self-correct — no shushing needed."}},
+    {"@type":"Question","name":"How can I get kids to be quiet without yelling?","acceptedAnswer":{"@type":"Answer","text":"Replace verbal reminders with a visual cue. When children can see the noise level and a character reacting to it, staying quiet becomes a game of keeping the character happy rather than obeying an instruction. Pair it with the built-in quiet-time timer to set a clear, achievable goal."}},
+    {"@type":"Question","name":"Does the app have a quiet time timer?","acceptedAnswer":{"@type":"Answer","text":"Yes. Set a quiet-time goal — for example ten minutes of reading — and the timer runs while the meter shows the live noise level, turning quiet time into a challenge kids can win."}},
+    {"@type":"Question","name":"Is it suitable for autistic children and sensory-friendly spaces?","acceptedAnswer":{"@type":"Answer","text":"Yes. The app was designed with sensory-friendly spaces in mind: gentle visuals, colour feedback that never punishes, support for reduced motion, dark interface and differentiate-without-colour accessibility options, and no ads or interruptions."}},
+    {"@type":"Question","name":"How loud is too loud for a classroom?","acceptedAnswer":{"@type":"Answer","text":"Focused independent work is comfortable around normal-conversation levels or lower, while sustained loud noise makes concentration and reading harder. Because every room and activity differs, the app lets you see the level at a glance and calibrate what 'too loud' means for each activity."}},
+    {"@type":"Question","name":"Is Noise Meter – Keep Quiet free?","acceptedAnswer":{"@type":"Answer","text":"The app is free to download on iPhone and iPad with no ads. Optional premium upgrades unlock extras such as additional characters and themes."}},
+    {"@type":"Question","name":"Does the app record audio? Is it safe for kids?","acceptedAnswer":{"@type":"Answer","text":"The microphone is used only to measure the volume level in real time so the meter and characters can react. The app contains no ads and is rated 4+ on the App Store."}}
+  ]
+}
+</script>
+</head>
+<body>
+<div class="meter-strip" aria-hidden="true"></div>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="index.html">
+      <img src="assets/icon.jpg" alt="Noise Meter – Keep Quiet app icon" width="38" height="38">
+      Noise Meter – Keep Quiet
+    </a>
+    <nav class="site-nav" aria-label="Main">
+      <a href="#screenshots">Screenshots</a>
+      <a href="#how-it-works">How it works</a>
+      <a href="#guides">Guides</a>
+      <a href="#faq">FAQ</a>
+      <a class="btn small" href="https://apps.apple.com/app/apple-store/id6744021866?pt=118868513&amp;ct=webnew&amp;mt=8">Download</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <!-- HERO -->
+  <section class="hero" id="top">
+    <div class="wrap">
+      <div>
+        <span class="eyebrow">For classrooms · home · sensory spaces</span>
+        <h1>The visual noise meter that helps kids keep quiet — without you saying a word</h1>
+        <p class="lead">Friendly characters react as the room gets louder. Kids see the noise, watch the meter climb from green to red, and bring the volume down themselves. A calmer classroom, a quieter home.</p>
+        <div class="hero-ctas" id="download">
+          <a class="store-badge" href="https://apps.apple.com/app/apple-store/id6744021866?pt=118868513&amp;ct=webnew&amp;mt=8" aria-label="Download Noise Meter – Keep Quiet on the App Store">
+            <svg viewBox="0 0 384 512" fill="currentColor" aria-hidden="true"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>
+            <span><span class="s">Free download on the</span><span class="l">App Store</span></span>
+          </a>
+          <a class="btn ghost" href="#how-it-works">See how it works</a>
+        </div>
+        <p class="hero-proof">★ <strong>4.8 rating</strong> · No ads · Ages 4+ · iPhone, iPad &amp; Mac · 11 languages</p>
+      </div>
+
+      <div class="demo-meter" role="img" aria-label="Animated demo: a happy face and a dot on a green-to-red noise bar, sweeping toward red as the room gets louder, then returning to calm green.">
+        <span class="demo-face" aria-hidden="true"><span class="calmface">😌</span><span class="loudface">😫</span></span>
+        <div class="demo-bar"><span class="demo-dot"></span></div>
+        <div class="demo-labels" aria-hidden="true"><span>Quiet</span><span>Getting loud</span><span>Too loud!</span></div>
+        <p class="demo-caption">Characters react to your room's real sound level — live.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCREENSHOTS -->
+  <section id="screenshots">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Screenshots</span>
+        <h2>See the noise. Hear the difference.</h2>
+        <p>Straight from the App Store listing — characters, colour feedback, speedometer dial and the quiet-time timer.</p>
+      </div>
+      <div class="shots">
+        <figure class="shot"><img src="assets/screenshot-1.jpg" alt="Noise Meter – Keep Quiet app showing a friendly character reacting to a quiet room with a green noise level bar" loading="lazy"></figure>
+        <figure class="shot"><img src="assets/screenshot-2.jpg" alt="Kids noise meter character changing expression as classroom noise level rises to yellow" loading="lazy"></figure>
+        <figure class="shot"><img src="assets/screenshot-3.jpg" alt="Visual noise level meter turning red when the room is too loud for kids" loading="lazy"></figure>
+        <figure class="shot"><img src="assets/screenshot-4.jpg" alt="Speedometer-style sound level indicator for classrooms in the Noise Meter app" loading="lazy"></figure>
+        <figure class="shot"><img src="assets/screenshot-5.jpg" alt="Quiet time timer with noise monitoring for kids in Noise Meter – Keep Quiet" loading="lazy"></figure>
+        <figure class="shot"><img src="assets/screenshot-6.jpg" alt="Choice of kid-friendly characters including owl and robot in the noise meter app" loading="lazy"></figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section id="how-it-works">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">How it works</span>
+        <h2>Three steps to a quieter room</h2>
+      </div>
+      <div class="steps">
+        <article class="step">
+          <span class="dot">1</span>
+          <h3>Open the app &amp; pick a character</h3>
+          <p>Choose an owl, robot or other friendly face and place the iPhone or iPad where kids can see it — or mirror it to the classroom whiteboard.</p>
+        </article>
+        <article class="step">
+          <span class="dot">2</span>
+          <h3>The microphone listens, kids watch</h3>
+          <p>The app measures the room's sound level in real time. As noise rises, the character's expression changes and the background shifts from calm green to warning red.</p>
+        </article>
+        <article class="step">
+          <span class="dot">3</span>
+          <h3>Kids self-regulate — you relax</h3>
+          <p>Children lower their own volume to keep the character happy. Add the quiet-time timer to set a goal and turn staying quiet into a game they can win.</p>
+        </article>
+      </div>
+      <div class="chips" aria-label="Feature highlights">
+        <span class="chip">Real-time noise meter</span>
+        <span class="chip">Reacting characters</span>
+        <span class="chip">Colour noise bar</span>
+        <span class="chip">Speedometer dial</span>
+        <span class="chip">Quiet-time timer</span>
+        <span class="chip">Background themes</span>
+        <span class="chip">No ads</span>
+        <span class="chip">11 languages</span>
+        <span class="chip">Accessibility: reduced motion &amp; high contrast</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- GUIDES -->
+  <section id="guides">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Guides</span>
+        <h2>Guides for teachers, parents &amp; carers</h2>
+        <p>Practical, real-world ways to use a visual noise meter — in class, at home, and in sensory-friendly spaces.</p>
+      </div>
+      <div class="guide-grid">
+        <a class="guide-card" href="guides/classroom-noise-monitor.html">
+          <span class="tag t-teach">Teachers</span>
+          <h3>Classroom noise monitor: a visual way to keep your class quiet</h3>
+          <p>How teachers use an on-screen noise monitor to manage volume during group work, tests and indoor recess.</p>
+          <span class="more">Read the guide →</span>
+        </a>
+        <a class="guide-card" href="guides/how-to-keep-kids-quiet-in-class.html">
+          <span class="tag t-teach">Teachers</span>
+          <h3>How to keep kids quiet in class without yelling</h3>
+          <p>Save your voice: swap constant shushing for a visual cue students respond to on their own.</p>
+          <span class="more">Read the guide →</span>
+        </a>
+        <a class="guide-card" href="guides/sound-level-meter-classroom.html">
+          <span class="tag t-teach">Teachers</span>
+          <h3>Sound level meter for the classroom: how loud is too loud?</h3>
+          <p>What noise levels mean for learning, and how to calibrate the right level for each activity.</p>
+          <span class="more">Read the guide →</span>
+        </a>
+        <a class="guide-card" href="guides/voice-levels-inside-voices.html">
+          <span class="tag t-teach">Teachers &amp; parents</span>
+          <h3>Teaching voice levels: helping kids find their inside voice</h3>
+          <p>Voice levels 0–4 explained, plus how a live meter makes "inside voices" concrete for kids.</p>
+          <span class="more">Read the guide →</span>
+        </a>
+        <a class="guide-card" href="guides/noise-meter-for-kids.html">
+          <span class="tag t-home">Parents</span>
+          <h3>Noise meter for kids: teach volume awareness at home</h3>
+          <p>Dinner tables, car rides, homework time — how a character kids love turns "be quiet" into a game.</p>
+          <span class="more">Read the guide →</span>
+        </a>
+        <a class="guide-card" href="guides/quiet-time-timer.html">
+          <span class="tag t-home">Parents</span>
+          <h3>Quiet time timer: set quiet goals kids can actually hit</h3>
+          <p>Combine a countdown with a live noise meter so kids can see themselves winning quiet time.</p>
+          <span class="more">Read the guide →</span>
+        </a>
+        <a class="guide-card" href="guides/quiet-game-for-kids.html">
+          <span class="tag t-home">Parents</span>
+          <h3>The quiet game: 7 fun ways to play it (and actually enjoy it)</h3>
+          <p>Fresh twists on the classic quiet game — with a noise meter as the impartial referee.</p>
+          <span class="more">Read the guide →</span>
+        </a>
+        <a class="guide-card" href="guides/noise-meter-autism-sensory.html">
+          <span class="tag t-send">Sensory &amp; SEND</span>
+          <h3>Noise meters for autistic children &amp; sensory-friendly spaces</h3>
+          <p>Using gentle visual feedback to make noise predictable and rooms calmer for sensitive kids.</p>
+          <span class="more">Read the guide →</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" class="faq">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">FAQ</span>
+        <h2>Frequently asked questions</h2>
+      </div>
+
+      <details>
+        <summary>What is a visual noise meter for kids?</summary>
+        <p>A visual noise meter turns sound into something children can <em>see</em>. Noise Meter – Keep Quiet uses the device's microphone to measure the room's volume in real time: a friendly character changes expression, the background shifts colour, and a green-to-red noise bar shows exactly how loud things are — so kids can lower their own volume without being told. <a class="learn" href="guides/noise-meter-for-kids.html">Learn more →</a></p>
+      </details>
+      <details>
+        <summary>How do I monitor noise levels in my classroom?</summary>
+        <p>Open the app on an iPad (or mirror it to your interactive whiteboard), pick a character, and let the class watch. As chatter rises the character reacts and the meter climbs toward red, prompting students to self-correct — no shushing needed. <a class="learn" href="guides/classroom-noise-monitor.html">Learn more →</a></p>
+      </details>
+      <details>
+        <summary>How can I get kids to be quiet without yelling?</summary>
+        <p>Replace verbal reminders with a visual cue. When children can see the noise level — and a character reacting to it — staying quiet becomes a game of keeping the character happy rather than obeying an instruction. <a class="learn" href="guides/how-to-keep-kids-quiet-in-class.html">Learn more →</a></p>
+      </details>
+      <details>
+        <summary>Does the app have a quiet time timer?</summary>
+        <p>Yes. Set a quiet-time goal — say, ten minutes of reading — and the timer runs while the meter shows the live noise level, turning quiet time into a challenge kids can win. <a class="learn" href="guides/quiet-time-timer.html">Learn more →</a></p>
+      </details>
+      <details>
+        <summary>Is it suitable for autistic children and sensory-friendly spaces?</summary>
+        <p>Yes. Gentle visuals, colour feedback that never punishes, reduced-motion and high-contrast accessibility support, dark interface, and no ads or interruptions make it a good fit for sensory-friendly rooms. <a class="learn" href="guides/noise-meter-autism-sensory.html">Learn more →</a></p>
+      </details>
+      <details>
+        <summary>How loud is too loud for a classroom?</summary>
+        <p>Focused work is comfortable around normal-conversation levels or lower; sustained loud noise makes concentration and reading harder. Every room differs, so the app shows the level at a glance and lets you decide what "too loud" means per activity. <a class="learn" href="guides/sound-level-meter-classroom.html">Learn more →</a></p>
+      </details>
+      <details>
+        <summary>Is Noise Meter – Keep Quiet free?</summary>
+        <p>Yes — free to download on iPhone and iPad, with no ads. Optional premium upgrades unlock extras like additional characters and themes. <a class="learn" href="https://apps.apple.com/app/apple-store/id6744021866?pt=118868513&amp;ct=webnew&amp;mt=8">Get it on the App Store →</a></p>
+      </details>
+      <details>
+        <summary>Does the app record audio? Is it safe for kids?</summary>
+        <p>The microphone is used only to measure the volume level in real time so the meter and characters can react. The app is ad-free and rated 4+ on the App Store. <a class="learn" href="https://sites.google.com/site/appsforparentsprivacy/">Read the privacy policy →</a></p>
+      </details>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section id="cta">
+    <div class="wrap">
+      <div class="cta-band">
+        <h2>Ready for a quieter room?</h2>
+        <p>Download Noise Meter – Keep Quiet free on iPhone and iPad. Pick a character, set a quiet-time goal, and let the kids do the rest.</p>
+        <a class="store-badge" href="https://apps.apple.com/app/apple-store/id6744021866?pt=118868513&amp;ct=webnew&amp;mt=8" aria-label="Download Noise Meter – Keep Quiet free on the App Store">
+          <svg viewBox="0 0 384 512" fill="currentColor" aria-hidden="true"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>
+          <span><span class="s">Free download on the</span><span class="l">App Store</span></span>
+        </a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap foot-grid">
+    <div>
+      <a class="brand" href="index.html"><img src="assets/icon.jpg" alt="" width="38" height="38">Noise Meter – Keep Quiet</a>
+      <p style="margin-top:12px">A visual noise level meter for kids. Friendly characters react to sound in real time, helping children stay calm and quiet at home, in classrooms and in sensory-friendly spaces.</p>
+    </div>
+    <div>
+      <h3>Guides</h3>
+      <ul>
+        <li><a href="guides/classroom-noise-monitor.html">Classroom noise monitor</a></li>
+        <li><a href="guides/noise-meter-for-kids.html">Noise meter for kids</a></li>
+        <li><a href="guides/quiet-time-timer.html">Quiet time timer</a></li>
+        <li><a href="guides/noise-meter-autism-sensory.html">Sensory &amp; autism</a></li>
+        <li><a href="guides/quiet-game-for-kids.html">The quiet game</a></li>
+      </ul>
+    </div>
+    <div>
+      <h3>App</h3>
+      <ul>
+        <li><a href="https://apps.apple.com/app/apple-store/id6744021866?pt=118868513&amp;ct=webnew&amp;mt=8">Download on the App Store</a></li>
+        <li><a href="https://sites.google.com/site/appsforparentsprivacy/">Privacy policy</a></li>
+        <li><a href="https://sites.google.com/site/appsforparentsterms/">Terms &amp; conditions</a></li>
+        <li><a href="mailto:AppsForParents@gmail.com">Support: AppsForParents@gmail.com</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="wrap foot-note">
+    <p>© 2026 Natalia Jakubczyk-Gajewska. Apple, the Apple logo, iPhone and iPad are trademarks of Apple Inc. App Store is a service mark of Apple Inc.</p>
+  </div>
+</footer>
+</body>
+</html>
