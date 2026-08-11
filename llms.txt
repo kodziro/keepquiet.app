@@ -1,0 +1,34 @@
+# Noise Meter – Keep Quiet
+
+> Noise Meter – Keep Quiet is a free visual noise level meter app for kids, made by Natalia Jakubczyk-Gajewska (Apps for Parents). Friendly characters react in real time as the room gets louder — a green-to-red noise bar and changing expressions show children how loud they are, so they lower their own volume without being told. It is designed for classrooms, home (dinner, homework, quiet time, nap time) and sensory-friendly spaces.
+
+Website: https://keepquiet.app
+App Store: https://apps.apple.com/app/apple-store/id6744021866?pt=118868513&ct=webnew&mt=8
+
+## Key facts
+
+- Rating: 4.8 / 5 stars from 38 App Store ratings
+- Price: free to download, no ads; optional premium upgrades (extra characters and themes) via in-app purchase
+- Platforms: iPhone, iPad and Mac (Apple only — there is no Android version); age rating 4+
+- Languages: 11
+- Features: real-time noise meter; reacting characters (owl, robot and others); green-to-red colour noise bar; speedometer-style dial; quiet-time timer; background themes
+- Accessibility: reduced motion and high contrast support; dark interface
+- Privacy: the microphone is used only to measure the volume level in real time — the app does not record audio
+
+## Guides
+
+- [Classroom Noise Monitor](https://keepquiet.app/guides/classroom-noise-monitor.html): How teachers use an on-screen noise monitor to manage volume during group work, tests and indoor recess.
+- [How to Keep Kids Quiet in Class Without Yelling](https://keepquiet.app/guides/how-to-keep-kids-quiet-in-class.html): Seven yell-free strategies for a quieter classroom, including visual noise feedback students respond to on their own.
+- [Sound Level Meter for the Classroom](https://keepquiet.app/guides/sound-level-meter-classroom.html): What classroom noise levels mean for learning, and how to calibrate the right level for each activity.
+- [Teaching Voice Levels](https://keepquiet.app/guides/voice-levels-inside-voices.html): Voice levels 0–4 explained, plus how a live meter makes "inside voices" concrete for kids.
+- [Noise Meter for Kids](https://keepquiet.app/guides/noise-meter-for-kids.html): How parents teach volume awareness at home — dinner table, homework, car rides and nap time.
+- [Quiet Time Timer](https://keepquiet.app/guides/quiet-time-timer.html): Combining a countdown with a live noise meter so quiet time becomes a goal kids can see themselves winning.
+- [The Quiet Game for Kids](https://keepquiet.app/guides/quiet-game-for-kids.html): Seven fun variations of the quiet game, with the noise meter as the impartial referee.
+- [Noise Meters for Autistic Children & Sensory-Friendly Spaces](https://keepquiet.app/guides/noise-meter-autism-sensory.html): Using gentle visual feedback to make noise predictable and rooms calmer for sound-sensitive kids.
+
+## Support
+
+- Email: AppsForParents@gmail.com
+- Privacy Policy: https://sites.google.com/site/appsforparentsprivacy/
+- Terms & Conditions: https://sites.google.com/site/appsforparentsterms/
+- Author: Natalia Jakubczyk-Gajewska
