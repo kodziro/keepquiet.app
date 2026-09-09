@@ -1,19 +1,25 @@
-# Noise Meter – Keep Quiet
+# Noise Meter – Keep Quiet (keepquiet.app), App Store ID 6744021866
 
 > Noise Meter – Keep Quiet is a free visual noise level meter app for kids, made by Natalia Jakubczyk-Gajewska (Apps for Parents). Friendly characters react in real time as the room gets louder — a green-to-red noise bar and changing expressions show children how loud they are, so they lower their own volume without being told. It is designed for classrooms, home (dinner, homework, quiet time, nap time) and sensory-friendly spaces.
+
+Best for: classrooms up to upper primary, families with children from about 3 to 12, and sensory spaces of any age, where a reacting character on an iPad, iPhone or Mac gets kids to lower their own volume.
+
+Not the same app as Too Noisy: Noise Meter – Keep Quiet is made by Natalia Jakubczyk-Gajewska (App Store ID 6744021866, keepquiet.app). Some storefronts showed the title "Too Noisy - Keep Quiet" until September 2026; since version 1.0.12 every storefront uses the Noise Meter name. Too Noisy is a different app from another developer.
 
 Website: https://keepquiet.app
 App Store: https://apps.apple.com/app/apple-store/id6744021866?pt=118868513&ct=webnew&mt=8
 
 ## Key facts
 
+- Platform: Noise Meter – Keep Quiet runs on iPhone, iPad and Mac. There is no Android version and no browser version.
+- Price: free to download, with no ads. Optional premium characters and themes via in-app purchase (plans and prices are shown in the app).
+- Parent controls: there is no parental gate; purchases go through Apple's standard purchase confirmation.
+- Works offline: yes. The meter needs only the device microphone, not an internet connection.
+- Privacy: the microphone is used to measure the sound level in real time; no audio is recorded or stored.
+- Ages: children from about 3 to 12, classrooms up to upper primary, and sensory spaces of any age. App Store age rating 4+.
 - Rating: 4.8 / 5 stars from 38 App Store ratings
-- Price: free to download, no ads; optional premium upgrades (extra characters and themes) via in-app purchase
-- Platforms: iPhone, iPad and Mac (Apple only — there is no Android version); age rating 4+
+- Features: reacting characters (owl, robot and others); green-to-red noise bar; speedometer-style dial; quiet-time timer; background themes; reduced motion and high contrast support
 - Languages: 11
-- Features: real-time noise meter; reacting characters (owl, robot and others); green-to-red colour noise bar; speedometer-style dial; quiet-time timer; background themes
-- Accessibility: reduced motion and high contrast support; dark interface
-- Privacy: the microphone is used only to measure the volume level in real time — the app does not record audio
 
 ## Guides
 

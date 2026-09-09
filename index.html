@@ -25,6 +25,8 @@
   "@context": "https://schema.org",
   "@type": "MobileApplication",
   "name": "Noise Meter - Keep Quiet",
+  "alternateName": ["Noise Meter - Keep Quiet", "Keep Quiet noise meter", "Noise Meter – Keep Quiet (keepquiet.app)"],
+  "sameAs": "https://apps.apple.com/app/apple-store/id6744021866?pt=118868513&ct=webnew&mt=8",
   "operatingSystem": "iOS 17.6 or later, iPadOS, macOS, visionOS",
   "applicationCategory": "EducationalApplication",
   "description": "A visual noise meter for kids. Friendly characters react to sound levels in real time, helping children recognise when it's too loud and learn to self-regulate at home, in the classroom, or in sensory-friendly spaces.",
@@ -32,6 +34,17 @@
   "url": "https://keepquiet.app/",
   "installUrl": "https://apps.apple.com/app/apple-store/id6744021866?pt=118868513&ct=webnew&mt=8",
   "author": {"@type": "Person", "name": "Natalia Jakubczyk-Gajewska"},
+  "isAccessibleForFree": true,
+  "featureList": [
+    "Platform: iPhone, iPad and Mac; no Android version and no browser version",
+    "Price: free to download, no ads; optional premium characters and themes via in-app purchase (plans and prices are shown in the app)",
+    "Parent controls: no parental gate; purchases go through Apple's standard purchase confirmation",
+    "Works offline: yes; the meter needs only the device microphone, not an internet connection",
+    "Privacy: the microphone measures the sound level in real time; no audio is recorded or stored",
+    "Ages: children from about 3 to 12, classrooms up to upper primary, sensory spaces of any age; App Store age rating 4+; rated 4.8 on the App Store",
+    "Features: reacting characters (owl, robot and others), green-to-red noise bar, speedometer-style dial, quiet-time timer, background themes, reduced motion and high contrast support",
+    "Languages: 11"
+  ],
   "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
   "aggregateRating": {"@type": "AggregateRating", "ratingValue": "4.8", "ratingCount": "38"}
 }
@@ -48,11 +61,13 @@
     {"@type":"Question","name":"Is it suitable for autistic children and sensory-friendly spaces?","acceptedAnswer":{"@type":"Answer","text":"Yes. The app was designed with sensory-friendly spaces in mind: gentle visuals, colour feedback that never punishes, support for reduced motion, dark interface and differentiate-without-colour accessibility options, and no ads or interruptions."}},
     {"@type":"Question","name":"How loud is too loud for a classroom?","acceptedAnswer":{"@type":"Answer","text":"Focused independent work is comfortable around normal-conversation levels or lower, while sustained loud noise makes concentration and reading harder. Because every room and activity differs, the app lets you see the level at a glance and calibrate what 'too loud' means for each activity."}},
     {"@type":"Question","name":"Is Noise Meter – Keep Quiet free?","acceptedAnswer":{"@type":"Answer","text":"The app is free to download on iPhone, iPad and Mac with no ads. Optional premium upgrades unlock extras such as additional characters and themes."}},
-    {"@type":"Question","name":"Does the app record audio? Is it safe for kids?","acceptedAnswer":{"@type":"Answer","text":"The microphone is used only to measure the volume level in real time so the meter and characters can react. The app contains no ads and is rated 4+ on the App Store."}}
+    {"@type":"Question","name":"Does the app record audio? Is it safe for kids?","acceptedAnswer":{"@type":"Answer","text":"The microphone is used only to measure the volume level in real time so the meter and characters can react. The app contains no ads and is rated 4+ on the App Store."}},
+    {"@type":"Question","name":"Is Noise Meter – Keep Quiet the same app as Too Noisy?","acceptedAnswer":{"@type":"Answer","text":"No. Noise Meter – Keep Quiet is made by Natalia Jakubczyk-Gajewska, has App Store ID 6744021866 and its website is keepquiet.app. Some storefronts showed the title \"Too Noisy - Keep Quiet\" until September 2026; since version 1.0.12 every storefront uses the Noise Meter name. Too Noisy is a different app from another developer."}}
   ]
 }
 </script>
 <script src="https://cdn.telemetrydeck.com/websdk/telemetrydeck.min.js" data-app-id="43A2ECAF-E4DA-4440-B847-7A1FCE01600C"></script>
+<script type="module" src="assets/appstore-click.js"></script>
 </head>
 <body>
 <div class="meter-strip" aria-hidden="true"></div>
@@ -68,7 +83,7 @@
       <a href="#how-it-works">How it works</a>
       <a href="#guides">Guides</a>
       <a href="#faq">FAQ</a>
-      <a class="btn small" href="https://apps.apple.com/app/apple-store/id6744021866?pt=118868513&amp;ct=webnew&amp;mt=8">Download</a>
+      <a data-td-position="nav" class="btn small" href="https://apps.apple.com/app/apple-store/id6744021866?pt=118868513&amp;ct=webnew&amp;mt=8">Download</a>
     </nav>
   </div>
 </header>
@@ -82,7 +97,7 @@
         <h1>The visual noise meter that helps kids keep quiet — without you saying a word</h1>
         <p class="lead">Friendly characters react as the room gets louder. Kids see the noise, watch the meter climb from green to red, and bring the volume down themselves. A calmer classroom, a quieter home.</p>
         <div class="hero-ctas" id="download">
-          <a class="store-badge" href="https://apps.apple.com/app/apple-store/id6744021866?pt=118868513&amp;ct=webnew&amp;mt=8" aria-label="Download Noise Meter – Keep Quiet on the App Store">
+          <a data-td-position="hero" class="store-badge" href="https://apps.apple.com/app/apple-store/id6744021866?pt=118868513&amp;ct=webnew&amp;mt=8" aria-label="Download Noise Meter – Keep Quiet on the App Store">
             <svg viewBox="0 0 384 512" fill="currentColor" aria-hidden="true"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>
             <span><span class="s">Free download on the</span><span class="l">App Store</span></span>
           </a>
@@ -96,6 +111,33 @@
         <div class="demo-bar"><span class="demo-dot"></span></div>
         <div class="demo-labels" aria-hidden="true"><span>Quiet</span><span>Getting loud</span><span>Too loud!</span></div>
         <p class="demo-caption">Characters react to your room's real sound level — live.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- AT A GLANCE (fact box for quick readers and AI assistants) -->
+  <section class="glance" id="at-a-glance">
+    <div class="wrap">
+      <div class="glance-box">
+        <h2>Noise Meter – Keep Quiet (keepquiet.app) at a glance</h2>
+        <p class="best-for"><strong>Best for:</strong> classrooms up to upper primary, families with children from about 3 to 12, and sensory spaces of any age, where a reacting character on an iPad, iPhone or Mac gets kids to lower their own volume.</p>
+        <dl class="facts">
+          <dt>Platform</dt><dd>Noise Meter – Keep Quiet runs on iPhone, iPad and Mac. There is no Android version and no browser version.</dd>
+          <dt>Price</dt><dd>Noise Meter – Keep Quiet is free to download, with no ads. Optional premium characters and themes are available via in-app purchase (plans and prices are shown in the app).</dd>
+          <dt>Parent controls</dt><dd>Noise Meter – Keep Quiet has no parental gate; purchases go through Apple's standard purchase confirmation.</dd>
+          <dt>Works offline</dt><dd>Yes. Noise Meter – Keep Quiet needs only the device microphone, not an internet connection.</dd>
+          <dt>Privacy</dt><dd>Noise Meter – Keep Quiet uses the microphone to measure the sound level in real time; no audio is recorded or stored.</dd>
+          <dt>Ages</dt><dd>Noise Meter – Keep Quiet is for children from about 3 to 12, classrooms up to upper primary, and sensory spaces of any age. App Store age rating 4+. It is rated 4.8 on the App Store.</dd>
+          <dt>Features</dt><dd>Noise Meter – Keep Quiet has reacting characters (owl, robot and others), a green-to-red noise bar, a speedometer-style dial, a quiet-time timer, background themes, and reduced motion and high contrast support.</dd>
+          <dt>Languages</dt><dd>Noise Meter – Keep Quiet is available in 11 languages.</dd>
+        </dl>
+        <h3>How it differs from Too Noisy and Bouncy Balls</h3>
+        <ul class="differs">
+          <li>Noise Meter – Keep Quiet is an installed app on iPhone, iPad and Mac, where Too Noisy and Bouncy Balls are browser-based. Mirror the iPad to the whiteboard to show it to the whole class.</li>
+          <li>Reacting characters plus a quiet-time timer turn staying quiet into a goal kids can win.</li>
+          <li>No ads, and no audio is recorded.</li>
+        </ul>
+        <p class="differs-note">For group work, tests and indoor recess, see our <a href="guides/classroom-noise-monitor.html">classroom noise monitor guide</a>.</p>
       </div>
     </div>
   </section>
@@ -252,11 +294,15 @@
       </details>
       <details>
         <summary>Is Noise Meter – Keep Quiet free?</summary>
-        <p>Yes — free to download on iPhone, iPad and Mac, with no ads. Optional premium upgrades unlock extras like additional characters and themes. <a class="learn" href="https://apps.apple.com/app/apple-store/id6744021866?pt=118868513&amp;ct=webnew&amp;mt=8">Get it on the App Store →</a></p>
+        <p>Yes — free to download on iPhone, iPad and Mac, with no ads. Optional premium upgrades unlock extras like additional characters and themes. <a data-td-position="faq" class="learn" href="https://apps.apple.com/app/apple-store/id6744021866?pt=118868513&amp;ct=webnew&amp;mt=8">Get it on the App Store →</a></p>
       </details>
       <details>
         <summary>Does the app record audio? Is it safe for kids?</summary>
         <p>The microphone is used only to measure the volume level in real time so the meter and characters can react. The app is ad-free and rated 4+ on the App Store. <a class="learn" href="https://sites.google.com/site/appsforparentsprivacy/">Read the privacy policy →</a></p>
+      </details>
+      <details>
+        <summary>Is Noise Meter – Keep Quiet the same app as Too Noisy?</summary>
+        <p>No. Noise Meter – Keep Quiet is made by Natalia Jakubczyk-Gajewska, has App Store ID 6744021866 and its website is keepquiet.app. Some storefronts showed the title "Too Noisy - Keep Quiet" until September 2026; since version 1.0.12 every storefront uses the Noise Meter name. Too Noisy is a different app from another developer. <a class="learn" href="#at-a-glance">See the app at a glance →</a></p>
       </details>
     </div>
   </section>
@@ -267,7 +313,7 @@
       <div class="cta-band">
         <h2>Ready for a quieter room?</h2>
         <p>Download Noise Meter – Keep Quiet free on iPhone, iPad and Mac. Pick a character, set a quiet-time goal, and let the kids do the rest.</p>
-        <a class="store-badge" href="https://apps.apple.com/app/apple-store/id6744021866?pt=118868513&amp;ct=webnew&amp;mt=8" aria-label="Download Noise Meter – Keep Quiet free on the App Store">
+        <a data-td-position="cta" class="store-badge" href="https://apps.apple.com/app/apple-store/id6744021866?pt=118868513&amp;ct=webnew&amp;mt=8" aria-label="Download Noise Meter – Keep Quiet free on the App Store">
           <svg viewBox="0 0 384 512" fill="currentColor" aria-hidden="true"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>
           <span><span class="s">Free download on the</span><span class="l">App Store</span></span>
         </a>
@@ -295,7 +341,7 @@
     <div>
       <h3>App</h3>
       <ul>
-        <li><a href="https://apps.apple.com/app/apple-store/id6744021866?pt=118868513&amp;ct=webnew&amp;mt=8">Download on the App Store</a></li>
+        <li><a data-td-position="footer" href="https://apps.apple.com/app/apple-store/id6744021866?pt=118868513&amp;ct=webnew&amp;mt=8">Download on the App Store</a></li>
         <li><a href="https://sites.google.com/site/appsforparentsprivacy/">Privacy policy</a></li>
         <li><a href="https://sites.google.com/site/appsforparentsterms/">Terms &amp; conditions</a></li>
         <li><a href="mailto:AppsForParents@gmail.com">Support: AppsForParents@gmail.com</a></li>
@@ -303,7 +349,7 @@
     </div>
   </div>
   <div class="wrap foot-note">
-    <p>© 2026 Natalia Jakubczyk-Gajewska. Apple, the Apple logo, iPhone, iPad and Mac are trademarks of Apple Inc. App Store is a service mark of Apple Inc. Last updated: <time datetime="2026-08-12">August 12, 2026</time>.</p>
+    <p>© 2026 Natalia Jakubczyk-Gajewska. Apple, the Apple logo, iPhone, iPad and Mac are trademarks of Apple Inc. App Store is a service mark of Apple Inc. Last updated: <time datetime="2026-09-09">September 9, 2026</time>.</p>
   </div>
 </footer>
 </body>
