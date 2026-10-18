@@ -161,6 +161,8 @@ section{padding:56px 0}
 .article .crumbs{font-size:.85rem;margin-bottom:18px}
 .article .crumbs a{text-decoration:none;color:var(--ink-soft)}
 .article .meta{color:var(--ink-soft);font-weight:700;font-size:.92rem;margin-bottom:22px}
+.article .try-tool{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:-6px 0 24px;font-size:.92rem}
+.article .try-tool .muted{color:var(--ink-soft)}
 .article h1{margin-bottom:14px}
 .article .intro{font-size:1.12rem;color:var(--ink-soft);margin-bottom:26px}
 .article h2{margin:36px 0 12px}
