@@ -9,7 +9,7 @@
   --nm-font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --nm-bar-h:clamp(88px,12vh,124px);          /* bottom bar height; play/pause icon ≈ 0.77 of it */
   --nm-icon:clamp(68px,9.2vh,96px);
-  --nm-big:120px;                             /* centre play button (YouTube style); 150px in fullscreen */
+  --nm-start-h:64px;--nm-start-f:clamp(1.25rem,2vw,1.5rem);   /* pre-start pill button; larger in fullscreen */
   position:relative;width:100%;font-family:var(--nm-font)}
 /* stage = viewport minus everything above it (--nm-above is measured by the script; 0 on tool-test.html) */
 .nm-stage{position:relative;width:100%;height:calc(100vh - var(--nm-above,0px));height:max(480px,calc(100svh - var(--nm-above,0px)));min-height:480px;overflow:hidden;background:#9bd0ee;isolation:isolate}
@@ -44,23 +44,24 @@
 /* bottom bar + play/pause (app: wide translucent rounded bar, white icon only) */
 .nm-bottom{position:absolute;left:5%;right:5%;bottom:2.5%;z-index:4;height:var(--nm-bar-h);border-radius:24px;
   background:rgba(255,255,255,.28);display:flex;align-items:center;justify-content:center}
-.nm-play{width:100%;height:100%;min-width:64px;min-height:64px;border:0;background:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:24px;padding:0}   /* the whole translucent bar is the hit area */
+.nm-play{width:100%;height:100%;min-width:64px;min-height:64px;border:0;background:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:24px;padding:0}   /* the whole translucent bar is the hit area; pause only */
 .nm-play svg{width:var(--nm-icon);height:auto;fill:#fff;filter:drop-shadow(0 2px 5px rgba(0,0,0,.3))}
-/* centre play button (YouTube style): shown while stopped, hidden while running */
-.nm-play-big{position:absolute;left:50%;top:50%;z-index:4;width:var(--nm-big);height:var(--nm-big);margin:calc(var(--nm-big) / -2) 0 0 calc(var(--nm-big) / -2);border:0;border-radius:50%;background:rgba(0,0,0,.35);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:background .15s,transform .15s}
-.nm-play-big svg{width:50%;height:auto;fill:#fff;margin-left:6%}
-.nm-play-big:hover{background:rgba(0,0,0,.5);transform:scale(1.04)}
-.nm-play-big:focus-visible{outline:4px solid #fff;outline-offset:4px}
-.nm-play-big:disabled{opacity:.6;cursor:wait;transform:none}
-.nm.is-running .nm-play-big{display:none}
-.nm-play .i-pause{display:none}
-.nm.is-running .nm-play .i-play{display:none}
-.nm.is-running .nm-play .i-pause{display:block}
+.nm:not(.is-running) .nm-bottom{display:none}
 .nm-play:disabled{opacity:.6;cursor:wait}
 
-/* messages (status / errors only) sit above the dial so they never cover dial or character */
-.nm-msg{position:absolute;left:50%;bottom:45%;z-index:4;transform:translateX(-50%);
-  max-width:min(90%,34rem);margin:0;padding:.55rem 1rem;border-radius:14px;background:rgba(0,0,0,.55);color:#fff;font-size:1rem;
+/* pre-start overlay (bouncyballs-style): light tint, one pill button, one line; hidden while running */
+.nm-overlay{position:absolute;inset:0;z-index:4;background:rgba(0,0,0,.25);transition:opacity .3s ease,visibility .3s}
+.nm-overlay-inner{position:absolute;left:0;right:0;top:62%;transform:translateY(-50%);text-align:center;padding:0 16px}
+.nm-start{display:inline-flex;align-items:center;justify-content:center;min-height:var(--nm-start-h);padding:0 2em;border:0;border-radius:999px;background:rgba(0,0,0,.55);color:#fff;font:600 var(--nm-start-f) var(--nm-font);cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.3);transition:background .15s,transform .15s}
+.nm-start:hover{background:rgba(0,0,0,.7);transform:translateY(-1px)}
+.nm-start:focus-visible{outline:4px solid #fff;outline-offset:4px}
+.nm-start:disabled{opacity:.6;cursor:wait;transform:none}
+.nm-overlay-note{margin:14px 0 0;color:#fff;font:500 1rem/1.4 var(--nm-font);text-shadow:0 1px 4px rgba(0,0,0,.45)}
+.nm.is-running .nm-overlay{opacity:0;visibility:hidden;pointer-events:none}
+
+/* messages (status / errors only) sit above the dial so they never cover dial or character; never catch clicks */
+.nm-msg{position:absolute;left:50%;bottom:45%;z-index:5;transform:translateX(-50%);pointer-events:none;
+  width:max-content;max-width:min(90%,34rem);margin:0;padding:.55rem 1rem;border-radius:14px;background:rgba(0,0,0,.55);color:#fff;font-size:1rem;
   font-weight:600;text-align:center}
 .nm-msg:empty{display:none}
 .nm-msg.is-error{background:rgba(240,66,59,.95)}
@@ -92,7 +93,7 @@
 .nm-microw .nm-select{margin:0}
 
 /* fullscreen: same layout, bigger play/pause */
-.nm-stage:fullscreen,.nm-stage:-webkit-full-screen{height:100vh;min-height:0;background:#000;--nm-bar-h:clamp(100px,14vh,150px);--nm-icon:clamp(80px,10.8vh,116px);--nm-big:150px}
+.nm-stage:fullscreen,.nm-stage:-webkit-full-screen{height:100vh;min-height:0;background:#000;--nm-bar-h:clamp(100px,14vh,150px);--nm-icon:clamp(80px,10.8vh,116px);--nm-start-h:96px;--nm-start-f:2rem}
 
 /* small screens (phone portrait) */
 @media (max-width:560px){
@@ -105,7 +106,7 @@
 }
 /* reduced motion: no cross-fade, no marker glide; the needle steps per level (set by JS) */
 @media (prefers-reduced-motion:reduce){
-  .nm-scene,.nm-bar-marker,.nm-play-big{transition:none}
+  .nm-scene,.nm-bar-marker,.nm-overlay,.nm-start{transition:none}
 }
-.nm-reduced .nm-scene,.nm-reduced .nm-bar-marker{transition:none}
+.nm-reduced .nm-scene,.nm-reduced .nm-bar-marker,.nm-reduced .nm-overlay,.nm-reduced .nm-start{transition:none}
 .nm :focus-visible{outline:3px solid var(--nm-accent);outline-offset:2px}

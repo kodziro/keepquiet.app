@@ -29,8 +29,11 @@
         <div class="nm-chars"><picture class="nm-char is-active" data-state="1">…cat-1…</picture></div>
         <div class="nm-indicator"><svg class="nm-dial">…<g class="nm-needle">…</g></svg></div>
         <p class="nm-msg" role="status"></p>
-        <button class="nm-play-big" type="button" aria-label="Start">…play icon…</button>   ← centre, hidden while running
-        <div class="nm-bottom"><button class="nm-play" type="button" aria-label="Start">…play + pause icons…</button></div>
+        <div class="nm-overlay"><div class="nm-overlay-inner">
+          <button class="nm-start" type="button">▶ Start the noise meter</button>   ← "▶ Resume" after a pause
+          <p class="nm-overlay-note">Your browser will ask for the microphone once.</p>
+        </div></div>                                      ← tint + button + line; hidden while running
+        <div class="nm-bottom"><button class="nm-play" type="button" aria-label="Pause">…pause icon…</button></div>   ← shown only while running
       </div>
       <div class="nm-microw"></div>                       ← mic selector row, filled by this script
     </div>
@@ -107,7 +110,8 @@
   var needle = root.querySelector('.nm-needle');
   var msg = root.querySelector('.nm-msg');
   var playBtn = root.querySelector('.nm-play');
-  var bigBtn = root.querySelector('.nm-play-big');
+  var startBtn = root.querySelector('.nm-start');
+  var everStarted = false;
   var micRow = root.querySelector('.nm-microw');
 
   var reducedMotion = false;
@@ -307,11 +311,14 @@
     stream = null; track = null;
   }
 
-  function setBusy(busy) { playBtn.disabled = busy; if (bigBtn) bigBtn.disabled = busy; }
+  function setBusy(busy) { playBtn.disabled = busy; if (startBtn) startBtn.disabled = busy; }
   function setPlayState(on) {
-    root.classList.toggle('is-running', on);   // CSS hides the centre button while running
-    playBtn.setAttribute('aria-label', on ? 'Pause' : 'Start');
-    playBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    root.classList.toggle('is-running', on);   // CSS: overlay fades out, bottom bar (pause) appears
+    if (startBtn && !on) {
+      var label = everStarted ? '\u25B6 Resume' : '\u25B6 Start the noise meter';
+      startBtn.textContent = label;
+      startBtn.setAttribute('aria-label', everStarted ? 'Resume the noise meter' : 'Start the noise meter');
+    }
   }
 
   function start() {
@@ -340,7 +347,7 @@
     }
     getMic(lsGet(LS_MIC) || '').then(function (s) {
       attachStream(s);
-      running = true;
+      running = true; everStarted = true;
       smoothed = 0;
       sessionStart = Date.now(); sessionReported = false;
       setPlayState(true);
@@ -738,8 +745,8 @@
 
   /* ---------- init ---------- */
   buildControls();
-  playBtn.addEventListener('click', start);
-  if (bigBtn) bigBtn.addEventListener('click', function () { if (!running) start(); });
+  playBtn.addEventListener('click', function () { if (running) stop(); });
+  if (startBtn) startBtn.addEventListener('click', function () { if (!running) start(); });
   setPlayState(false);
   if (indicator) {
     indicator.setAttribute('role', 'meter'); indicator.setAttribute('aria-label', 'Room loudness');

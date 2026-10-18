@@ -20,7 +20,7 @@
 <link rel="preload" as="image" href="assets/tool/scene/city-1.webp" type="image/webp" fetchpriority="high">
 <style>
 /* Critical CSS for the noise meter's first paint — mirrors the same rules in noise-meter.css; change both together. */
-.nm{--nm-g1:#3ABF5A;--nm-g2:#F2D22B;--nm-g3:#F58A2A;--nm-g4:#F0423B;--nm-accent:#F5A033;--nm-ink:#1E2A44;--nm-grad:linear-gradient(90deg,var(--nm-g1) 0%,var(--nm-g2) 45%,var(--nm-g3) 72%,var(--nm-g4) 100%);--nm-font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--nm-bar-h:clamp(88px,12vh,124px);--nm-icon:clamp(68px,9.2vh,96px);--nm-big:120px;position:relative;width:100%;font-family:var(--nm-font)}
+.nm{--nm-g1:#3ABF5A;--nm-g2:#F2D22B;--nm-g3:#F58A2A;--nm-g4:#F0423B;--nm-accent:#F5A033;--nm-ink:#1E2A44;--nm-grad:linear-gradient(90deg,var(--nm-g1) 0%,var(--nm-g2) 45%,var(--nm-g3) 72%,var(--nm-g4) 100%);--nm-font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--nm-bar-h:clamp(88px,12vh,124px);--nm-icon:clamp(68px,9.2vh,96px);--nm-start-h:64px;--nm-start-f:clamp(1.25rem,2vw,1.5rem);position:relative;width:100%;font-family:var(--nm-font)}
 .nm-stage{position:relative;width:100%;height:calc(100vh - var(--nm-above,0px));height:max(480px,calc(100svh - var(--nm-above,0px)));min-height:480px;overflow:hidden;background:#9bd0ee;isolation:isolate}
 .nm-scenes,.nm-chars{position:absolute;inset:0;pointer-events:none}
 .nm-scene,.nm-scene img{position:absolute;inset:0;width:100%;height:100%}
@@ -34,18 +34,20 @@
 .nm-bottom{position:absolute;left:5%;right:5%;bottom:2.5%;z-index:4;height:var(--nm-bar-h);border-radius:24px;background:rgba(255,255,255,.28);display:flex;align-items:center;justify-content:center}
 .nm-play{width:100%;height:100%;min-width:64px;min-height:64px;border:0;background:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:24px;padding:0}
 .nm-play svg{width:var(--nm-icon);height:auto;fill:#fff}
-.nm-play .i-pause{display:none}
-.nm-play-big{position:absolute;left:50%;top:50%;z-index:4;width:var(--nm-big);height:var(--nm-big);margin:calc(var(--nm-big) / -2) 0 0 calc(var(--nm-big) / -2);border:0;border-radius:50%;background:rgba(0,0,0,.35);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
-.nm-play-big svg{width:50%;height:auto;fill:#fff;margin-left:6%}
-.nm.is-running .nm-play-big{display:none}
+.nm:not(.is-running) .nm-bottom{display:none}
+.nm-overlay{position:absolute;inset:0;z-index:4;background:rgba(0,0,0,.25)}
+.nm-overlay-inner{position:absolute;left:0;right:0;top:62%;transform:translateY(-50%);text-align:center;padding:0 16px}
+.nm-start{display:inline-flex;align-items:center;justify-content:center;min-height:var(--nm-start-h);padding:0 2em;border:0;border-radius:999px;background:rgba(0,0,0,.55);color:#fff;font:600 var(--nm-start-f) var(--nm-font);cursor:pointer}
+.nm-overlay-note{margin:14px 0 0;color:#fff;font:500 1rem/1.4 var(--nm-font)}
+.nm.is-running .nm-overlay{opacity:0;visibility:hidden;pointer-events:none}
 .nm-msg:empty{display:none}
 @media (max-width:560px){.nm-char{height:52%;bottom:19%}.nm-indicator{width:min(62vw,260px);bottom:15%}}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="noise-meter.css">
+<link rel="stylesheet" href="styles.css?v=20261018b">
+<link rel="stylesheet" href="noise-meter.css?v=20261018b">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -124,7 +126,7 @@
 </script>
 <script src="https://cdn.telemetrydeck.com/websdk/telemetrydeck.min.js" data-app-id="43A2ECAF-E4DA-4440-B847-7A1FCE01600C"></script>
 <script type="module" src="assets/appstore-click.js"></script>
-<script type="module" src="noise-meter.js"></script>
+<script type="module" src="noise-meter.js?v=20261018b"></script>
 </head>
 <body>
 <div class="meter-strip" aria-hidden="true"></div>
@@ -185,10 +187,14 @@
           </svg>
         </div>
         <p class="nm-msg" role="status"></p>
-        <button class="nm-play-big" type="button" aria-label="Start"><svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.52.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z"/></svg></button>
+        <div class="nm-overlay">
+          <div class="nm-overlay-inner">
+            <button class="nm-start" type="button" aria-label="Start the noise meter">▶ Start the noise meter</button>
+            <p class="nm-overlay-note">Your browser will ask for the microphone once.</p>
+          </div>
+        </div>
         <div class="nm-bottom">
-          <button class="nm-play" type="button" aria-label="Start">
-            <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.52.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z"/></svg>
+          <button class="nm-play" type="button" aria-label="Pause">
             <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3.5" width="5" height="17" rx="1.6"/><rect x="14" y="3.5" width="5" height="17" rx="1.6"/></svg>
           </button>
         </div>
