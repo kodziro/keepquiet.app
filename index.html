@@ -20,7 +20,7 @@
 <link rel="preload" as="image" href="assets/tool/scene/city-1.webp" type="image/webp" fetchpriority="high">
 <style>
 /* Critical CSS for the noise meter's first paint — mirrors the same rules in noise-meter.css; change both together. */
-.nm{--nm-g1:#3ABF5A;--nm-g2:#F2D22B;--nm-g3:#F58A2A;--nm-g4:#F0423B;--nm-accent:#F5A033;--nm-ink:#1E2A44;--nm-grad:linear-gradient(90deg,var(--nm-g1) 0%,var(--nm-g2) 45%,var(--nm-g3) 72%,var(--nm-g4) 100%);--nm-font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--nm-bar-h:clamp(88px,12vh,124px);--nm-icon:clamp(68px,9.2vh,96px);position:relative;width:100%;font-family:var(--nm-font)}
+.nm{--nm-g1:#3ABF5A;--nm-g2:#F2D22B;--nm-g3:#F58A2A;--nm-g4:#F0423B;--nm-accent:#F5A033;--nm-ink:#1E2A44;--nm-grad:linear-gradient(90deg,var(--nm-g1) 0%,var(--nm-g2) 45%,var(--nm-g3) 72%,var(--nm-g4) 100%);--nm-font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--nm-bar-h:clamp(88px,12vh,124px);--nm-icon:clamp(68px,9.2vh,96px);--nm-big:120px;position:relative;width:100%;font-family:var(--nm-font)}
 .nm-stage{position:relative;width:100%;height:calc(100vh - var(--nm-above,0px));height:max(480px,calc(100svh - var(--nm-above,0px)));min-height:480px;overflow:hidden;background:#9bd0ee;isolation:isolate}
 .nm-scenes,.nm-chars{position:absolute;inset:0;pointer-events:none}
 .nm-scene,.nm-scene img{position:absolute;inset:0;width:100%;height:100%}
@@ -32,14 +32,13 @@
 .nm-indicator{position:absolute;left:50%;bottom:14.5%;z-index:3;transform:translateX(-50%);width:clamp(220px,34vh,420px);pointer-events:none}
 .nm-dial{display:block;width:100%;height:auto}
 .nm-bottom{position:absolute;left:5%;right:5%;bottom:2.5%;z-index:4;height:var(--nm-bar-h);border-radius:24px;background:rgba(255,255,255,.28);display:flex;align-items:center;justify-content:center}
-.nm-play{width:100%;height:100%;min-width:64px;min-height:64px;border:0;background:none;color:#fff;cursor:pointer;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;border-radius:24px;padding:0}
-.nm-icon{grid-column:2;display:flex;align-items:center;justify-content:center}
+.nm-play{width:100%;height:100%;min-width:64px;min-height:64px;border:0;background:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:24px;padding:0}
 .nm-play svg{width:var(--nm-icon);height:auto;fill:#fff}
 .nm-play .i-pause{display:none}
-.nm-hint{grid-column:3;justify-self:start;text-align:left;padding:0 20px 0 22px;font:600 clamp(.95rem,1.6vw,1.15rem)/1.3 var(--nm-font);color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.35)}
-.nm-hint:empty{display:none}
+.nm-play-big{position:absolute;left:50%;top:50%;z-index:4;width:var(--nm-big);height:var(--nm-big);margin:calc(var(--nm-big) / -2) 0 0 calc(var(--nm-big) / -2);border:0;border-radius:50%;background:rgba(0,0,0,.35);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+.nm-play-big svg{width:50%;height:auto;fill:#fff;margin-left:6%}
+.nm.is-running .nm-play-big{display:none}
 .nm-msg:empty{display:none}
-@media (max-width:560px){.nm-hint{display:none}}
 @media (max-width:560px){.nm-char{height:52%;bottom:19%}.nm-indicator{width:min(62vw,260px);bottom:15%}}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -149,8 +148,7 @@
   <section class="tool-hero" id="top">
     <div class="wrap">
       <h1>Free Online Classroom Noise Meter for Kids</h1>
-      <p class="lead">Works on Chromebook, Windows, Mac and iPad. No sign-up, no ads. Audio never leaves your device.</p>
-      <p class="hero-sub">Nothing to install — press play below.</p>
+      <p class="lead">No sign-up, no ads. Audio never leaves your device.</p>
       <p class="hero-applink"><a data-td-position="hero" href="https://apps.apple.com/app/apple-store/id6744021866?pt=118868513&amp;ct=webnew&amp;mt=8">Also available as an app for iPhone, iPad &amp; Mac →</a></p>
     </div>
   </section>
@@ -187,13 +185,11 @@
           </svg>
         </div>
         <p class="nm-msg" role="status"></p>
+        <button class="nm-play-big" type="button" aria-label="Start"><svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.52.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z"/></svg></button>
         <div class="nm-bottom">
           <button class="nm-play" type="button" aria-label="Start">
-            <span class="nm-icon">
-              <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.52.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z"/></svg>
-              <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3.5" width="5" height="17" rx="1.6"/><rect x="14" y="3.5" width="5" height="17" rx="1.6"/></svg>
-            </span>
-            <span class="nm-hint">Press ▶ to start — your browser will ask for the microphone.</span>
+            <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.52.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z"/></svg>
+            <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3.5" width="5" height="17" rx="1.6"/><rect x="14" y="3.5" width="5" height="17" rx="1.6"/></svg>
           </button>
         </div>
       </div>

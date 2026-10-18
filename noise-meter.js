@@ -29,7 +29,8 @@
         <div class="nm-chars"><picture class="nm-char is-active" data-state="1">…cat-1…</picture></div>
         <div class="nm-indicator"><svg class="nm-dial">…<g class="nm-needle">…</g></svg></div>
         <p class="nm-msg" role="status"></p>
-        <div class="nm-bottom"><button class="nm-play" type="button" aria-label="Start"><span class="nm-icon">…icons…</span><span class="nm-hint">…pre-play prompt…</span></button></div>
+        <button class="nm-play-big" type="button" aria-label="Start">…play icon…</button>   ← centre, hidden while running
+        <div class="nm-bottom"><button class="nm-play" type="button" aria-label="Start">…play + pause icons…</button></div>
       </div>
       <div class="nm-microw"></div>                       ← mic selector row, filled by this script
     </div>
@@ -70,7 +71,6 @@
   var STEP_POS = [0, 20, 57, 88];    // reduced motion: one fixed position per level
   var LS_SENS = 'kq-nm-sensitivity', LS_MIC = 'kq-nm-mic', LS_IND = 'kq-nm-indicator';
   var LS_VISITS = 'kq-visits', LS_FIRST = 'kq-first-seen';
-  var PROMPT_TEXT = 'Press \u25B6 to start \u2014 your browser will ask for the microphone.';
 
   // Names are used ONLY in alt / aria-label text, never as visible labels.
   var CHARACTERS = [
@@ -107,7 +107,7 @@
   var needle = root.querySelector('.nm-needle');
   var msg = root.querySelector('.nm-msg');
   var playBtn = root.querySelector('.nm-play');
-  var hint = root.querySelector('.nm-hint');
+  var bigBtn = root.querySelector('.nm-play-big');
   var micRow = root.querySelector('.nm-microw');
 
   var reducedMotion = false;
@@ -307,10 +307,9 @@
     stream = null; track = null;
   }
 
-  function setHint(text) { if (hint) hint.textContent = text || ''; }
+  function setBusy(busy) { playBtn.disabled = busy; if (bigBtn) bigBtn.disabled = busy; }
   function setPlayState(on) {
-    root.classList.toggle('is-running', on);
-    setHint(on ? '' : PROMPT_TEXT);   // prompt lives in the bottom bar; .nm-msg is for status/errors only
+    root.classList.toggle('is-running', on);   // CSS hides the centre button while running
     playBtn.setAttribute('aria-label', on ? 'Pause' : 'Start');
     playBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
   }
@@ -322,7 +321,7 @@
       setMessage(e.text, 'error'); signal('mic-error', { reason: e.reason }); return;
     }
     setMessage('Starting…');
-    playBtn.disabled = true;
+    setBusy(true);
     try {
       if (!ctx) {   // created and resumed inside the click handler (iPad Safari requirement)
         var AC = window.AudioContext || window.webkitAudioContext;
@@ -335,7 +334,7 @@
       }
       ctx.resume().catch(function () {});
     } catch (err) {
-      playBtn.disabled = false;
+      setBusy(false);
       var ue = errorText({ name: 'unsupported' });
       setMessage(ue.text, 'error'); signal('mic-error', { reason: ue.reason }); return;
     }
@@ -345,7 +344,7 @@
       smoothed = 0;
       sessionStart = Date.now(); sessionReported = false;
       setPlayState(true);
-      playBtn.disabled = false;
+      setBusy(false);
       setMessage('');
       preloadAfterStart();
       fillMicList();
@@ -353,7 +352,7 @@
       signal('tool-start', { character: current.character, scene: current.scene, indicator: indicatorKind });
       rafId = requestAnimationFrame(tick);
     }).catch(function (err) {
-      playBtn.disabled = false;
+      setBusy(false);
       var e2 = errorText(err);
       setMessage(e2.text, 'error');
       signal('mic-error', { reason: e2.reason });
@@ -368,7 +367,7 @@
     releaseWakeLock();
     if (ctx && ctx.state === 'running') ctx.suspend().catch(function () {});
     setPlayState(false);
-    playBtn.disabled = false;
+    setBusy(false);
     smoothed = 0;
     showState(1);
     setIndicator(reducedMotion ? STEP_POS[1] : 0);
@@ -740,6 +739,7 @@
   /* ---------- init ---------- */
   buildControls();
   playBtn.addEventListener('click', start);
+  if (bigBtn) bigBtn.addEventListener('click', function () { if (!running) start(); });
   setPlayState(false);
   if (indicator) {
     indicator.setAttribute('role', 'meter'); indicator.setAttribute('aria-label', 'Room loudness');
