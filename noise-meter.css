@@ -7,6 +7,8 @@
 .nm{--nm-g1:#3ABF5A;--nm-g2:#F2D22B;--nm-g3:#F58A2A;--nm-g4:#F0423B;--nm-accent:#F5A033;--nm-ink:#1E2A44;
   --nm-grad:linear-gradient(90deg,var(--nm-g1) 0%,var(--nm-g2) 45%,var(--nm-g3) 72%,var(--nm-g4) 100%);
   --nm-font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --nm-bar-h:clamp(88px,12vh,124px);          /* bottom bar height; play/pause icon ≈ 0.77 of it */
+  --nm-icon:clamp(68px,9.2vh,96px);
   position:relative;width:100%;font-family:var(--nm-font)}
 .nm-stage{position:relative;width:100%;height:100vh;height:100svh;min-height:480px;overflow:hidden;background:#9bd0ee;isolation:isolate}
 .nm-scenes,.nm-chars{position:absolute;inset:0;pointer-events:none}
@@ -36,18 +38,18 @@
   transform:translate(-50%,-50%) rotate(45deg);transition:left .12s linear;box-shadow:0 1px 4px rgba(0,0,0,.25)}
 
 /* bottom bar + play/pause (app: wide translucent rounded bar, white icon only) */
-.nm-bottom{position:absolute;left:5%;right:5%;bottom:2.5%;z-index:4;height:clamp(64px,10vh,100px);border-radius:24px;
+.nm-bottom{position:absolute;left:5%;right:5%;bottom:2.5%;z-index:4;height:var(--nm-bar-h);border-radius:24px;
   background:rgba(255,255,255,.28);display:flex;align-items:center;justify-content:center}
-.nm-play{width:100%;height:100%;border:0;background:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;
-  border-radius:24px;padding:0}
-.nm-play svg{width:clamp(34px,5vh,48px);height:auto;fill:#fff;filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))}
+.nm-play{width:100%;height:100%;min-width:64px;min-height:64px;border:0;background:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  border-radius:24px;padding:0}   /* the whole translucent bar is the hit area */
+.nm-play svg{width:var(--nm-icon);height:auto;fill:#fff;filter:drop-shadow(0 2px 5px rgba(0,0,0,.3))}
 .nm-play .i-pause{display:none}
 .nm.is-running .nm-play .i-play{display:none}
 .nm.is-running .nm-play .i-pause{display:block}
 .nm-play:disabled{opacity:.6;cursor:wait}
 
 /* messages (status / errors) float above the bottom bar */
-.nm-msg{position:absolute;left:50%;bottom:calc(2.5% + clamp(64px,10vh,100px) + 12px);z-index:4;transform:translateX(-50%);
+.nm-msg{position:absolute;left:50%;bottom:calc(2.5% + var(--nm-bar-h) + 12px);z-index:4;transform:translateX(-50%);
   max-width:min(90%,34rem);margin:0;padding:.55rem 1rem;border-radius:14px;background:rgba(0,0,0,.55);color:#fff;font-size:1rem;
   font-weight:600;text-align:center}
 .nm-msg:empty{display:none}
@@ -79,8 +81,8 @@
 .nm-microw-text{font:700 .95rem var(--nm-font);color:var(--nm-ink);white-space:nowrap}
 .nm-microw .nm-select{margin:0}
 
-/* fullscreen: same layout, no radius */
-.nm-stage:fullscreen,.nm-stage:-webkit-full-screen{height:100vh;min-height:0;background:#000}
+/* fullscreen: same layout, bigger play/pause */
+.nm-stage:fullscreen,.nm-stage:-webkit-full-screen{height:100vh;min-height:0;background:#000;--nm-bar-h:clamp(100px,14vh,150px);--nm-icon:clamp(80px,10.8vh,116px)}
 
 /* small screens (phone portrait) */
 @media (max-width:560px){
