@@ -68,7 +68,7 @@
 
 <div class="t-wrap">
   <h1 style="font-size:1.6rem;margin:12px 0 4px">Noise meter – device test page</h1>
-  <p class="t-note">Internal test page for Step 2 (noindex). Press play, allow the microphone, make noise. Top-left = fullscreen, top-right = settings (character, background, indicator, microphone, sensitivity). Signals go to TelemetryDeck <strong>test mode</strong>.</p>
+  <p class="t-note">Internal test page for Step 2 (noindex). Press play, allow the microphone, make noise. Top-left = fullscreen, top-right = settings (character, background, indicator, microphone, sensitivity). Signals go to TelemetryDeck <strong>test mode</strong> and are listed in the log below (tool-start, tool-session, visit, pro-view, pro-click, mic-error, mic-switch, fullscreen).</p>
 
   <div class="t-pro" id="pro-card">
     <h2 style="font-size:1.25rem;margin-bottom:6px">Keep Quiet Pro – coming soon</h2>
@@ -85,6 +85,7 @@
   const line = (t) => { log.textContent = new Date().toLocaleTimeString() + '  ' + t + '\n' + log.textContent; };
   const nm = document.getElementById('noise-meter');
   nm.addEventListener('kq:pro-click', (e) => line('pro-click ' + e.detail.item));
+  nm.addEventListener('kq:signal', (e) => { const p = Object.assign({}, e.detail.payload); delete p.page; delete p.source; delete p.path; delete p.tool; line('signal ' + e.detail.type + ' ' + JSON.stringify(p)); });
   new MutationObserver(() => line('level ' + nm.getAttribute('data-level') + ' · indicator ' + nm.getAttribute('data-indicator') +
     (nm.classList.contains('is-running') ? ' (running)' : ' (stopped)')))
     .observe(nm, { attributes: true, attributeFilter: ['data-level', 'data-indicator', 'class'] });

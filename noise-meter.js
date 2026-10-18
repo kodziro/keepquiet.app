@@ -15,8 +15,9 @@
     the app; never both. Saved in localStorage.
   - Privacy: audio never leaves the device — sound is analysed in the
     browser, nothing is recorded, stored or sent. The only network calls are
-    TelemetryDeck counts (tool-start, mic-error, mic-switch, fullscreen,
-    pro-click) with no audio and no user text.
+    TelemetryDeck counts (tool-start, tool-session, visit, pro-view, pro-click,
+    mic-error, mic-switch, fullscreen) with no audio, no IDs and no free text —
+    every value is a bucketed string.
   - AudioContext is created and resumed only inside the first play click
     (iPad Safari). AGC / noise suppression / echo cancellation are off so
     the meter reflects the room, not the browser's voice processing.
@@ -40,8 +41,14 @@
   picks WebP or the fallback itself — PNG/JPEG fallbacks are never preloaded
   by hand. Thumbnails are created only when the settings sheet first opens.
 
+  Stage height: --nm-above (px above the stage: header + hero) is measured on
+  load/resize and set on the root; CSS makes the stage max(480px, 100svh - that).
+  Every signal is also dispatched as a "kq:signal" CustomEvent on the root
+  (detail {type, payload}) so tool-test.html can log it.
+
   Optional page hooks:
-    #pro-card                 → scrolled to + highlighted on a locked-item click
+    #pro-card                 → scrolled to + highlighted on a locked-item click;
+                                pro-view is sent once when it is ≥ 50 % visible
     [data-kq-notify]          → "Notify me" button: counted pro-click (item "notify"),
                                 then shows [data-kq-notify-thanks]
     body[data-td-test="1"]    → TelemetryDeck test mode (used by tool-test.html)
@@ -62,6 +69,8 @@
   var NEEDLE_MIN = -100, NEEDLE_MAX = 100;   // degrees, matches the arc in the SVG
   var STEP_POS = [0, 20, 57, 88];    // reduced motion: one fixed position per level
   var LS_SENS = 'kq-nm-sensitivity', LS_MIC = 'kq-nm-mic', LS_IND = 'kq-nm-indicator';
+  var LS_VISITS = 'kq-visits', LS_FIRST = 'kq-first-seen';
+  var PROMPT_TEXT = 'Press \u25B6 to start \u2014 your browser will ask for the microphone.';
 
   // Names are used ONLY in alt / aria-label text, never as visible labels.
   var CHARACTERS = [
@@ -141,6 +150,7 @@
     for (var k in payload) if (Object.prototype.hasOwnProperty.call(payload, k)) body[k] = payload[k];
     if (td) { try { td.signal(type, body).catch(function () {}); } catch (e) {} }
     else if (tdQueue.length < 20) tdQueue.push([type, body]);
+    try { root.dispatchEvent(new CustomEvent('kq:signal', { detail: { type: type, payload: body } })); } catch (e) {}
   }
   try {
     import(SDK_URL).then(function (mod) {
@@ -150,6 +160,7 @@
           headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       };
       td = instance;
+      try { instance._build('warm-up', {}).catch(function () {}); } catch (e) {}   // caches the hashed clientUser
       tdQueue.forEach(function (q) { signal(q[0], q[1]); });
       tdQueue = [];
     }).catch(function () { /* no SDK: tool works, nothing counted */ });
@@ -329,6 +340,7 @@
       attachStream(s);
       running = true;
       smoothed = 0;
+      sessionStart = Date.now(); sessionReported = false;
       setPlayState(true);
       playBtn.disabled = false;
       setMessage('');
@@ -346,6 +358,7 @@
   }
 
   function stop(reason) {
+    reportSession();
     running = false;
     cancelAnimationFrame(rafId);
     stopTracks();
@@ -356,8 +369,64 @@
     smoothed = 0;
     showState(1);
     setIndicator(reducedMotion ? STEP_POS[1] : 0);
-    if (reason) setMessage(reason, 'error'); else setMessage('');
+    if (reason) setMessage(reason, 'error'); else setMessage(PROMPT_TEXT);
   }
+
+  /* ---------- tool-session: once per running session, bucketed minutes ---------- */
+  var sessionStart = 0, sessionReported = false;
+  function minutesBucket(ms) {
+    var m = ms / 60000;
+    return m < 1 ? '<1' : (m < 5 ? '1-5' : (m < 15 ? '5-15' : (m < 30 ? '15-30' : '30+')));
+  }
+  function reportSession() {
+    if (!running || sessionReported || !sessionStart) return;
+    sessionReported = true;
+    // Sent through the SDK's fetch(keepalive) post (same mechanism as appstore-click.js), which
+    // survives pagehide; the hashed clientUser is cached, so no async work is left at that point.
+    signal('tool-session', { minutes: minutesBucket(Date.now() - sessionStart) });
+  }
+  window.addEventListener('pagehide', reportSession);
+  window.addEventListener('beforeunload', reportSession);
+
+  /* ---------- visit: once per page load, from localStorage counters ---------- */
+  function visitBucket(n) { return n <= 1 ? '1' : (n === 2 ? '2' : (n <= 5 ? '3-5' : (n <= 10 ? '6-10' : '11+'))); }
+  function daysBucket(d) { return d < 1 ? '0' : (d <= 7 ? '1-7' : (d <= 30 ? '8-30' : '31+')); }
+  function reportVisit() {
+    var nth = '1', days = '0';
+    try {
+      var n = parseInt(localStorage.getItem(LS_VISITS), 10) || 0;
+      n += 1;
+      localStorage.setItem(LS_VISITS, String(n));
+      var first = parseInt(localStorage.getItem(LS_FIRST), 10) || 0;
+      if (!first) { first = Date.now(); localStorage.setItem(LS_FIRST, String(first)); }
+      nth = visitBucket(n);
+      days = daysBucket(Math.floor((Date.now() - first) / 86400000));
+    } catch (e) { /* storage blocked: counts as a first visit */ }
+    signal('visit', { nth: nth, daysSinceFirst: days });
+  }
+
+  /* ---------- pro-view: once per page load when #pro-card is ≥ 50 % visible ---------- */
+  function watchProCard() {
+    var card = document.getElementById('pro-card');
+    if (!card || !('IntersectionObserver' in window)) return;
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting && en.intersectionRatio >= 0.5) { signal('pro-view', {}); io.disconnect(); }
+      });
+    }, { threshold: [0.5] });
+    io.observe(card);
+  }
+
+  /* ---------- stage height: viewport minus everything above the stage ---------- */
+  var aboveTimer = 0;
+  function measureAbove() {
+    var top = Math.max(0, Math.round(stage.getBoundingClientRect().top + (window.scrollY || window.pageYOffset || 0)));
+    root.style.setProperty('--nm-above', top + 'px');
+  }
+  function measureAboveSoon() { clearTimeout(aboveTimer); aboveTimer = setTimeout(measureAbove, 120); }
+  window.addEventListener('resize', measureAboveSoon);
+  window.addEventListener('load', measureAbove);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(measureAbove).catch(function () {});
 
   function onTrackEnded() {
     if (!running) return;
@@ -676,6 +745,10 @@
   }
   applyIndicator(indicatorKind);
   root.setAttribute('data-level', '1');
+  setMessage(PROMPT_TEXT);
+  measureAbove();
   root.classList.add('is-ready');
+  reportVisit();
+  watchProCard();
   window.addEventListener('pagehide', function () { if (running) stop(); });
 })();

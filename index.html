@@ -21,7 +21,7 @@
 <style>
 /* Critical CSS for the noise meter's first paint — mirrors the same rules in noise-meter.css; change both together. */
 .nm{--nm-g1:#3ABF5A;--nm-g2:#F2D22B;--nm-g3:#F58A2A;--nm-g4:#F0423B;--nm-accent:#F5A033;--nm-ink:#1E2A44;--nm-grad:linear-gradient(90deg,var(--nm-g1) 0%,var(--nm-g2) 45%,var(--nm-g3) 72%,var(--nm-g4) 100%);--nm-font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--nm-bar-h:clamp(88px,12vh,124px);--nm-icon:clamp(68px,9.2vh,96px);position:relative;width:100%;font-family:var(--nm-font)}
-.nm-stage{position:relative;width:100%;height:100vh;height:100svh;min-height:480px;overflow:hidden;background:#9bd0ee;isolation:isolate}
+.nm-stage{position:relative;width:100%;height:calc(100vh - var(--nm-above,0px));height:max(480px,calc(100svh - var(--nm-above,0px)));min-height:480px;overflow:hidden;background:#9bd0ee;isolation:isolate}
 .nm-scenes,.nm-chars{position:absolute;inset:0;pointer-events:none}
 .nm-scene,.nm-scene img{position:absolute;inset:0;width:100%;height:100%}
 .nm-scene img{object-fit:cover;object-position:50% 60%;display:block}
@@ -146,11 +146,13 @@
     <div class="wrap">
       <h1>Free Online Classroom Noise Meter for Kids</h1>
       <p class="lead">Works on Chromebook, Windows, Mac and iPad. No sign-up, no ads. Audio never leaves your device.</p>
+      <p class="hero-sub">Nothing to install — press play below.</p>
+      <p class="hero-applink"><a data-td-position="hero" href="https://apps.apple.com/app/apple-store/id6744021866?pt=118868513&amp;ct=webnew&amp;mt=8">Also available as an app for iPhone, iPad &amp; Mac →</a></p>
     </div>
   </section>
 
   <section class="tool-section" aria-label="Noise meter">
-    <div id="noise-meter" class="nm" data-assets="assets/tool/">
+    <div id="noise-meter" class="nm" data-assets="assets/tool/" style="--nm-above:250px">
       <div class="nm-stage">
         <div class="nm-scenes">
           <picture class="nm-scene is-active" data-level="1">

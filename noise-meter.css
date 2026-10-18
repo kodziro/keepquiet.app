@@ -10,7 +10,8 @@
   --nm-bar-h:clamp(88px,12vh,124px);          /* bottom bar height; play/pause icon ≈ 0.77 of it */
   --nm-icon:clamp(68px,9.2vh,96px);
   position:relative;width:100%;font-family:var(--nm-font)}
-.nm-stage{position:relative;width:100%;height:100vh;height:100svh;min-height:480px;overflow:hidden;background:#9bd0ee;isolation:isolate}
+/* stage = viewport minus everything above it (--nm-above is measured by the script; 0 on tool-test.html) */
+.nm-stage{position:relative;width:100%;height:calc(100vh - var(--nm-above,0px));height:max(480px,calc(100svh - var(--nm-above,0px)));min-height:480px;overflow:hidden;background:#9bd0ee;isolation:isolate}
 .nm-scenes,.nm-chars{position:absolute;inset:0;pointer-events:none}
 .nm-scene,.nm-scene img{position:absolute;inset:0;width:100%;height:100%}
 .nm-scene img{object-fit:cover;object-position:50% 60%;display:block}

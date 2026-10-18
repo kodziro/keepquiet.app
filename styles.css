@@ -49,6 +49,10 @@ h3{font-size:1.2rem}
 .tool-hero{padding:34px 0 18px;text-align:center}
 .tool-hero h1{max-width:18ch;margin:0 auto}
 .tool-hero .lead{font-size:1.1rem;color:var(--ink-soft);margin:12px auto 0;max-width:38rem}
+.tool-hero .hero-sub{font-family:var(--font-display);font-weight:600;margin:10px auto 0}
+.tool-hero .hero-applink{font-size:.92rem;margin:4px auto 0}
+.tool-hero .hero-applink a{color:var(--ink-soft);font-weight:700;text-decoration:none}
+.tool-hero .hero-applink a:hover{color:var(--cta);text-decoration:underline}
 .tool-section{padding:0;background:#fff}
 .under-tool{text-align:center;font-size:.95rem;padding:10px 20px 0;margin:0}
 .under-tool a{color:var(--ink-soft);font-weight:700;text-decoration:none}
