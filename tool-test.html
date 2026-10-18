@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Noise meter – test page (not public)</title>
+<link rel="icon" href="assets/icon.jpg">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="noise-meter.css">
+<style>
+  body{background:#fff}
+  .t-wrap{max-width:1080px;margin:0 auto;padding:16px 20px 60px}
+  .t-note{font-size:.92rem;color:var(--ink-soft);margin:10px 0 18px}
+  .t-pro{margin-top:28px;background:#fff;border:1px solid var(--line);border-radius:20px;padding:22px;max-width:34rem;transition:box-shadow .3s}
+  .t-pro.is-highlighted{box-shadow:0 0 0 4px rgba(53,86,224,.35)}
+  .t-pro p{color:var(--ink-soft);margin-bottom:12px}
+  .t-log{margin-top:24px;font:.82rem/1.5 ui-monospace,Menlo,monospace;color:var(--ink-soft);white-space:pre-wrap}
+</style>
+<!-- TelemetryDeck pageviews, same tag as every page; signals from the tool run in TEST MODE here (body data-td-test="1") -->
+<script src="https://cdn.telemetrydeck.com/websdk/telemetrydeck.min.js" data-app-id="43A2ECAF-E4DA-4440-B847-7A1FCE01600C"></script>
+<script type="module" src="noise-meter.js"></script>
+</head>
+<body data-td-test="1" data-td-page="tool-test">
+
+<!-- The tool: scene edge to edge, full viewport height (same block goes into index.html in step 3) -->
+<div id="noise-meter" class="nm" data-assets="assets/tool/">
+  <div class="nm-stage">
+    <div class="nm-scenes">
+      <picture class="nm-scene is-active" data-level="1">
+        <source srcset="assets/tool/scene/city-1.webp" type="image/webp">
+        <img src="assets/tool/scene/city-1.jpg" alt="" width="1024" height="1024" fetchpriority="high">
+      </picture>
+    </div>
+    <div class="nm-chars">
+      <picture class="nm-char is-active" data-state="1">
+        <source srcset="assets/tool/char/cat-1.webp" type="image/webp">
+        <img src="assets/tool/char/cat-1.png" alt="Cat, happy" width="1000" height="1200" fetchpriority="high">
+      </picture>
+    </div>
+    <div class="nm-indicator">
+      <!-- speedometer dial: arc green→red, white needle, no text (≈0.7 KB) -->
+      <svg class="nm-dial" viewBox="0 0 200 130" aria-hidden="true" focusable="false">
+        <defs>
+          <linearGradient id="nm-g" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#3ABF5A"/><stop offset=".45" stop-color="#F2D22B"/>
+            <stop offset=".72" stop-color="#F58A2A"/><stop offset="1" stop-color="#F0423B"/>
+          </linearGradient>
+        </defs>
+        <path d="M26.1 113A75 75 0 1 1 173.9 113" fill="none" stroke="url(#nm-g)" stroke-width="22" stroke-linecap="round"/>
+        <g class="nm-needle" transform="rotate(-100 100 100)">
+          <line x1="100" y1="100" x2="100" y2="48" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+          <path d="M100 34l-9 18h18z" fill="#fff"/>
+          <circle cx="100" cy="100" r="6" fill="#fff"/>
+        </g>
+      </svg>
+    </div>
+    <p class="nm-msg" role="status"></p>
+    <div class="nm-bottom">
+      <button class="nm-play" type="button" aria-label="Start">
+        <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.52.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z"/></svg>
+        <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3.5" width="5" height="17" rx="1.6"/><rect x="14" y="3.5" width="5" height="17" rx="1.6"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="nm-microw"></div>
+</div>
+
+<div class="t-wrap">
+  <h1 style="font-size:1.6rem;margin:12px 0 4px">Noise meter – device test page</h1>
+  <p class="t-note">Internal test page for Step 2 (noindex). Press play, allow the microphone, make noise. Top-left = fullscreen, top-right = settings (character, background, indicator, microphone, sensitivity). Signals go to TelemetryDeck <strong>test mode</strong>.</p>
+
+  <div class="t-pro" id="pro-card">
+    <h2 style="font-size:1.25rem;margin-bottom:6px">Keep Quiet Pro – coming soon</h2>
+    <p>Test stand-in for the Step 3 Pro card. A locked thumbnail click should scroll here and count a pro-click.</p>
+    <button class="btn small" type="button" data-kq-notify>Notify me when it's ready</button>
+    <p data-kq-notify-thanks hidden style="margin-top:10px;font-weight:700">Thanks! Check back in a few weeks.</p>
+  </div>
+
+  <div class="t-log" id="t-log" aria-live="polite"></div>
+</div>
+<script type="module">
+  // Test-only: show tool events on the page so device tests can be read without dev tools.
+  const log = document.getElementById('t-log');
+  const line = (t) => { log.textContent = new Date().toLocaleTimeString() + '  ' + t + '\n' + log.textContent; };
+  const nm = document.getElementById('noise-meter');
+  nm.addEventListener('kq:pro-click', (e) => line('pro-click ' + e.detail.item));
+  new MutationObserver(() => line('level ' + nm.getAttribute('data-level') + ' · indicator ' + nm.getAttribute('data-indicator') +
+    (nm.classList.contains('is-running') ? ' (running)' : ' (stopped)')))
+    .observe(nm, { attributes: true, attributeFilter: ['data-level', 'data-indicator', 'class'] });
+  const msg = nm.querySelector('.nm-msg');
+  new MutationObserver(() => { if (msg.textContent) line('message: ' + msg.textContent); }).observe(msg, { childList: true });
+  line('ua ' + navigator.userAgent);
+  line('secure ' + window.isSecureContext + ' · getUserMedia ' + !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) +
+       ' · wakeLock ' + ('wakeLock' in navigator) + ' · fullscreen ' + !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen));
+</script>
+</body>
+</html>
