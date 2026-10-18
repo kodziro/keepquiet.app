@@ -29,7 +29,7 @@
         <div class="nm-chars"><picture class="nm-char is-active" data-state="1">…cat-1…</picture></div>
         <div class="nm-indicator"><svg class="nm-dial">…<g class="nm-needle">…</g></svg></div>
         <p class="nm-msg" role="status"></p>
-        <div class="nm-bottom"><button class="nm-play" type="button" aria-label="Start">…icons…</button></div>
+        <div class="nm-bottom"><button class="nm-play" type="button" aria-label="Start"><span class="nm-icon">…icons…</span><span class="nm-hint">…pre-play prompt…</span></button></div>
       </div>
       <div class="nm-microw"></div>                       ← mic selector row, filled by this script
     </div>
@@ -107,6 +107,7 @@
   var needle = root.querySelector('.nm-needle');
   var msg = root.querySelector('.nm-msg');
   var playBtn = root.querySelector('.nm-play');
+  var hint = root.querySelector('.nm-hint');
   var micRow = root.querySelector('.nm-microw');
 
   var reducedMotion = false;
@@ -306,8 +307,10 @@
     stream = null; track = null;
   }
 
+  function setHint(text) { if (hint) hint.textContent = text || ''; }
   function setPlayState(on) {
     root.classList.toggle('is-running', on);
+    setHint(on ? '' : PROMPT_TEXT);   // prompt lives in the bottom bar; .nm-msg is for status/errors only
     playBtn.setAttribute('aria-label', on ? 'Pause' : 'Start');
     playBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
   }
@@ -369,7 +372,7 @@
     smoothed = 0;
     showState(1);
     setIndicator(reducedMotion ? STEP_POS[1] : 0);
-    if (reason) setMessage(reason, 'error'); else setMessage(PROMPT_TEXT);
+    if (reason) setMessage(reason, 'error'); else setMessage('');
   }
 
   /* ---------- tool-session: once per running session, bucketed minutes ---------- */
@@ -745,7 +748,6 @@
   }
   applyIndicator(indicatorKind);
   root.setAttribute('data-level', '1');
-  setMessage(PROMPT_TEXT);
   measureAbove();
   root.classList.add('is-ready');
   reportVisit();
