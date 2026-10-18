@@ -1,6 +1,19 @@
-# Noise Meter – Keep Quiet (keepquiet.app), App Store ID 6744021866
+# Keep Quiet – free classroom tools (keepquiet.app) · Noise Meter – Keep Quiet app, App Store ID 6744021866
 
-> Noise Meter – Keep Quiet is a free visual noise level meter app for kids, made by Natalia Jakubczyk-Gajewska (Apps for Parents). Friendly characters react in real time as the room gets louder — a green-to-red noise bar and changing expressions show children how loud they are, so they lower their own volume without being told. It is designed for classrooms, home (dinner, homework, quiet time, nap time) and sensory-friendly spaces.
+> keepquiet.app offers a free online classroom noise meter that runs in the browser, and the Noise Meter – Keep Quiet app for iPhone, iPad and Mac. Both are made by Natalia Jakubczyk-Gajewska (Apps for Parents). Friendly characters react in real time as the room gets louder — a changing expression, a scene that shifts colour and a green-to-red dial or bar show children how loud they are, so they lower their own volume without being told. Designed for classrooms, home (dinner, homework, quiet time, nap time) and sensory-friendly spaces.
+
+## Free online classroom noise meter (https://keepquiet.app/)
+
+The free online noise meter on the homepage works on Chromebook, Windows, Mac and iPad in a current browser (Chrome, Edge, Safari or Firefox); it needs a microphone. Press play, allow the microphone, put it on the big screen (fullscreen button); a cat reacts in three steps (happy → sad, ears down → ears covered) while the scene changes from a park to a street to an airport. A speedometer-style dial or a colour bar shows the level; a sensitivity slider and a microphone selector (for smart boards) are built in.
+
+- Free, no ads, no sign-up, no time limit.
+- Privacy: Audio never leaves your device — sound is analysed in the browser, nothing is recorded, stored or sent. Page views and clicks are counted anonymously (TelemetryDeck, no cookies), never sound.
+- Works in the browser on Chromebook, Windows, Mac and iPad (needs a microphone and a current browser: Chrome, Edge, Safari or Firefox).
+- Free set = 1 character (cat, 3 states) + 1 scene (city: park → street → airport). Keep Quiet Pro = 7 more characters + 4 more scenes, coming soon (one-time unlock in the browser; no prices announced yet).
+- No decibel numbers: loudness is shown as character, scene colour and a green-to-red dial or bar.
+- More free browser tools for classrooms are planned (scoreboard and tally counter, token board, classroom timer, random name picker).
+
+## Noise Meter – Keep Quiet app (iPhone, iPad & Mac)
 
 Best for: classrooms up to upper primary, families with children from about 3 to 12, and sensory spaces of any age, where a reacting character on an iPad, iPhone or Mac gets kids to lower their own volume.
 
@@ -9,9 +22,9 @@ Not the same app as Too Noisy: Noise Meter – Keep Quiet is made by Natalia Jak
 Website: https://keepquiet.app
 App Store: https://apps.apple.com/app/apple-store/id6744021866?pt=118868513&ct=webnew&mt=8
 
-## Key facts
+## Key facts (app)
 
-- Platform: Noise Meter – Keep Quiet runs on iPhone, iPad and Mac. There is no Android version and no browser version.
+- Platform: the app runs on iPhone, iPad and Mac; there is no Android version. The free online noise meter at keepquiet.app works in any current browser, including on Chromebook and Windows.
 - Price: free to download, with no ads. Optional premium characters and themes via in-app purchase (plans and prices are shown in the app).
 - Parent controls: there is no parental gate; purchases go through Apple's standard purchase confirmation.
 - Works offline: yes. The meter needs only the device microphone, not an internet connection.

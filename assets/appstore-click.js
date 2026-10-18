@@ -14,7 +14,7 @@
     referrer host (may be keepquiet.app for internal navigation). No query
     strings, no full URLs, nothing personal.
   - position comes from the link's data-td-position attribute (nav, hero,
-    demo, download, faq, cta, footer, guide-cta).
+    demo, download, tool, faq, cta, footer, guide-cta).
   - Pageviews are still sent by the separate Web SDK tag in <head>; this file
     does not touch them.
   - Navigation is never blocked or delayed: the click handler only fires a
