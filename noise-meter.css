@@ -56,7 +56,6 @@
 .nm-start:hover{background:rgba(0,0,0,.7);transform:translateY(-1px)}
 .nm-start:focus-visible{outline:4px solid #fff;outline-offset:4px}
 .nm-start:disabled{opacity:.6;cursor:wait;transform:none}
-.nm-overlay-note{margin:14px 0 0;color:#fff;font:500 1rem/1.4 var(--nm-font);text-shadow:0 1px 4px rgba(0,0,0,.45)}
 .nm.is-running .nm-overlay{opacity:0;visibility:hidden;pointer-events:none}
 
 /* messages (status / errors only) sit above the dial so they never cover dial or character; never catch clicks */
@@ -66,25 +65,41 @@
 .nm-msg:empty{display:none}
 .nm-msg.is-error{background:rgba(240,66,59,.95)}
 
-/* settings sheet (app: light sheet, X top-left, bold labels, grey rounded thumbs, orange selection) */
-.nm-sheet{position:absolute;left:0;right:0;top:0;bottom:0;z-index:6;background:#fff;border-radius:28px 28px 0 0;
-  padding:16px 18px 24px;overflow:auto;color:var(--nm-ink);box-shadow:0 -8px 30px rgba(0,0,0,.25)}
-.nm-close{position:static;background:#DCDCDC;color:#555;margin-bottom:6px}
-.nm-close:hover{background:#CFCFCF}
-.nm-h{display:block;font:700 1.05rem var(--nm-font);margin:16px 0 10px}
-.nm-grid{display:flex;flex-wrap:wrap;gap:10px}
-.nm-thumb{position:relative;width:76px;height:76px;padding:4px;background:#D3D3D3;border:3px solid transparent;border-radius:16px;cursor:pointer;
+/* settings panel (bouncyballs-style): translucent dark panel over the right of the scene; visible while
+   stopped/paused on wide screens, slides out while running; toggled by the top-right sliders button.
+   Under 700 px it is a bottom sheet, opened only by the button. */
+.nm-settings-btn{z-index:7}
+.nm-panel{position:absolute;top:0;right:0;bottom:0;z-index:6;width:300px;max-width:85%;background:rgba(0,0,0,.45);color:#fff;
+  padding:70px 16px 20px;overflow:auto;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
+  transform:translateX(100%);visibility:hidden;transition:transform .3s ease,visibility .3s}
+.nm.is-panel-open .nm-panel{transform:none;visibility:visible}
+.nm-h{display:block;color:#fff;font:700 .95rem var(--nm-font);margin:14px 0 8px}
+.nm-h:first-child{margin-top:0}
+.nm-row{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:thin}
+.nm-thumb{position:relative;flex:none;width:60px;height:60px;padding:3px;background:rgba(255,255,255,.18);border:3px solid transparent;border-radius:12px;cursor:pointer;
   display:flex;align-items:center;justify-content:center;overflow:hidden}
-.nm-thumb[aria-pressed="true"]{border-color:var(--nm-accent);background:#EDEDED}
-.nm-thumb:hover{background:#C4C4C4}
-.nm-thumb img{max-height:100%;max-width:100%;width:auto;height:auto;object-fit:contain;border-radius:10px}
+.nm-thumb[aria-pressed="true"]{border-color:var(--nm-accent);background:rgba(255,255,255,.34)}
+.nm-thumb:hover{background:rgba(255,255,255,.3)}
+.nm-thumb img{max-height:100%;max-width:100%;width:auto;height:auto;object-fit:contain;border-radius:8px}
 .nm-thumb.is-locked img{opacity:.6}
-.nm-lock{position:absolute;right:5px;bottom:5px;width:22px;height:22px;border-radius:50%;background:var(--nm-ink);display:flex;align-items:center;justify-content:center}
-.nm-lock svg{width:14px;height:14px}
-.nm-ind .nm-thumb{width:150px;height:76px}
+.nm-lock{position:absolute;right:3px;bottom:3px;width:20px;height:20px;border-radius:50%;background:var(--nm-ink);display:flex;align-items:center;justify-content:center}
+.nm-lock svg{width:12px;height:12px}
+.nm-ind-details{margin-top:6px}
+.nm-ind-summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px}
+.nm-ind-summary::-webkit-details-marker{display:none}
+.nm-ind-summary::before{content:"";width:0;height:0;border:5px solid transparent;border-left:7px solid #fff;margin-left:2px;transition:transform .15s}
+.nm-ind-details[open] .nm-ind-summary::before{transform:rotate(90deg)}
+.nm-ind .nm-thumb{width:110px;height:56px}
 .nm-ind .nm-thumb svg{width:100%;height:100%}
 .nm-select{display:block;width:100%;max-width:26rem;font:600 1rem var(--nm-font);color:var(--nm-ink);background:#F2F2F2;border:0;border-radius:12px;padding:.6rem .8rem}
+.nm-panel .nm-select{background:rgba(255,255,255,.18);color:#fff}
+.nm-panel .nm-select option{color:#111;background:#fff}
 .nm-range{display:block;width:100%;max-width:26rem;accent-color:var(--nm-accent);margin:4px 0 8px}
+@media (max-width:699px){
+  .nm-panel{top:auto;left:0;right:0;bottom:0;width:auto;max-width:none;max-height:55%;border-radius:20px 20px 0 0;padding:16px 16px 22px;
+    transform:translateY(100%)}
+  .nm.is-panel-open .nm-panel{transform:none}
+}
 
 /* plain microphone row under the stage (smart boards: must be easy to find) */
 .nm-microw{display:flex;align-items:center;gap:12px;padding:12px 16px;background:#fff;border-top:1px solid #DDE7F0}
@@ -101,12 +116,10 @@
   .nm-indicator{width:min(62vw,260px);bottom:15%}
   .nm-round{width:42px;height:42px;top:14px}
   .nm-fs{left:14px}.nm-settings-btn{right:14px}
-  .nm-thumb{width:64px;height:64px}
-  .nm-ind .nm-thumb{width:128px;height:64px}
 }
 /* reduced motion: no cross-fade, no marker glide; the needle steps per level (set by JS) */
 @media (prefers-reduced-motion:reduce){
-  .nm-scene,.nm-bar-marker,.nm-overlay,.nm-start{transition:none}
+  .nm-scene,.nm-bar-marker,.nm-overlay,.nm-start,.nm-panel,.nm-ind-summary::before{transition:none}
 }
-.nm-reduced .nm-scene,.nm-reduced .nm-bar-marker,.nm-reduced .nm-overlay,.nm-reduced .nm-start{transition:none}
+.nm-reduced .nm-scene,.nm-reduced .nm-bar-marker,.nm-reduced .nm-overlay,.nm-reduced .nm-start,.nm-reduced .nm-panel{transition:none}
 .nm :focus-visible{outline:3px solid var(--nm-accent);outline-offset:2px}

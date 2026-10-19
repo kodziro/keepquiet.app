@@ -38,7 +38,6 @@
 .nm-overlay{position:absolute;inset:0;z-index:4;background:rgba(0,0,0,.25)}
 .nm-overlay-inner{position:absolute;left:0;right:0;top:62%;transform:translateY(-50%);text-align:center;padding:0 16px}
 .nm-start{display:inline-flex;align-items:center;justify-content:center;min-height:var(--nm-start-h);padding:0 2em;border:0;border-radius:999px;background:rgba(0,0,0,.55);color:#fff;font:600 var(--nm-start-f) var(--nm-font);cursor:pointer}
-.nm-overlay-note{margin:14px 0 0;color:#fff;font:500 1rem/1.4 var(--nm-font)}
 .nm.is-running .nm-overlay{opacity:0;visibility:hidden;pointer-events:none}
 .nm-msg:empty{display:none}
 @media (max-width:560px){.nm-char{height:52%;bottom:19%}.nm-indicator{width:min(62vw,260px);bottom:15%}}
@@ -47,7 +46,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css?v=20261018c">
-<link rel="stylesheet" href="noise-meter.css?v=20261018b">
+<link rel="stylesheet" href="noise-meter.css?v=20261019a">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -126,7 +125,7 @@
 </script>
 <script src="https://cdn.telemetrydeck.com/websdk/telemetrydeck.min.js" data-app-id="43A2ECAF-E4DA-4440-B847-7A1FCE01600C"></script>
 <script type="module" src="assets/appstore-click.js"></script>
-<script type="module" src="noise-meter.js?v=20261018b"></script>
+<script type="module" src="noise-meter.js?v=20261019a"></script>
 </head>
 <body>
 <div class="meter-strip" aria-hidden="true"></div>
@@ -190,7 +189,6 @@
         <div class="nm-overlay">
           <div class="nm-overlay-inner">
             <button class="nm-start" type="button" aria-label="Start the noise meter">▶ Start the noise meter</button>
-            <p class="nm-overlay-note">Your browser will ask for the microphone once.</p>
           </div>
         </div>
         <div class="nm-bottom">
@@ -465,7 +463,7 @@
     </div>
   </div>
   <div class="wrap foot-note">
-    <p>© 2026 Natalia Jakubczyk-Gajewska. Apple, the Apple logo, iPhone, iPad and Mac are trademarks of Apple Inc. App Store is a service mark of Apple Inc. Last updated: <time datetime="2026-10-18">October 18, 2026</time>.</p>
+    <p>© 2026 Natalia Jakubczyk-Gajewska. Apple, the Apple logo, iPhone, iPad and Mac are trademarks of Apple Inc. App Store is a service mark of Apple Inc. Last updated: <time datetime="2026-10-19">October 19, 2026</time>.</p>
   </div>
 </footer>
 </body>

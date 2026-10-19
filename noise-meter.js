@@ -16,7 +16,7 @@
   - Privacy: audio never leaves the device — sound is analysed in the
     browser, nothing is recorded, stored or sent. The only network calls are
     TelemetryDeck counts (tool-start, tool-session, visit, pro-view, pro-click,
-    mic-error, mic-switch, fullscreen) with no audio, no IDs and no free text —
+    setting-change, mic-error, mic-switch, fullscreen) with no audio, no IDs and no free text —
     every value is a bucketed string.
   - AudioContext is created and resumed only inside the first play click
     (iPad Safari). AGC / noise suppression / echo cancellation are off so
@@ -31,15 +31,15 @@
         <p class="nm-msg" role="status"></p>
         <div class="nm-overlay"><div class="nm-overlay-inner">
           <button class="nm-start" type="button">▶ Start the noise meter</button>   ← "▶ Resume" after a pause
-          <p class="nm-overlay-note">Your browser will ask for the microphone once.</p>
-        </div></div>                                      ← tint + button + line; hidden while running
+        </div></div>                                      ← tint + one button; hidden while running
         <div class="nm-bottom"><button class="nm-play" type="button" aria-label="Pause">…pause icon…</button></div>   ← shown only while running
       </div>
       <div class="nm-microw"></div>                       ← mic selector row, filled by this script
     </div>
   This script adds: round fullscreen button (top-left), round settings button
-  (top-right), the settings sheet (Character, Background, Indicator,
-  Microphone, Sensitivity), the bar indicator, and the mic row.
+  (top-right), the right-side settings panel (Character, Background,
+  Indicator, Microphone, Sensitivity; bottom sheet under 700 px), the bar
+  indicator, and the mic row.
   Only cat-1 + city-1 are in the HTML (first paint). States 2–3 and scene
   levels 2–3 are added as <picture> elements after start, so the browser
   picks WebP or the fallback itself — PNG/JPEG fallbacks are never preloaded
@@ -348,9 +348,11 @@
     getMic(lsGet(LS_MIC) || '').then(function (s) {
       attachStream(s);
       running = true; everStarted = true;
+      panelOpen = false;
       smoothed = 0;
       sessionStart = Date.now(); sessionReported = false;
       setPlayState(true);
+      applyPanel();
       setBusy(false);
       setMessage('');
       preloadAfterStart();
@@ -374,6 +376,7 @@
     releaseWakeLock();
     if (ctx && ctx.state === 'running') ctx.suspend().catch(function () {});
     setPlayState(false);
+    applyPanel();
     setBusy(false);
     smoothed = 0;
     showState(1);
@@ -508,14 +511,20 @@
     if (wakeLock) { wakeLock.release().catch(function () {}); wakeLock = null; }
   }
 
-  /* ---------- controls: round buttons, settings sheet, mic row ---------- */
-  var fsBtn, settingsBtn, sheet, closeBtn, sheetBuilt = false;
-  var micSelects = [], sensSlider;
+  /* ---------- controls: round buttons, right-side settings panel, mic row ---------- */
+  // Panel (bouncyballs-style): translucent dark panel over the right of the scene (bottom sheet under
+  // 700 px). Wide screens: visible whenever the meter is stopped/paused, slides out while running; the
+  // top-right sliders button toggles it while running (and on narrow screens, always) without pausing.
+  var fsBtn, settingsBtn, panel, panelOpen = false;
+  var micSelects = [], sensSlider, indSummary;
+  var narrowMq = null;
+  try { narrowMq = window.matchMedia('(max-width: 699px)'); } catch (e) {}
+  function isNarrow() { return !!(narrowMq && narrowMq.matches); }
 
   function el(tag, cls, html) {
     var n = document.createElement(tag);
     if (cls) n.className = cls;
-    if (html) n.innerHTML = html;   // trusted constants only (ICON.*)
+    if (html) n.innerHTML = html;   // trusted constants only (ICON.*) and fixed labels
     return n;
   }
   function roundButton(cls, label, icon) {
@@ -528,9 +537,9 @@
     var s = document.createElement('select');
     s.className = 'nm-select';
     s.setAttribute('aria-label', 'Microphone');
-    var o = document.createElement('option'); o.value = ''; o.textContent = 'Default microphone (press play to list)';
+    var o = document.createElement('option'); o.value = ''; o.textContent = 'Default microphone (press start to list)';
     s.appendChild(o);
-    s.addEventListener('change', function () { switchMic(s.value); });
+    s.addEventListener('change', function () { switchMic(s.value); signal('setting-change', { what: 'mic' }); });
     micSelects.push(s);
     return s;
   }
@@ -540,16 +549,16 @@
     fsBtn.addEventListener('click', toggleFullscreen);
     if (!fullscreenSupported()) fsBtn.hidden = true;
     settingsBtn = roundButton('nm-settings-btn', 'Settings', ICON.sliders);
-    settingsBtn.setAttribute('aria-expanded', 'false');
-    settingsBtn.setAttribute('aria-controls', 'nm-settings');
-    settingsBtn.addEventListener('click', function () { if (sheet && !sheet.hidden) closeSheet(); else openSheet(); });
+    settingsBtn.setAttribute('aria-controls', 'nm-panel');
+    settingsBtn.addEventListener('click', function () { panelOpen = !panelVisible(); applyPanel(); });
     stage.appendChild(fsBtn);
     stage.appendChild(settingsBtn);
 
-    sheet = el('div', 'nm-sheet');
-    sheet.id = 'nm-settings'; sheet.hidden = true;
-    sheet.setAttribute('role', 'dialog'); sheet.setAttribute('aria-label', 'Settings'); sheet.setAttribute('aria-modal', 'false');
-    stage.appendChild(sheet);
+    panel = el('div', 'nm-panel');
+    panel.id = 'nm-panel';
+    panel.setAttribute('role', 'region'); panel.setAttribute('aria-label', 'Settings');
+    stage.appendChild(panel);
+    buildPanel();
 
     if (micRow) {
       var lab = el('label', 'nm-microw-label');
@@ -557,59 +566,78 @@
       lab.appendChild(makeMicSelect());
       micRow.appendChild(lab);
     }
-    root.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && sheet && !sheet.hidden) closeSheet(); });
+    root.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Escape' && panelVisible() && (running || isNarrow())) { panelOpen = false; applyPanel(); settingsBtn.focus(); }
+    });
+    if (narrowMq) {
+      if (narrowMq.addEventListener) narrowMq.addEventListener('change', applyPanel);
+      else if (narrowMq.addListener) narrowMq.addListener(applyPanel);
+    }
+    applyPanel();
   }
 
-  function buildSheet() {
-    sheetBuilt = true;
-    closeBtn = roundButton('nm-close', 'Close settings', ICON.close);
-    closeBtn.addEventListener('click', closeSheet);
-    sheet.appendChild(closeBtn);
+  // Wide screens: open while stopped, or when toggled while running. Narrow: only when toggled.
+  function panelVisible() { return isNarrow() ? panelOpen : (!running || panelOpen); }
+  function applyPanel() {
+    var vis = panelVisible();
+    root.classList.toggle('is-panel-open', vis);
+    if (settingsBtn) settingsBtn.setAttribute('aria-expanded', vis ? 'true' : 'false');
+    if (panel) { panel.setAttribute('aria-hidden', vis ? 'false' : 'true'); try { panel.inert = !vis; } catch (e) {} }
+  }
 
-    sheet.appendChild(el('h3', 'nm-h', 'Character'));
-    var charGrid = el('div', 'nm-grid'); charGrid.setAttribute('role', 'group'); charGrid.setAttribute('aria-label', 'Character');
-    fillGrid(charGrid, 'char', CHARACTERS);
-    sheet.appendChild(charGrid);
+  function buildPanel() {
+    panel.appendChild(el('h3', 'nm-h', 'Character'));
+    var charRow = el('div', 'nm-row'); charRow.setAttribute('role', 'group'); charRow.setAttribute('aria-label', 'Character');
+    fillGrid(charRow, 'char', CHARACTERS);
+    panel.appendChild(charRow);
 
-    sheet.appendChild(el('h3', 'nm-h', 'Background'));
-    var sceneGrid = el('div', 'nm-grid'); sceneGrid.setAttribute('role', 'group'); sceneGrid.setAttribute('aria-label', 'Background');
-    fillGrid(sceneGrid, 'scene', SCENES);
-    sheet.appendChild(sceneGrid);
+    panel.appendChild(el('h3', 'nm-h', 'Background'));
+    var sceneRow = el('div', 'nm-row'); sceneRow.setAttribute('role', 'group'); sceneRow.setAttribute('aria-label', 'Background');
+    fillGrid(sceneRow, 'scene', SCENES);
+    panel.appendChild(sceneRow);
 
-    sheet.appendChild(el('h3', 'nm-h', 'Indicator'));
-    var indGrid = el('div', 'nm-grid nm-ind'); indGrid.setAttribute('role', 'group'); indGrid.setAttribute('aria-label', 'Indicator');
-    [['bar', 'Bar', ICON.miniBar], ['dial', 'Dial', ICON.miniDial]].forEach(function (opt) {
+    var det = el('details', 'nm-ind-details');
+    indSummary = el('summary', 'nm-h nm-ind-summary', 'Indicator: ' + (indicatorKind === 'bar' ? 'Bar' : 'Dial'));
+    det.appendChild(indSummary);
+    var indRow = el('div', 'nm-row nm-ind'); indRow.setAttribute('role', 'group'); indRow.setAttribute('aria-label', 'Indicator');
+    [['dial', 'Dial', ICON.miniDial], ['bar', 'Bar', ICON.miniBar]].forEach(function (opt) {
       var b = el('button', 'nm-thumb nm-ind-opt', opt[2]);
       b.type = 'button';
       b.setAttribute('aria-label', opt[1]);
       b.setAttribute('aria-pressed', indicatorKind === opt[0] ? 'true' : 'false');
       b.addEventListener('click', function () {
+        var changed = indicatorKind !== opt[0];
         applyIndicator(opt[0]);
-        var all = indGrid.querySelectorAll('[aria-pressed]');
+        var all = indRow.querySelectorAll('[aria-pressed]');
         for (var i = 0; i < all.length; i++) all[i].setAttribute('aria-pressed', 'false');
         b.setAttribute('aria-pressed', 'true');
+        indSummary.textContent = 'Indicator: ' + opt[1];
+        if (changed) signal('setting-change', { what: 'indicator' });
       });
-      indGrid.appendChild(b);
+      indRow.appendChild(b);
     });
-    sheet.appendChild(indGrid);
+    det.appendChild(indRow);
+    panel.appendChild(det);
 
-    var micLab = el('h3', 'nm-h', 'Microphone');
-    sheet.appendChild(micLab);
-    sheet.appendChild(makeMicSelect());
+    panel.appendChild(el('h3', 'nm-h', 'Microphone'));
+    panel.appendChild(makeMicSelect());
     if (running) fillMicList();
 
     var sensId = 'nm-sens';
     var sensLab = el('label', 'nm-h', 'Sensitivity'); sensLab.setAttribute('for', sensId);
-    sheet.appendChild(sensLab);
+    panel.appendChild(sensLab);
     sensSlider = document.createElement('input');
     sensSlider.type = 'range'; sensSlider.id = sensId; sensSlider.className = 'nm-range';
     sensSlider.min = '50'; sensSlider.max = '200'; sensSlider.step = '5';
     sensSlider.value = String(Math.round(sensitivity * 100));
-    sensSlider.addEventListener('input', function () {
+    sensSlider.addEventListener('input', function () {        // live while dragging
       sensitivity = parseInt(sensSlider.value, 10) / 100;
       lsSet(LS_SENS, String(sensitivity));
     });
-    sheet.appendChild(sensSlider);
+    sensSlider.addEventListener('change', function () {       // once per drag end
+      signal('setting-change', { what: 'sensitivity' });
+    });
+    panel.appendChild(sensSlider);
   }
 
   function thumbPicture(kind, item) {
@@ -631,32 +659,20 @@
       if (!item.free) b.appendChild(el('span', 'nm-lock', ICON.lock));
       b.addEventListener('click', function () {
         if (!item.free) { proClick(kind + '-' + item.id); return; }
+        var changed = b.getAttribute('aria-pressed') !== 'true';
         var all = grid.querySelectorAll('[aria-pressed]');
         for (var i = 0; i < all.length; i++) all[i].setAttribute('aria-pressed', 'false');
         b.setAttribute('aria-pressed', 'true');
+        if (changed) signal('setting-change', { what: kind === 'char' ? 'character' : 'scene' });
       });
       grid.appendChild(b);
     });
   }
 
-  function openSheet() {
-    if (!sheetBuilt) buildSheet();     // thumbnails load only now
-    sheet.hidden = false;
-    settingsBtn.setAttribute('aria-expanded', 'true');
-    root.classList.add('is-settings');
-    if (closeBtn) closeBtn.focus();
-  }
-  function closeSheet() {
-    sheet.hidden = true;
-    settingsBtn.setAttribute('aria-expanded', 'false');
-    root.classList.remove('is-settings');
-    settingsBtn.focus();
-  }
-
   /* ---------- Pro card ---------- */
   function proClick(item) {
     signal('pro-click', { item: item });
-    closeSheet();
+    panelOpen = false; applyPanel();
     var card = document.getElementById('pro-card');
     if (!card) return;
     if (isFullscreen()) exitFullscreen();
