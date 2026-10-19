@@ -7,7 +7,7 @@
 <title>Noise meter – test page (not public)</title>
 <link rel="icon" href="assets/icon.jpg">
 <link rel="stylesheet" href="styles.css?v=20261018c">
-<link rel="stylesheet" href="noise-meter.css?v=20261019b">
+<link rel="stylesheet" href="noise-meter.css?v=20261019h">
 <style>
   body{background:#fff}
   .t-wrap{max-width:1080px;margin:0 auto;padding:16px 20px 60px}
@@ -19,12 +19,12 @@
 </style>
 <!-- TelemetryDeck pageviews, same tag as every page; signals from the tool run in TEST MODE here (body data-td-test="1") -->
 <script src="https://cdn.telemetrydeck.com/websdk/telemetrydeck.min.js" data-app-id="43A2ECAF-E4DA-4440-B847-7A1FCE01600C"></script>
-<script type="module" src="noise-meter.js?v=20261019b"></script>
+<script type="module" src="noise-meter.js?v=20261019h"></script>
 </head>
 <body data-td-test="1" data-td-page="tool-test">
 
 <!-- The tool: scene edge to edge, full viewport height (same block goes into index.html in step 3) -->
-<div id="noise-meter" class="nm" data-assets="assets/tool/">
+<div id="noise-meter" class="nm is-fresh" data-assets="assets/tool/">
   <div class="nm-stage">
     <div class="nm-scenes">
       <picture class="nm-scene is-active" data-level="1">
@@ -57,9 +57,11 @@
     </div>
     <p class="nm-msg" role="status"></p>
     <div class="nm-overlay">
-      <div class="nm-overlay-inner">
-        <button class="nm-start" type="button" aria-label="Start the noise meter">▶ Start the noise meter</button>
+      <div class="nm-stack">
+        <h1><span class="kicker">Test page</span> <span class="big">Noise meter</span></h1>
+        <button class="nm-start" type="button" aria-label="Start the noise meter">▶ Start</button>
       </div>
+      <p class="nm-privacy"><a href="#t-log">🔒 Privacy: sound is analysed in your browser, nothing is recorded or sent</a></p>
     </div>
     <div class="nm-bottom">
       <button class="nm-play" type="button" aria-label="Pause">
@@ -71,8 +73,8 @@
 </div>
 
 <div class="t-wrap">
-  <h1 style="font-size:1.6rem;margin:12px 0 4px">Noise meter – device test page</h1>
-  <p class="t-note">Internal test page for Step 2 (noindex). Press play, allow the microphone, make noise. Top-left = fullscreen, top-right = settings (character, background, indicator, microphone, sensitivity). Signals go to TelemetryDeck <strong>test mode</strong> and are listed in the log below (tool-start, tool-session, visit, pro-view, pro-click, mic-error, mic-switch, fullscreen).</p>
+  <h2 style="font-size:1.6rem;margin:12px 0 4px">Noise meter – device test page</h2>
+  <p class="t-note">Internal test page for Step 2 (noindex). Press START, allow the microphone, make noise. Pause shows the settings panel (character, background, indicator, microphone, sensitivity) and the Resume pill; fullscreen is top-left after the first start. Signals go to TelemetryDeck <strong>test mode</strong> and are listed in the log below (tool-start, tool-session, visit, pro-view, pro-click, mic-error, mic-switch, fullscreen).</p>
 
   <div class="t-pro" id="pro-card">
     <h2 style="font-size:1.25rem;margin-bottom:6px">Keep Quiet Pro – coming soon</h2>

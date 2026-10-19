@@ -23,29 +23,33 @@
     the meter reflects the room, not the browser's voice processing.
 
   Markup contract (tool-test.html; index.html uses the same block):
-    <div id="noise-meter" class="nm" data-assets="assets/tool/">
+    <div id="noise-meter" class="nm is-fresh" data-assets="assets/tool/">   ← is-fresh until the first successful start
       <div class="nm-stage">                              ← goes fullscreen
         <div class="nm-scenes"><picture class="nm-scene is-active" data-level="1">…city-1…</picture></div>
         <div class="nm-chars"><picture class="nm-char is-active" data-state="1">…cat-1…</picture></div>
         <div class="nm-indicator"><svg class="nm-dial">…<g class="nm-needle">…</g></svg></div>
         <p class="nm-msg" role="status"></p>
-        <div class="nm-overlay"><div class="nm-overlay-inner">
-          <button class="nm-start" type="button">▶ Start the noise meter</button>   ← "▶ Resume" after a pause
-        </div></div>                                      ← tint + one button; hidden while running
+        <div class="nm-overlay">
+          <div class="nm-stack">                        ← fresh: text column left (≥ 700 px), cat + dial stay centred; paused: just the pill
+            <h1><span class="kicker">…</span> <span class="big">…</span></h1>   ← the page's heading; .sr-only once started
+            <button class="nm-start" type="button">▶ Start</button>   ← "▶ Resume" after a pause
+          </div>
+          <p class="nm-privacy"><a href="#faq-record">🔒 Privacy: …</a></p>   ← hidden once started
+        </div>                                            ← tint + stack; faded out while running
         <div class="nm-bottom"><button class="nm-play" type="button" aria-label="Pause">…pause icon…</button></div>   ← shown only while running
       </div>
       <div class="nm-microw"></div>                       ← mic selector row, filled by this script
     </div>
   This script adds: round fullscreen button (top-left), the settings panel
   (Character, Background, Indicator, Microphone, Sensitivity — right side,
-  bottom sheet under 700 px; shown while stopped/paused, hidden while
-  running, no toggle), the bar indicator, and the mic row.
+  bottom sheet under 700 px; shown while paused, hidden before the first
+  start and while running, no toggle), the bar indicator, and the mic row.
   Only cat-1 + city-1 are in the HTML (first paint). States 2–3 and scene
   levels 2–3 are added as <picture> elements after start, so the browser
   picks WebP or the fallback itself — PNG/JPEG fallbacks are never preloaded
   by hand. Thumbnails are created only when the settings sheet first opens.
 
-  Stage height: --nm-above (px above the stage: header + hero) is measured on
+  Stage height: --nm-above (px above the stage: the site header) is measured on
   load/resize and set on the root; CSS makes the stage max(480px, 100svh - that).
   Every signal is also dispatched as a "kq:signal" CustomEvent on the root
   (detail {type, payload}) so tool-test.html can log it.
@@ -56,6 +60,10 @@
     [data-kq-notify]          → "Notify me" button: counted pro-click (item "notify"),
                                 then shows [data-kq-notify-thanks]
     body[data-td-test="1"]    → TelemetryDeck test mode (used by tool-test.html)
+    ?test=1 in the URL        → TelemetryDeck test mode on any page (live checks without
+                                polluting the data; appstore-click.js honours it too)
+    details[id] + URL hash   → a <details> targeted by the hash (e.g. the overlay's privacy
+                                link → #faq-record) is opened on load and on hashchange
 */
 (function () {
   'use strict';
@@ -110,6 +118,7 @@
   var msg = root.querySelector('.nm-msg');
   var playBtn = root.querySelector('.nm-play');
   var startBtn = root.querySelector('.nm-start');
+  var stackH1 = root.querySelector('.nm-stack h1');
   var everStarted = false;
   var micRow = root.querySelector('.nm-microw');
 
@@ -147,6 +156,7 @@
   }
   function isTestMode() {
     if (document.body && document.body.getAttribute('data-td-test') === '1') return true;
+    try { if (new URLSearchParams(location.search).get('test') === '1') return true; } catch (e) {}
     return /^localhost$|^127(\.\d+){0,2}\.\d+$|^\[::1?]$/.test(location.hostname) || location.protocol === 'file:';
   }
   function signal(type, payload) {
@@ -313,9 +323,10 @@
   function setBusy(busy) { playBtn.disabled = busy; if (startBtn) startBtn.disabled = busy; }
   function setPlayState(on) {
     root.classList.toggle('is-running', on);   // CSS: overlay fades out, bottom bar (pause) appears
+    root.classList.toggle('is-fresh', !everStarted);   // CSS: pre-start stack vs. paused "Resume" pill
+    if (stackH1) stackH1.classList.toggle('sr-only', everStarted);   // heading stays in the DOM, visually hidden once started
     if (startBtn && !on) {
-      var label = everStarted ? '\u25B6 Resume' : '\u25B6 Start the noise meter';
-      startBtn.textContent = label;
+      startBtn.textContent = everStarted ? '\u25B6 Resume' : '\u25B6 Start';   // CSS uppercases the fresh label
       startBtn.setAttribute('aria-label', everStarted ? 'Resume the noise meter' : 'Start the noise meter');
     }
   }
@@ -559,16 +570,16 @@
     applyPanel();
   }
 
-  // Panel = stopped/paused state only (CSS slides it out via .is-panel-open).
+  // Panel = paused state only (after the first start; CSS slides it out via .is-panel-open).
   function applyPanel() {
-    var vis = !running;
+    var vis = !running && everStarted;
     root.classList.toggle('is-panel-open', vis);
     if (panel) { panel.setAttribute('aria-hidden', vis ? 'false' : 'true'); try { panel.inert = !vis; } catch (e) {} }
   }
 
   function buildPanel() {
     panel.appendChild(el('h3', 'nm-h', 'Character'));
-    var charGrid = el('div', 'nm-grid'); charGrid.setAttribute('role', 'group'); charGrid.setAttribute('aria-label', 'Character');
+    var charGrid = el('div', 'nm-grid nm-grid-char'); charGrid.setAttribute('role', 'group'); charGrid.setAttribute('aria-label', 'Character');
     fillGrid(charGrid, 'char', CHARACTERS);
     panel.appendChild(charGrid);
 
@@ -580,7 +591,7 @@
     panel.appendChild(el('h3', 'nm-h', 'Indicator'));
     var indGrid = el('div', 'nm-grid nm-ind'); indGrid.setAttribute('role', 'group'); indGrid.setAttribute('aria-label', 'Indicator');
     [['dial', 'Dial', ICON.miniDial], ['bar', 'Bar', ICON.miniBar]].forEach(function (opt) {
-      var b = el('button', 'nm-thumb nm-ind-opt', opt[2] + '<span class="nm-thumb-cap">' + opt[1] + '</span>');
+      var b = el('button', 'nm-thumb nm-ind-opt', opt[2]);   // preview only; the name is the aria-label
       b.type = 'button';
       b.setAttribute('aria-label', opt[1]);
       b.setAttribute('aria-pressed', indicatorKind === opt[0] ? 'true' : 'false');
@@ -735,8 +746,18 @@
   document.addEventListener('fullscreenchange', onFsChange);
   document.addEventListener('webkitfullscreenchange', onFsChange);
 
+  /* ---------- hash → open the targeted FAQ <details> (privacy link on the overlay) ---------- */
+  function openHashDetails() {
+    var id = (location.hash || '').slice(1);
+    if (!id) return;
+    var d = document.getElementById(id);
+    if (d && d.tagName === 'DETAILS') d.open = true;
+  }
+  window.addEventListener('hashchange', openHashDetails);
+
   /* ---------- init ---------- */
   buildControls();
+  openHashDetails();
   playBtn.addEventListener('click', function () { if (running) stop(); });
   if (startBtn) startBtn.addEventListener('click', function () { if (!running) start(); });
   setPlayState(false);

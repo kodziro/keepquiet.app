@@ -13,8 +13,8 @@
     "www.google.com"), else "none". path is the page path, referrer the raw
     referrer host (may be keepquiet.app for internal navigation). No query
     strings, no full URLs, nothing personal.
-  - position comes from the link's data-td-position attribute (nav, hero,
-    demo, download, tool, faq, cta, footer, guide-cta).
+  - position comes from the link's data-td-position attribute (nav, tool, app,
+    faq, cta, footer, guide-cta; older pages: hero, demo, download).
   - Pageviews are still sent by the separate Web SDK tag in <head>; this file
     does not touch them.
   - Navigation is never blocked or delayed: the click handler only fires a
@@ -61,6 +61,8 @@
   }
 
   function isTestMode() {
+    // ?test=1 on any page = TelemetryDeck test mode (same switch as noise-meter.js)
+    try { if (new URLSearchParams(location.search).get('test') === '1') return true; } catch (e) {}
     return /^localhost$|^127(\.\d+){0,2}\.\d+$|^\[::1?]$/.test(location.hostname) ||
       location.protocol === 'file:';
   }
