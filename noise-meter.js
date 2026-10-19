@@ -36,10 +36,10 @@
       </div>
       <div class="nm-microw"></div>                       ← mic selector row, filled by this script
     </div>
-  This script adds: round fullscreen button (top-left), round settings button
-  (top-right), the right-side settings panel (Character, Background,
-  Indicator, Microphone, Sensitivity; bottom sheet under 700 px), the bar
-  indicator, and the mic row.
+  This script adds: round fullscreen button (top-left), the settings panel
+  (Character, Background, Indicator, Microphone, Sensitivity — right side,
+  bottom sheet under 700 px; shown while stopped/paused, hidden while
+  running, no toggle), the bar indicator, and the mic row.
   Only cat-1 + city-1 are in the HTML (first paint). States 2–3 and scene
   levels 2–3 are added as <picture> elements after start, so the browser
   picks WebP or the fallback itself — PNG/JPEG fallbacks are never preloaded
@@ -95,7 +95,6 @@
     play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.52.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z"/></svg>',
     pause: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3.5" width="5" height="17" rx="1.6"/><rect x="14" y="3.5" width="5" height="17" rx="1.6"/></svg>',
     full: '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg>',
-    sliders: '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 3v18M12 3v18M18 3v18"/><circle cx="6" cy="9" r="2.3" fill="currentColor" stroke="none"/><circle cx="12" cy="15" r="2.3" fill="currentColor" stroke="none"/><circle cx="18" cy="7" r="2.3" fill="currentColor" stroke="none"/></svg>',
     close: '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
     lock: '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
     miniBar: '<svg viewBox="0 0 120 56" aria-hidden="true"><defs><linearGradient id="nm-gb" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3ABF5A"/><stop offset=".45" stop-color="#F2D22B"/><stop offset=".72" stop-color="#F58A2A"/><stop offset="1" stop-color="#F0423B"/></linearGradient></defs><rect x="6" y="10" width="108" height="36" rx="10" fill="url(#nm-gb)"/><rect x="50" y="18" width="20" height="20" rx="4" fill="#fff" transform="rotate(45 60 28)"/></svg>',
@@ -348,7 +347,6 @@
     getMic(lsGet(LS_MIC) || '').then(function (s) {
       attachStream(s);
       running = true; everStarted = true;
-      panelOpen = false;
       smoothed = 0;
       sessionStart = Date.now(); sessionReported = false;
       setPlayState(true);
@@ -511,15 +509,11 @@
     if (wakeLock) { wakeLock.release().catch(function () {}); wakeLock = null; }
   }
 
-  /* ---------- controls: round buttons, right-side settings panel, mic row ---------- */
+  /* ---------- controls: fullscreen button, settings panel, mic row ---------- */
   // Panel (bouncyballs-style): translucent dark panel over the right of the scene (bottom sheet under
-  // 700 px). Wide screens: visible whenever the meter is stopped/paused, slides out while running; the
-  // top-right sliders button toggles it while running (and on narrow screens, always) without pausing.
-  var fsBtn, settingsBtn, panel, panelOpen = false;
-  var micSelects = [], sensSlider, indSummary;
-  var narrowMq = null;
-  try { narrowMq = window.matchMedia('(max-width: 699px)'); } catch (e) {}
-  function isNarrow() { return !!(narrowMq && narrowMq.matches); }
+  // 700 px). Visible whenever the meter is stopped or paused, hidden while running. No toggle button.
+  var fsBtn, panel;
+  var micSelects = [], sensSlider;
 
   function el(tag, cls, html) {
     var n = document.createElement(tag);
@@ -548,11 +542,7 @@
     fsBtn = roundButton('nm-fs', 'Fullscreen', ICON.full);
     fsBtn.addEventListener('click', toggleFullscreen);
     if (!fullscreenSupported()) fsBtn.hidden = true;
-    settingsBtn = roundButton('nm-settings-btn', 'Settings', ICON.sliders);
-    settingsBtn.setAttribute('aria-controls', 'nm-panel');
-    settingsBtn.addEventListener('click', function () { panelOpen = !panelVisible(); applyPanel(); });
     stage.appendChild(fsBtn);
-    stage.appendChild(settingsBtn);
 
     panel = el('div', 'nm-panel');
     panel.id = 'nm-panel';
@@ -566,58 +556,45 @@
       lab.appendChild(makeMicSelect());
       micRow.appendChild(lab);
     }
-    root.addEventListener('keydown', function (ev) {
-      if (ev.key === 'Escape' && panelVisible() && (running || isNarrow())) { panelOpen = false; applyPanel(); settingsBtn.focus(); }
-    });
-    if (narrowMq) {
-      if (narrowMq.addEventListener) narrowMq.addEventListener('change', applyPanel);
-      else if (narrowMq.addListener) narrowMq.addListener(applyPanel);
-    }
     applyPanel();
   }
 
-  // Wide screens: open while stopped, or when toggled while running. Narrow: only when toggled.
-  function panelVisible() { return isNarrow() ? panelOpen : (!running || panelOpen); }
+  // Panel = stopped/paused state only (CSS slides it out via .is-panel-open).
   function applyPanel() {
-    var vis = panelVisible();
+    var vis = !running;
     root.classList.toggle('is-panel-open', vis);
-    if (settingsBtn) settingsBtn.setAttribute('aria-expanded', vis ? 'true' : 'false');
     if (panel) { panel.setAttribute('aria-hidden', vis ? 'false' : 'true'); try { panel.inert = !vis; } catch (e) {} }
   }
 
   function buildPanel() {
     panel.appendChild(el('h3', 'nm-h', 'Character'));
-    var charRow = el('div', 'nm-row'); charRow.setAttribute('role', 'group'); charRow.setAttribute('aria-label', 'Character');
-    fillGrid(charRow, 'char', CHARACTERS);
-    panel.appendChild(charRow);
+    var charGrid = el('div', 'nm-grid'); charGrid.setAttribute('role', 'group'); charGrid.setAttribute('aria-label', 'Character');
+    fillGrid(charGrid, 'char', CHARACTERS);
+    panel.appendChild(charGrid);
 
     panel.appendChild(el('h3', 'nm-h', 'Background'));
-    var sceneRow = el('div', 'nm-row'); sceneRow.setAttribute('role', 'group'); sceneRow.setAttribute('aria-label', 'Background');
-    fillGrid(sceneRow, 'scene', SCENES);
-    panel.appendChild(sceneRow);
+    var sceneGrid = el('div', 'nm-grid'); sceneGrid.setAttribute('role', 'group'); sceneGrid.setAttribute('aria-label', 'Background');
+    fillGrid(sceneGrid, 'scene', SCENES);
+    panel.appendChild(sceneGrid);
 
-    var det = el('details', 'nm-ind-details');
-    indSummary = el('summary', 'nm-h nm-ind-summary', 'Indicator: ' + (indicatorKind === 'bar' ? 'Bar' : 'Dial'));
-    det.appendChild(indSummary);
-    var indRow = el('div', 'nm-row nm-ind'); indRow.setAttribute('role', 'group'); indRow.setAttribute('aria-label', 'Indicator');
+    panel.appendChild(el('h3', 'nm-h', 'Indicator'));
+    var indGrid = el('div', 'nm-grid nm-ind'); indGrid.setAttribute('role', 'group'); indGrid.setAttribute('aria-label', 'Indicator');
     [['dial', 'Dial', ICON.miniDial], ['bar', 'Bar', ICON.miniBar]].forEach(function (opt) {
-      var b = el('button', 'nm-thumb nm-ind-opt', opt[2]);
+      var b = el('button', 'nm-thumb nm-ind-opt', opt[2] + '<span class="nm-thumb-cap">' + opt[1] + '</span>');
       b.type = 'button';
       b.setAttribute('aria-label', opt[1]);
       b.setAttribute('aria-pressed', indicatorKind === opt[0] ? 'true' : 'false');
       b.addEventListener('click', function () {
         var changed = indicatorKind !== opt[0];
         applyIndicator(opt[0]);
-        var all = indRow.querySelectorAll('[aria-pressed]');
+        var all = indGrid.querySelectorAll('[aria-pressed]');
         for (var i = 0; i < all.length; i++) all[i].setAttribute('aria-pressed', 'false');
         b.setAttribute('aria-pressed', 'true');
-        indSummary.textContent = 'Indicator: ' + opt[1];
         if (changed) signal('setting-change', { what: 'indicator' });
       });
-      indRow.appendChild(b);
+      indGrid.appendChild(b);
     });
-    det.appendChild(indRow);
-    panel.appendChild(det);
+    panel.appendChild(indGrid);
 
     panel.appendChild(el('h3', 'nm-h', 'Microphone'));
     panel.appendChild(makeMicSelect());
@@ -672,7 +649,6 @@
   /* ---------- Pro card ---------- */
   function proClick(item) {
     signal('pro-click', { item: item });
-    panelOpen = false; applyPanel();
     var card = document.getElementById('pro-card');
     if (!card) return;
     if (isFullscreen()) exitFullscreen();
