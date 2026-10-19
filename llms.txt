@@ -9,7 +9,7 @@ The free online noise meter on the homepage works on Chromebook, Windows, Mac an
 - Free, no ads, no sign-up, no time limit.
 - Privacy: Audio never leaves your device — sound is analysed in the browser, nothing is recorded, stored or sent. Page views and clicks are counted anonymously (TelemetryDeck, no cookies), never sound.
 - Works in the browser on Chromebook, Windows, Mac and iPad (needs a microphone and a current browser: Chrome, Edge, Safari or Firefox).
-- Free set = 1 character (cat, 3 states) + 1 scene (city: park → street → airport). Keep Quiet Pro = 7 more characters + 4 more scenes, coming soon (one-time unlock in the browser; no prices announced yet).
+- Free set = 1 character (cat, 3 states) + 1 scene (city: park → street → airport). More characters and backgrounds will follow if enough teachers ask for them (the picker shows them locked; a tap counts the interest).
 - No decibel numbers: loudness is shown as character, scene colour and a green-to-red dial or bar.
 - More free browser tools for classrooms are planned (scoreboard and tally counter, token board, classroom timer, random name picker).
 

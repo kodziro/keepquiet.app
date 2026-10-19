@@ -40,7 +40,8 @@
       </div>
       <div class="nm-microw"></div>                       ← mic selector row, filled by this script
     </div>
-  This script adds: round fullscreen button (top-left), the settings panel
+  This script adds: the settings panel (first item: a "⛶ Fullscreen" pill), a fullscreen icon button at the
+  right end of the pause bar, the settings panel
   (Character, Background, Indicator, Microphone, Sensitivity — right side,
   bottom sheet under 700 px; shown while paused, hidden before the first
   start and while running, no toggle), the bar indicator, and the mic row.
@@ -57,8 +58,8 @@
   Optional page hooks:
     #pro-card                 → scrolled to + highlighted on a locked-item click;
                                 pro-view is sent once when it is ≥ 50 % visible
-    [data-kq-notify]          → "Notify me" button: counted pro-click (item "notify"),
-                                then shows [data-kq-notify-thanks]
+    [data-kq-interest]        → "I'm interested" button on the card below the fold: counted
+                                pro-click {item:"interest", from:"card"}, then shows [data-kq-interest-thanks]
     body[data-td-test="1"]    → TelemetryDeck test mode (used by tool-test.html)
     ?test=1 in the URL        → TelemetryDeck test mode on any page (live checks without
                                 polluting the data; appstore-click.js honours it too)
@@ -80,7 +81,7 @@
   var DB_FLOOR = -60, DB_SPAN = 45;  // internal: -60 dBFS → 0, -15 dBFS → 100
   var NEEDLE_MIN = -100, NEEDLE_MAX = 100;   // degrees, matches the arc in the SVG
   var STEP_POS = [0, 20, 57, 88];    // reduced motion: one fixed position per level
-  var LS_SENS = 'kq-nm-sensitivity', LS_MIC = 'kq-nm-mic', LS_IND = 'kq-nm-indicator';
+  var LS_SENS = 'kq-nm-sensitivity', LS_MIC = 'kq-nm-mic', LS_IND = 'kq-nm-indicator', LS_FEEDBACK = 'kq-feedback';
   var LS_VISITS = 'kq-visits', LS_FIRST = 'kq-first-seen';
 
   // Names are used ONLY in alt / aria-label text, never as visible labels.
@@ -358,6 +359,7 @@
     getMic(lsGet(LS_MIC) || '').then(function (s) {
       attachStream(s);
       running = true; everStarted = true;
+      removeFeedback();
       smoothed = 0;
       sessionStart = Date.now(); sessionReported = false;
       setPlayState(true);
@@ -378,6 +380,7 @@
   }
 
   function stop(reason) {
+    var sessionMs = sessionStart ? Date.now() - sessionStart : 0;
     reportSession();
     running = false;
     cancelAnimationFrame(rafId);
@@ -386,6 +389,7 @@
     if (ctx && ctx.state === 'running') ctx.suspend().catch(function () {});
     setPlayState(false);
     applyPanel();
+    if (!reason) maybeFeedback(sessionMs);   // only after a real pause, never pre-start or while running
     setBusy(false);
     smoothed = 0;
     showState(1);
@@ -523,7 +527,7 @@
   /* ---------- controls: fullscreen button, settings panel, mic row ---------- */
   // Panel (bouncyballs-style): translucent dark panel over the right of the scene (bottom sheet under
   // 700 px). Visible whenever the meter is stopped or paused, hidden while running. No toggle button.
-  var fsBtn, panel;
+  var fsPill, fsBarBtn, panel, interestCard, feedbackLine, feedbackTimer = 0;
   var micSelects = [], sensSlider;
 
   function el(tag, cls, html) {
@@ -532,17 +536,23 @@
     if (html) n.innerHTML = html;   // trusted constants only (ICON.*) and fixed labels
     return n;
   }
-  function roundButton(cls, label, icon) {
-    var b = el('button', 'nm-round ' + cls, icon);
+  function button(cls, label, html) {
+    var b = el('button', cls, html);
     b.type = 'button';
-    b.setAttribute('aria-label', label);
+    if (label) b.setAttribute('aria-label', label);
     return b;
+  }
+  // Device labels as the OS reports them are noisy ("Default - MacBook Pro Microphone (Built-in)",
+  // "USB Audio (0d8c:0014)"); strip the prefix and the hardware id, keep the name.
+  function cleanMicLabel(label, i) {
+    var t = (label || '').replace(/^(default|communications)\s*-\s*/i, '').replace(/\s*\([0-9a-f]{4}:[0-9a-f]{4}\)/ig, '').replace(/\s+/g, ' ').trim();
+    return t || ('Microphone ' + (i + 1));
   }
   function makeMicSelect() {
     var s = document.createElement('select');
     s.className = 'nm-select';
     s.setAttribute('aria-label', 'Microphone');
-    var o = document.createElement('option'); o.value = ''; o.textContent = 'Default microphone (press start to list)';
+    var o = document.createElement('option'); o.value = ''; o.textContent = 'Default microphone';
     s.appendChild(o);
     s.addEventListener('change', function () { switchMic(s.value); signal('setting-change', { what: 'mic' }); });
     micSelects.push(s);
@@ -550,10 +560,14 @@
   }
 
   function buildControls() {
-    fsBtn = roundButton('nm-fs', 'Fullscreen', ICON.full);
-    fsBtn.addEventListener('click', toggleFullscreen);
-    if (!fullscreenSupported()) fsBtn.hidden = true;
-    stage.appendChild(fsBtn);
+    // fullscreen icon button at the right end of the pause bar (running state)
+    var bottom = root.querySelector('.nm-bottom');
+    if (bottom) {
+      fsBarBtn = button('nm-fsbar', 'Fullscreen', ICON.full);
+      fsBarBtn.addEventListener('click', toggleFullscreen);
+      if (!fullscreenSupported()) fsBarBtn.hidden = true;
+      bottom.appendChild(fsBarBtn);
+    }
 
     panel = el('div', 'nm-panel');
     panel.id = 'nm-panel';
@@ -578,8 +592,13 @@
   }
 
   function buildPanel() {
+    fsPill = button('nm-pill nm-fs-pill', 'Fullscreen', '\u26F6 Fullscreen');
+    fsPill.addEventListener('click', toggleFullscreen);
+    if (!fullscreenSupported()) fsPill.hidden = true;
+    panel.appendChild(fsPill);
+
     panel.appendChild(el('h3', 'nm-h', 'Character'));
-    var charGrid = el('div', 'nm-grid nm-grid-char'); charGrid.setAttribute('role', 'group'); charGrid.setAttribute('aria-label', 'Character');
+    var charGrid = el('div', 'nm-grid'); charGrid.setAttribute('role', 'group'); charGrid.setAttribute('aria-label', 'Character');
     fillGrid(charGrid, 'char', CHARACTERS);
     panel.appendChild(charGrid);
 
@@ -587,6 +606,21 @@
     var sceneGrid = el('div', 'nm-grid'); sceneGrid.setAttribute('role', 'group'); sceneGrid.setAttribute('aria-label', 'Background');
     fillGrid(sceneGrid, 'scene', SCENES);
     panel.appendChild(sceneGrid);
+    panel.appendChild(el('p', 'nm-legend', '\uD83D\uDD12 = locked \u2014 tap one to tell us you\u2019re interested'));
+
+    // inline interest card: shown after a locked tap, no page scroll
+    interestCard = el('div', 'nm-card');
+    interestCard.hidden = true;
+    interestCard.setAttribute('role', 'region'); interestCard.setAttribute('aria-label', 'More characters and backgrounds');
+    interestCard.appendChild(el('p', '', 'Want more characters and backgrounds? If enough teachers ask, we\u2019ll build them.'));
+    var interestBtn = button('nm-pill', '', 'I\u2019m interested');
+    interestBtn.addEventListener('click', function () {
+      signal('pro-click', { item: 'interest', from: 'panel' });
+      var thanks = el('p', 'nm-card-thanks', 'Thanks \u2014 counted!'); thanks.setAttribute('role', 'status');
+      interestCard.innerHTML = ''; interestCard.appendChild(thanks);
+    });
+    interestCard.appendChild(interestBtn);
+    panel.appendChild(interestCard);
 
     panel.appendChild(el('h3', 'nm-h', 'Indicator'));
     var indGrid = el('div', 'nm-grid nm-ind'); indGrid.setAttribute('role', 'group'); indGrid.setAttribute('aria-label', 'Indicator');
@@ -612,8 +646,16 @@
     if (running) fillMicList();
 
     var sensId = 'nm-sens';
-    var sensLab = el('label', 'nm-h', 'Sensitivity'); sensLab.setAttribute('for', sensId);
-    panel.appendChild(sensLab);
+    var sensHead = el('div', 'nm-h nm-h-row');
+    var sensLab = el('label', '', 'Sensitivity'); sensLab.setAttribute('for', sensId);
+    var sensReset = button('nm-reset', 'Reset sensitivity', 'Reset');
+    sensReset.addEventListener('click', function () {
+      if (sensitivity === 1) return;
+      sensitivity = 1; lsSet(LS_SENS, '1'); sensSlider.value = '100';
+      signal('setting-change', { what: 'sensitivity' });
+    });
+    sensHead.appendChild(sensLab); sensHead.appendChild(sensReset);
+    panel.appendChild(sensHead);
     sensSlider = document.createElement('input');
     sensSlider.type = 'range'; sensSlider.id = sensId; sensSlider.className = 'nm-range';
     sensSlider.min = '50'; sensSlider.max = '200'; sensSlider.step = '5';
@@ -626,6 +668,45 @@
       signal('setting-change', { what: 'sensitivity' });
     });
     panel.appendChild(sensSlider);
+    var sensRow = el('div', 'nm-sens-row'); sensRow.setAttribute('aria-hidden', 'true');
+    sensRow.appendChild(el('span', '', 'Less')); sensRow.appendChild(el('span', '', 'More'));
+    panel.appendChild(sensRow);
+  }
+
+  /* ---------- feedback line: after a pause that ends a session of ≥ 2 min, at most once per 30 days ---------- */
+  function feedbackRecent() {
+    try {
+      var v = JSON.parse(lsGet(LS_FEEDBACK) || 'null');
+      if (!v || !v.date) return false;
+      return (Date.now() - new Date(v.date).getTime()) < 30 * 86400000;
+    } catch (e) { return false; }
+  }
+  function removeFeedback() {
+    clearTimeout(feedbackTimer);
+    if (feedbackLine && feedbackLine.parentNode) feedbackLine.parentNode.removeChild(feedbackLine);
+    feedbackLine = null;
+  }
+  function maybeFeedback(sessionMs) {
+    if (!panel || sessionMs < 120000 || feedbackRecent() || feedbackLine) return;
+    var minutes = minutesBucket(sessionMs);
+    var today = new Date().toISOString().slice(0, 10);
+    feedbackLine = el('div', 'nm-feedback'); feedbackLine.setAttribute('role', 'group'); feedbackLine.setAttribute('aria-label', 'Feedback');
+    feedbackLine.appendChild(el('span', 'nm-fb-q', 'Was it useful today?'));
+    function vote(v) {
+      signal('feedback', { vote: v, minutes: minutes });
+      lsSet(LS_FEEDBACK, JSON.stringify({ vote: v, date: today }));
+      var thanks = el('span', 'nm-fb-q', 'Thanks!'); thanks.setAttribute('role', 'status');
+      feedbackLine.innerHTML = ''; feedbackLine.appendChild(thanks);
+      feedbackTimer = setTimeout(removeFeedback, 3000);
+    }
+    var up = button('nm-fb-btn', 'Yes, it was useful', '\uD83D\uDC4D'); up.addEventListener('click', function () { vote('up'); });
+    var down = button('nm-fb-btn', 'No, it was not useful', '\uD83D\uDC4E'); down.addEventListener('click', function () { vote('down'); });
+    var x = button('nm-fb-btn nm-fb-x', 'Dismiss', '\u00D7'); x.addEventListener('click', function () {
+      lsSet(LS_FEEDBACK, JSON.stringify({ dismissed: true, date: today }));
+      removeFeedback();
+    });
+    feedbackLine.appendChild(up); feedbackLine.appendChild(down); feedbackLine.appendChild(x);
+    panel.insertBefore(feedbackLine, panel.firstChild);
   }
 
   function thumbPicture(kind, item) {
@@ -641,7 +722,7 @@
       b.className = 'nm-thumb' + (item.free ? '' : ' is-locked');
       var selected = (kind === 'char' ? current.character : current.scene) === item.id;
       b.setAttribute('aria-pressed', selected ? 'true' : 'false');
-      b.setAttribute('aria-label', item.name + (item.free ? '' : ' (Pro, coming soon)'));
+      b.setAttribute('aria-label', item.name + (item.free ? '' : ' (locked)'));
       b.setAttribute('data-item', kind + '-' + item.id);
       b.appendChild(thumbPicture(kind, item));
       if (!item.free) b.appendChild(el('span', 'nm-lock', ICON.lock));
@@ -657,27 +738,28 @@
     });
   }
 
-  /* ---------- Pro card ---------- */
+  /* ---------- locked tap → counted + inline interest card in the panel (no page scroll) ---------- */
   function proClick(item) {
     signal('pro-click', { item: item });
-    var card = document.getElementById('pro-card');
-    if (!card) return;
-    if (isFullscreen()) exitFullscreen();
-    card.classList.add('is-highlighted');
-    if (card.scrollIntoView) {
-      try { card.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'center' }); } catch (e) { card.scrollIntoView(); }
+    if (interestCard) {
+      interestCard.hidden = false;
+      // bring the card into the PANEL's view (the panel scrolls itself; the page never moves)
+      var bottom = interestCard.offsetTop + interestCard.offsetHeight;
+      if (bottom > panel.scrollTop + panel.clientHeight) {
+        var top = Math.max(0, bottom - panel.clientHeight + 12);
+        try { panel.scrollTo({ top: top, behavior: reducedMotion ? 'auto' : 'smooth' }); } catch (e) { panel.scrollTop = top; }
+      }
     }
-    var focusable = card.querySelector('button, a');
-    if (focusable) setTimeout(function () { try { focusable.focus({ preventScroll: true }); } catch (e) {} }, reducedMotion ? 0 : 450);
     try { root.dispatchEvent(new CustomEvent('kq:pro-click', { bubbles: true, detail: { item: item } })); } catch (e) {}
   }
+  // the card below the fold: same text, same button, from:"card"
   document.addEventListener('click', function (ev) {
-    var t = ev.target && ev.target.closest ? ev.target.closest('[data-kq-notify]') : null;
+    var t = ev.target && ev.target.closest ? ev.target.closest('[data-kq-interest]') : null;
     if (!t) return;
     ev.preventDefault();
-    signal('pro-click', { item: 'notify' });
+    signal('pro-click', { item: 'interest', from: 'card' });
     t.disabled = true;
-    var thanks = document.querySelector('[data-kq-notify-thanks]');
+    var thanks = document.querySelector('[data-kq-interest-thanks]');
     if (thanks) { thanks.hidden = false; thanks.setAttribute('role', 'status'); }
   });
 
@@ -695,7 +777,7 @@
         inputs.forEach(function (d, i) {
           var o = document.createElement('option');
           o.value = d.deviceId;
-          o.textContent = d.label || ('Microphone ' + (i + 1));
+          o.textContent = cleanMicLabel(d.label, i);
           if (d.deviceId === currentId || (!currentId && d.deviceId === 'default')) o.selected = true;
           sel.appendChild(o);
         });
@@ -741,7 +823,8 @@
   function onFsChange() {
     var on = isFullscreen();
     root.classList.toggle('is-fullscreen', on);
-    if (fsBtn) fsBtn.setAttribute('aria-label', on ? 'Exit fullscreen' : 'Fullscreen');
+    if (fsBarBtn) fsBarBtn.setAttribute('aria-label', on ? 'Exit fullscreen' : 'Fullscreen');
+    if (fsPill) { fsPill.textContent = on ? '\u26F6 Exit fullscreen' : '\u26F6 Fullscreen'; fsPill.setAttribute('aria-label', on ? 'Exit fullscreen' : 'Fullscreen'); }
   }
   document.addEventListener('fullscreenchange', onFsChange);
   document.addEventListener('webkitfullscreenchange', onFsChange);

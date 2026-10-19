@@ -20,14 +20,13 @@
 <link rel="preload" as="image" href="assets/tool/scene/city-1.webp" type="image/webp" fetchpriority="high">
 <style>
 /* Critical CSS for the noise meter's first paint — mirrors the same rules in noise-meter.css; change both together. */
-.nm{--nm-g1:#3ABF5A;--nm-g2:#F2D22B;--nm-g3:#F58A2A;--nm-g4:#F0423B;--nm-accent:#F5A033;--nm-ink:#1E2A44;--nm-grad:linear-gradient(90deg,var(--nm-g1) 0%,var(--nm-g2) 45%,var(--nm-g3) 72%,var(--nm-g4) 100%);--nm-font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--nm-bar-h:clamp(88px,12vh,124px);--nm-icon:clamp(68px,9.2vh,96px);--nm-start-h:64px;--nm-start-f:1.25rem;--nm-cap:90%;position:relative;width:100%;font-family:var(--nm-font)}
+.nm{--nm-g1:#3ABF5A;--nm-g2:#F2D22B;--nm-g3:#F58A2A;--nm-g4:#F0423B;--nm-accent:#4DA3FF;--nm-accent-hover:#3690F0;--nm-ink:#1E2A44;--nm-grad:linear-gradient(90deg,var(--nm-g1) 0%,var(--nm-g2) 45%,var(--nm-g3) 72%,var(--nm-g4) 100%);--nm-font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--nm-bar-h:clamp(88px,12vh,124px);--nm-icon:clamp(68px,9.2vh,96px);--nm-start-h:64px;--nm-start-f:1.25rem;--nm-cap:90%;position:relative;width:100%;font-family:var(--nm-font)}
 .nm-stage{position:relative;width:100%;height:calc(100vh - var(--nm-above,0px));height:max(480px,calc(100svh - var(--nm-above,0px)));min-height:480px;overflow:hidden;background:#9bd0ee;isolation:isolate}
 .nm-scenes,.nm-chars{position:absolute;inset:0;pointer-events:none}
 .nm-scene,.nm-scene img{position:absolute;inset:0;width:100%;height:100%}
 .nm-scene img{object-fit:cover;object-position:50% 60%;display:block}
 .nm-scene{opacity:0}.nm-scene.is-active{opacity:1}
 .nm-char{position:absolute;left:50%;bottom:17%;height:64%;width:var(--nm-cap);max-width:90%;transform:translateX(-50%);display:none}
-.nm.is-fresh .nm-round{display:none}
 .nm-char.is-active{display:block}
 .nm-char img{width:100%;height:100%;max-width:none;object-fit:contain;object-position:bottom center;display:block}
 .nm-indicator{position:absolute;left:50%;bottom:14.5%;z-index:3;transform:translateX(-50%);width:min(clamp(220px,34vh,420px),var(--nm-cap));pointer-events:none}
@@ -56,7 +55,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css?v=20261018c">
-<link rel="stylesheet" href="noise-meter.css?v=20261019h">
+<link rel="stylesheet" href="noise-meter.css?v=20261019i">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -77,7 +76,7 @@
     "Privacy: audio never leaves your device — sound is analysed in the browser, nothing is recorded, stored or sent",
     "Works in the browser on Chromebook, Windows, Mac and iPad (needs a microphone and a current browser: Chrome, Edge, Safari or Firefox)",
     "Reacting character (cat with 3 states) and a scene that changes from park to street to airport as the room gets louder; speedometer dial or colour bar; sensitivity slider; microphone selector for smart boards; fullscreen",
-    "Free set: 1 character and 1 scene. Keep Quiet Pro (7 more characters and 4 more scenes): coming soon",
+    "Free set: 1 character and 1 scene; more characters and backgrounds will follow if enough teachers ask for them",
     "No decibel numbers: loudness is shown as character, scene colour and a green-to-red dial or bar"
   ]
 }
@@ -116,7 +115,7 @@
   "@context": "https://schema.org",
   "@type": "FAQPage",
   "mainEntity": [
-    {"@type":"Question","name":"Is the online noise meter free?","acceptedAnswer":{"@type":"Answer","text":"Yes, the online noise meter at keepquiet.app is free: no sign-up, no ads and no time limit. The free set is one character (the cat, with three reactions) and one scene (park, street, airport). Keep Quiet Pro, with all characters and scenes in the browser, is coming soon."}},
+    {"@type":"Question","name":"Is the online noise meter free?","acceptedAnswer":{"@type":"Answer","text":"Yes, the online noise meter at keepquiet.app is free: no sign-up, no ads and no time limit. The free set is one character and one scene; more characters and backgrounds will follow if enough teachers ask for them."}},
     {"@type":"Question","name":"Does it record audio?","acceptedAnswer":{"@type":"Answer","text":"No. Audio never leaves your device — sound is analysed in the browser, nothing is recorded, stored or sent. We count anonymous page views and clicks (TelemetryDeck, no cookies), never sound. Pressing pause switches the microphone off."}},
     {"@type":"Question","name":"Which browsers and devices does it work on?","acceptedAnswer":{"@type":"Answer","text":"It works on Chromebook, Windows, Mac and iPad in a current browser (Chrome, Edge, Safari or Firefox) and needs a microphone. The page must be opened over https (keepquiet.app is), and the browser will ask once for microphone permission. On a managed school Chromebook the microphone can be blocked by policy; the IT admin can allow it for keepquiet.app."}},
     {"@type":"Question","name":"Why does my smart board pick the wrong microphone?","acceptedAnswer":{"@type":"Answer","text":"Interactive boards often have several microphones (the board itself, a webcam, the connected laptop) and the browser starts with the default one. Choose the right one in the Microphone list under the meter; the choice is remembered on that device. If the meter does not react, try another entry in the list or check that the microphone is not muted in the system settings."}},
@@ -135,7 +134,7 @@
 </script>
 <script src="https://cdn.telemetrydeck.com/websdk/telemetrydeck.min.js" data-app-id="43A2ECAF-E4DA-4440-B847-7A1FCE01600C"></script>
 <script type="module" src="assets/appstore-click.js"></script>
-<script type="module" src="noise-meter.js?v=20261019h"></script>
+<script type="module" src="noise-meter.js?v=20261019i"></script>
 </head>
 <body>
 <div class="meter-strip" aria-hidden="true"></div>
@@ -206,15 +205,14 @@
     <p class="under-tool"><a data-td-position="tool" href="https://apps.apple.com/app/apple-store/id6744021866?pt=118868513&amp;ct=webnew&amp;mt=8">Prefer the app? iPhone, iPad &amp; Mac →</a></p>
   </section>
 
-  <!-- PRO (coming soon) -->
+  <!-- INTEREST CARD (counted click; ids kept for the pro-view signal and the styles) -->
   <section class="pro" id="pro">
     <div class="wrap">
       <div class="pro-card" id="pro-card">
-        <span class="eyebrow">Coming soon</span>
-        <h2>Keep Quiet Pro</h2>
-        <p>All characters and scenes in the browser, one-time unlock. Coming soon.</p>
-        <button class="btn" type="button" data-kq-notify>Notify me when it's ready</button>
-        <p class="pro-thanks" data-kq-notify-thanks hidden>Thanks! Check back in a few weeks.</p>
+        <h2>Want more characters and backgrounds?</h2>
+        <p>If enough teachers ask, we’ll build them.</p>
+        <button class="btn" type="button" data-kq-interest>I’m interested</button>
+        <p class="pro-thanks" data-kq-interest-thanks hidden>Thanks — counted!</p>
       </div>
     </div>
   </section>
@@ -257,7 +255,7 @@
       <h3 class="faq-group">About the free online noise meter</h3>
       <details open>
         <summary>Is the online noise meter free?</summary>
-        <p>Yes, the online noise meter at keepquiet.app is free: no sign-up, no ads and no time limit. The free set is one character (the cat, with three reactions) and one scene (park, street, airport). <a class="learn" href="#pro-card">Keep Quiet Pro</a>, with all characters and scenes in the browser, is coming soon.</p>
+        <p>Yes, the online noise meter at keepquiet.app is free: no sign-up, no ads and no time limit. The free set is one character and one scene; more characters and backgrounds will follow if enough teachers ask for them.</p>
       </details>
       <details id="faq-record">
         <summary>Does it record audio?</summary>

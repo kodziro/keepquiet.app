@@ -1,6 +1,5 @@
 /* Keep Quiet – free online classroom noise meter · tool styles (noise-meter.js)
-   Layout follows the iOS app: scene edge to edge, character centred, round translucent
-   fullscreen button top-left, dial over the character's lower body, translucent bottom bar
+   Layout follows the iOS app: scene edge to edge, character centred, dial over the character's lower body, translucent bottom bar
    with a white play/pause icon, dark settings panel on the right while stopped.
    Three states on the root: .is-fresh (before the first successful start: tinted scene, text column on
    the left — H1 kicker + title, white "▶ START" pill — privacy link at the bottom; pause bar, fullscreen
@@ -9,7 +8,7 @@
    .is-fresh only caps their width (--nm-cap) so they never touch the text column (≥ 24 px gap).
    Critical for first paint: .nm-stage, .nm-scene, .nm-char, .nm-indicator/.nm-dial, .nm-bottom, .nm-play.
    Controls use system-ui (app look); the page around the tool keeps Fredoka/Nunito. */
-.nm{--nm-g1:#3ABF5A;--nm-g2:#F2D22B;--nm-g3:#F58A2A;--nm-g4:#F0423B;--nm-accent:#F5A033;--nm-ink:#1E2A44;
+.nm{--nm-g1:#3ABF5A;--nm-g2:#F2D22B;--nm-g3:#F58A2A;--nm-g4:#F0423B;--nm-accent:#4DA3FF;--nm-accent-hover:#3690F0;--nm-ink:#1E2A44;
   --nm-grad:linear-gradient(90deg,var(--nm-g1) 0%,var(--nm-g2) 45%,var(--nm-g3) 72%,var(--nm-g4) 100%);
   --nm-font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --nm-bar-h:clamp(88px,12vh,124px);          /* bottom bar height; play/pause icon ≈ 0.77 of it */
@@ -32,13 +31,6 @@
 .nm-char.is-active{display:block}
 .nm-char img{width:100%;height:100%;max-width:none;object-fit:contain;object-position:bottom center;display:block}
 
-/* round translucent button (app: timer top-left → fullscreen here) */
-.nm-round{position:absolute;top:18px;z-index:5;width:46px;height:46px;border-radius:50%;border:0;cursor:pointer;
-  background:rgba(0,0,0,.28);color:#fff;display:flex;align-items:center;justify-content:center;padding:0}
-.nm-round svg{width:24px;height:24px}
-.nm-round:hover{background:rgba(0,0,0,.42)}
-.nm-fs{left:18px}
-.nm.is-fresh .nm-round{display:none}   /* fullscreen is offered after the first start */
 
 /* indicator: dial (default) or bar — never both */
 .nm-indicator{position:absolute;left:50%;bottom:14.5%;z-index:3;transform:translateX(-50%);width:min(clamp(220px,34vh,420px),var(--nm-cap));pointer-events:none;
@@ -56,6 +48,12 @@
 .nm-play{width:100%;height:100%;min-width:64px;min-height:64px;border:0;background:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:24px;padding:0}   /* the whole translucent bar is the hit area; pause only */
 .nm-play svg{width:var(--nm-icon);height:auto;fill:#fff;filter:drop-shadow(0 2px 5px rgba(0,0,0,.3))}
 .nm:not(.is-running) .nm-bottom{opacity:0;visibility:hidden;pointer-events:none}
+/* fullscreen icon button at the right end of the pause bar (hidden where the Fullscreen API is missing) */
+.nm-fsbar{position:absolute;right:16px;top:50%;transform:translateY(-50%);z-index:1;width:48px;height:48px;border-radius:50%;border:0;padding:0;
+  background:#fff;color:var(--nm-ink);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.nm-fsbar svg{width:24px;height:24px}
+.nm-fsbar:hover{background:#f3f3f3}
+.nm-fsbar[hidden]{display:none}
 .nm-play:disabled{opacity:.6;cursor:wait}
 
 /* overlay (bouncyballs-style). Fresh: tint .3, text column left (6 % padding, 30 % wide, vertically
@@ -71,7 +69,6 @@
 .nm-stack .big{display:block;font-size:clamp(2.6rem,5vw,4.6rem)}   /* Fredoka from styles.css */
 .nm-start{display:inline-flex;align-items:center;justify-content:center;min-height:var(--nm-start-h);margin-top:28px;padding:0 2em;border:0;border-radius:999px;background:#fff;color:var(--nm-ink);font:700 var(--nm-start-f) var(--nm-font);text-transform:uppercase;letter-spacing:.04em;text-shadow:none;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.3);transition:background .15s,transform .15s}
 .nm-start:hover{background:#f3f3f3;transform:translateY(-1px)}
-.nm-start:focus-visible{outline:4px solid #fff;outline-offset:4px}
 .nm-start:disabled{opacity:.6;cursor:wait;transform:none}
 .nm-privacy{position:absolute;left:0;right:0;bottom:16px;margin:0;padding:0 16px;text-align:center;font:600 .9rem/1.4 var(--nm-font);text-shadow:0 1px 6px rgba(0,0,0,.6)}
 .nm-privacy a{display:inline-block;color:#fff;text-decoration:underline;text-underline-offset:3px}   /* inline-block: a wrapped link stays clickable between its lines */
@@ -96,24 +93,48 @@
    stopped/paused, slides out while running (no toggle). Under 700 px it is a bottom sheet (max 45 %) and
    the start pill + character move up so the pill stays fully above it. */
 .nm-panel{position:absolute;top:0;right:0;bottom:0;z-index:6;width:340px;max-width:85%;background:rgba(0,0,0,.45);color:#fff;
-  padding:70px 16px 20px;overflow:auto;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
+  padding:20px 14px 20px;overflow:auto;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
   transform:translateX(100%);visibility:hidden;transition:transform .3s ease,visibility .3s}
 .nm.is-panel-open .nm-panel{transform:none;visibility:visible}
-.nm-h{display:block;color:#fff;font:700 .95rem var(--nm-font);margin:14px 0 8px}
+.nm-h{display:block;color:#fff;font:700 .95rem var(--nm-font);margin:18px 0 8px}
 .nm-h:first-child{margin-top:0}
-.nm-grid{display:grid;grid-template-columns:repeat(4,60px);gap:8px;justify-content:start}
-.nm-thumb{position:relative;width:60px;height:60px;padding:3px;background:rgba(255,255,255,.18);border:3px solid transparent;border-radius:12px;cursor:pointer;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;color:#fff}
-.nm-thumb[aria-pressed="true"]{border-color:var(--nm-accent);background:rgba(255,255,255,.34)}
+.nm-h-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+/* white pill buttons inside the panel (Fullscreen, I'm interested) */
+.nm-pill{display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;border:0;border-radius:999px;padding:0 1.2em;
+  background:#fff;color:var(--nm-ink);font:700 1rem var(--nm-font);cursor:pointer;text-shadow:none}
+.nm-pill:hover{background:#f3f3f3}
+.nm-pill[hidden]{display:none}
+.nm-fs-pill{margin-bottom:4px}
+/* thumbs: 56 px rounded squares, 5 per row, image on a soft translucent square (same look for characters and scenes) */
+.nm-grid{display:grid;grid-template-columns:repeat(5,56px);gap:8px;justify-content:start}
+.nm-thumb{position:relative;width:56px;height:56px;padding:0;background:rgba(255,255,255,.18);border:3px solid transparent;border-radius:12px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;color:#fff}
+.nm-thumb[aria-pressed="true"]{border-color:var(--nm-accent)}
+.nm-thumb[aria-pressed="true"]:hover{border-color:var(--nm-accent-hover)}
 .nm-thumb:hover{background:rgba(255,255,255,.3)}
-.nm-thumb img{max-height:100%;max-width:100%;width:auto;height:auto;object-fit:contain;border-radius:8px}
-.nm-thumb.is-locked img{opacity:.6}
-.nm-lock{position:absolute;right:3px;bottom:3px;width:20px;height:20px;border-radius:50%;background:var(--nm-ink);display:flex;align-items:center;justify-content:center}
+.nm-thumb img{width:100%;height:100%;max-width:none;object-fit:contain;border-radius:8px;display:block}
+.nm-thumb.is-locked img{opacity:.75}
+.nm-lock{position:absolute;right:2px;bottom:2px;width:20px;height:20px;border-radius:50%;background:var(--nm-ink);display:flex;align-items:center;justify-content:center}
 .nm-lock svg{width:12px;height:12px}
-.nm-grid-char .nm-thumb,.nm-grid-char .nm-thumb[aria-pressed="true"]{background:rgba(255,255,255,.92)}   /* white like the scene photos */
-.nm-ind{grid-template-columns:repeat(2,128px)}
-.nm-ind .nm-thumb{width:128px;height:72px;padding:4px 8px}   /* dial / bar preview, no caption (aria-label only) */
+.nm-legend{margin:8px 0 0;font:600 .8rem/1.4 var(--nm-font);opacity:.85}
+.nm-ind{grid-template-columns:repeat(2,150px)}
+.nm-ind .nm-thumb{width:150px;height:72px;padding:4px 8px}   /* dial / bar preview, no caption (aria-label only) */
 .nm-ind .nm-thumb svg{width:100px;height:auto;flex:none}
+/* inline interest card (after a locked tap) */
+.nm-card{margin:12px 0 0;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.12)}
+.nm-card p{margin:0 0 10px;font:600 .92rem/1.45 var(--nm-font)}
+.nm-card .nm-pill{min-height:44px}
+.nm-card-thanks{margin:0 !important}
+/* feedback line (top of the panel, after a pause that ends a ≥ 2 min session) */
+.nm-feedback{display:flex;align-items:center;gap:2px;margin:0 0 10px;padding:2px 2px 2px 12px;border-radius:14px;background:rgba(255,255,255,.12);font:700 .95rem var(--nm-font)}
+.nm-fb-q{flex:1}
+.nm-fb-btn{width:44px;height:44px;border:0;border-radius:12px;background:none;color:#fff;font:400 1.35rem/1 var(--nm-font);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.nm-fb-btn:hover{background:rgba(255,255,255,.18)}
+.nm-fb-x{font-size:1.5rem;opacity:.8}
+/* sensitivity */
+.nm-reset{border:1px solid rgba(255,255,255,.55);border-radius:999px;background:none;color:#fff;padding:2px 12px;font:600 .8rem var(--nm-font);cursor:pointer}
+.nm-reset:hover{background:rgba(255,255,255,.18)}
+.nm-sens-row{display:flex;justify-content:space-between;font:600 .8rem var(--nm-font);opacity:.85;margin-top:-4px}
 .nm-select{display:block;width:100%;max-width:26rem;font:600 1rem var(--nm-font);color:var(--nm-ink);background:#F2F2F2;border:0;border-radius:12px;padding:.6rem .8rem}
 .nm-panel .nm-select{background:rgba(255,255,255,.18);color:#fff}
 .nm-panel .nm-select option{color:#111;background:#fff}
@@ -122,7 +143,8 @@
   .nm-panel{top:auto;left:0;right:0;bottom:0;width:auto;max-width:none;max-height:45%;border-radius:20px 20px 0 0;padding:14px 16px 20px;
     transform:translateY(100%)}
   .nm.is-panel-open .nm-panel{transform:none}
-  .nm-grid{grid-template-columns:repeat(4,minmax(0,60px))}
+  .nm-grid{grid-template-columns:repeat(5,minmax(0,56px))}
+  .nm-ind{grid-template-columns:repeat(2,minmax(0,150px))}
   .nm.is-fresh .nm-stack{right:0;width:auto;top:60px;transform:none;text-align:center;padding:0 16px}   /* kicker + title + pill on top, full width … */
   .nm.is-fresh .nm-char{bottom:12%;height:42%}                                       /* … the cat smaller below … */
   .nm.is-fresh .nm-indicator{opacity:0;visibility:hidden}                            /* … no dial before the first start */
@@ -148,8 +170,7 @@
 @media (max-width:560px){
   .nm-char{height:52%;bottom:19%}
   .nm-indicator{width:min(62vw,260px);bottom:15%}
-  .nm-round{width:42px;height:42px;top:14px}
-  .nm-fs{left:14px}
+  .nm-fsbar{right:10px}
 }
 /* reduced motion: no cross-fade, no marker glide; the needle steps per level (set by JS) */
 @media (prefers-reduced-motion:reduce){
@@ -157,3 +178,4 @@
 }
 .nm-reduced .nm-scene,.nm-reduced .nm-bar-marker,.nm-reduced .nm-overlay,.nm-reduced .nm-start,.nm-reduced .nm-panel,.nm-reduced .nm-char,.nm-reduced .nm-chars,.nm-reduced .nm-indicator,.nm-reduced .nm-bottom{transition:none}
 .nm :focus-visible{outline:3px solid var(--nm-accent);outline-offset:2px}
+.nm-start:focus-visible,.nm-pill:focus-visible,.nm-fsbar:focus-visible{outline:3px solid var(--nm-accent);outline-offset:3px}
