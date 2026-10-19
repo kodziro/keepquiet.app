@@ -40,8 +40,7 @@
       </div>
       <div class="nm-microw"></div>                       ← mic selector row, filled by this script
     </div>
-  This script adds: the settings panel (first item: a "⛶ Fullscreen" pill), a fullscreen icon button at the
-  right end of the pause bar, the settings panel
+  This script adds: the round fullscreen button (top-left, all states), the settings panel
   (Character, Background, Indicator, Microphone, Sensitivity — right side,
   bottom sheet under 700 px; shown while paused, hidden before the first
   start and while running, no toggle), the bar indicator, and the mic row.
@@ -527,7 +526,7 @@
   /* ---------- controls: fullscreen button, settings panel, mic row ---------- */
   // Panel (bouncyballs-style): translucent dark panel over the right of the scene (bottom sheet under
   // 700 px). Visible whenever the meter is stopped or paused, hidden while running. No toggle button.
-  var fsPill, fsBarBtn, panel, interestCard, feedbackLine, feedbackTimer = 0;
+  var fsBtn, panel, interestCard, feedbackLine, feedbackTimer = 0;
   var micSelects = [], sensSlider;
 
   function el(tag, cls, html) {
@@ -560,14 +559,11 @@
   }
 
   function buildControls() {
-    // fullscreen icon button at the right end of the pause bar (running state)
-    var bottom = root.querySelector('.nm-bottom');
-    if (bottom) {
-      fsBarBtn = button('nm-fsbar', 'Fullscreen', ICON.full);
-      fsBarBtn.addEventListener('click', toggleFullscreen);
-      if (!fullscreenSupported()) fsBarBtn.hidden = true;
-      bottom.appendChild(fsBarBtn);
-    }
+    // one round fullscreen button, top-left, visible in all three states
+    fsBtn = button('nm-round nm-fs', 'Fullscreen', ICON.full);
+    fsBtn.addEventListener('click', toggleFullscreen);
+    if (!fullscreenSupported()) fsBtn.hidden = true;
+    stage.appendChild(fsBtn);
 
     panel = el('div', 'nm-panel');
     panel.id = 'nm-panel';
@@ -592,11 +588,6 @@
   }
 
   function buildPanel() {
-    fsPill = button('nm-pill nm-fs-pill', 'Fullscreen', '\u26F6 Fullscreen');
-    fsPill.addEventListener('click', toggleFullscreen);
-    if (!fullscreenSupported()) fsPill.hidden = true;
-    panel.appendChild(fsPill);
-
     panel.appendChild(el('h3', 'nm-h', 'Character'));
     var charGrid = el('div', 'nm-grid'); charGrid.setAttribute('role', 'group'); charGrid.setAttribute('aria-label', 'Character');
     fillGrid(charGrid, 'char', CHARACTERS);
@@ -727,7 +718,12 @@
       b.appendChild(thumbPicture(kind, item));
       if (!item.free) b.appendChild(el('span', 'nm-lock', ICON.lock));
       b.addEventListener('click', function () {
-        if (!item.free) { proClick(kind + '-' + item.id); return; }
+        if (!item.free) {   // never becomes "selected": brief white focus flash, then the interest card
+          proClick(kind + '-' + item.id);
+          b.classList.add('is-flash');
+          setTimeout(function () { b.classList.remove('is-flash'); try { b.blur(); } catch (e) {} }, 700);
+          return;
+        }
         var changed = b.getAttribute('aria-pressed') !== 'true';
         var all = grid.querySelectorAll('[aria-pressed]');
         for (var i = 0; i < all.length; i++) all[i].setAttribute('aria-pressed', 'false');
@@ -823,8 +819,7 @@
   function onFsChange() {
     var on = isFullscreen();
     root.classList.toggle('is-fullscreen', on);
-    if (fsBarBtn) fsBarBtn.setAttribute('aria-label', on ? 'Exit fullscreen' : 'Fullscreen');
-    if (fsPill) { fsPill.textContent = on ? '\u26F6 Exit fullscreen' : '\u26F6 Fullscreen'; fsPill.setAttribute('aria-label', on ? 'Exit fullscreen' : 'Fullscreen'); }
+    if (fsBtn) fsBtn.setAttribute('aria-label', on ? 'Exit fullscreen' : 'Fullscreen');
   }
   document.addEventListener('fullscreenchange', onFsChange);
   document.addEventListener('webkitfullscreenchange', onFsChange);

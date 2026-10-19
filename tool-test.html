@@ -7,7 +7,7 @@
 <title>Noise meter – test page (not public)</title>
 <link rel="icon" href="assets/icon.jpg">
 <link rel="stylesheet" href="styles.css?v=20261018c">
-<link rel="stylesheet" href="noise-meter.css?v=20261019i">
+<link rel="stylesheet" href="noise-meter.css?v=20261019j">
 <style>
   body{background:#fff}
   .t-wrap{max-width:1080px;margin:0 auto;padding:16px 20px 60px}
@@ -19,7 +19,7 @@
 </style>
 <!-- TelemetryDeck pageviews, same tag as every page; signals from the tool run in TEST MODE here (body data-td-test="1") -->
 <script src="https://cdn.telemetrydeck.com/websdk/telemetrydeck.min.js" data-app-id="43A2ECAF-E4DA-4440-B847-7A1FCE01600C"></script>
-<script type="module" src="noise-meter.js?v=20261019i"></script>
+<script type="module" src="noise-meter.js?v=20261019j"></script>
 </head>
 <body data-td-test="1" data-td-page="tool-test">
 
@@ -74,7 +74,7 @@
 
 <div class="t-wrap">
   <h2 style="font-size:1.6rem;margin:12px 0 4px">Noise meter – device test page</h2>
-  <p class="t-note">Internal test page for Step 2 (noindex). Press START, allow the microphone, make noise. Pause shows the settings panel (Fullscreen pill, character, background, indicator, microphone, sensitivity) and the Resume pill; while running the pause bar has a fullscreen button at its right end. After a pause that ends a session of 2 minutes or more, a "Was it useful today?" line appears at the top of the panel (once per 30 days). Signals go to TelemetryDeck <strong>test mode</strong> and are listed in the log below (tool-start, tool-session, visit, pro-view, pro-click, setting-change, feedback, mic-error, mic-switch, fullscreen).</p>
+  <p class="t-note">Internal test page for Step 2 (noindex). Press START, allow the microphone, make noise. Pause shows the settings panel (character, background, indicator, microphone, sensitivity) and the Resume pill; the round fullscreen button sits top-left in every state. After a pause that ends a session of 2 minutes or more, a "Was it useful today?" line appears at the top of the panel (once per 30 days). Signals go to TelemetryDeck <strong>test mode</strong> and are listed in the log below (tool-start, tool-session, visit, pro-view, pro-click, setting-change, feedback, mic-error, mic-switch, fullscreen).</p>
 
   <div class="t-pro" id="pro-card">
     <h2 style="font-size:1.25rem;margin-bottom:6px">Want more characters and backgrounds?</h2>

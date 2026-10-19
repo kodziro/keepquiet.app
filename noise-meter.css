@@ -48,12 +48,12 @@
 .nm-play{width:100%;height:100%;min-width:64px;min-height:64px;border:0;background:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:24px;padding:0}   /* the whole translucent bar is the hit area; pause only */
 .nm-play svg{width:var(--nm-icon);height:auto;fill:#fff;filter:drop-shadow(0 2px 5px rgba(0,0,0,.3))}
 .nm:not(.is-running) .nm-bottom{opacity:0;visibility:hidden;pointer-events:none}
-/* fullscreen icon button at the right end of the pause bar (hidden where the Fullscreen API is missing) */
-.nm-fsbar{position:absolute;right:16px;top:50%;transform:translateY(-50%);z-index:1;width:48px;height:48px;border-radius:50%;border:0;padding:0;
-  background:#fff;color:var(--nm-ink);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.25)}
-.nm-fsbar svg{width:24px;height:24px}
-.nm-fsbar:hover{background:#f3f3f3}
-.nm-fsbar[hidden]{display:none}
+/* round translucent fullscreen button, top-left, all states (hidden where the Fullscreen API is missing) */
+.nm-round{position:absolute;top:18px;left:18px;z-index:7;width:46px;height:46px;border-radius:50%;border:0;cursor:pointer;padding:0;
+  background:rgba(0,0,0,.28);color:#fff;display:flex;align-items:center;justify-content:center}
+.nm-round svg{width:24px;height:24px}
+.nm-round:hover{background:rgba(0,0,0,.42)}
+.nm-round[hidden]{display:none}
 .nm-play:disabled{opacity:.6;cursor:wait}
 
 /* overlay (bouncyballs-style). Fresh: tint .3, text column left (6 % padding, 30 % wide, vertically
@@ -93,7 +93,7 @@
    stopped/paused, slides out while running (no toggle). Under 700 px it is a bottom sheet (max 45 %) and
    the start pill + character move up so the pill stays fully above it. */
 .nm-panel{position:absolute;top:0;right:0;bottom:0;z-index:6;width:340px;max-width:85%;background:rgba(0,0,0,.45);color:#fff;
-  padding:20px 14px 20px;overflow:auto;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
+  padding:24px 14px 20px;overflow:auto;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
   transform:translateX(100%);visibility:hidden;transition:transform .3s ease,visibility .3s}
 .nm.is-panel-open .nm-panel{transform:none;visibility:visible}
 .nm-h{display:block;color:#fff;font:700 .95rem var(--nm-font);margin:18px 0 8px}
@@ -104,24 +104,26 @@
   background:#fff;color:var(--nm-ink);font:700 1rem var(--nm-font);cursor:pointer;text-shadow:none}
 .nm-pill:hover{background:#f3f3f3}
 .nm-pill[hidden]{display:none}
-.nm-fs-pill{margin-bottom:4px}
-/* thumbs: 56 px rounded squares, 5 per row, image on a soft translucent square (same look for characters and scenes) */
-.nm-grid{display:grid;grid-template-columns:repeat(5,56px);gap:8px;justify-content:start}
-.nm-thumb{position:relative;width:56px;height:56px;padding:0;background:rgba(255,255,255,.18);border:3px solid transparent;border-radius:12px;cursor:pointer;
+/* thumbs: 52 px rounded squares, 5 per row (292 px: fits the 312 px panel content even with a classic scrollbar),
+   image on a soft translucent square (same look for characters and scenes) */
+.nm-grid{display:grid;grid-template-columns:repeat(5,52px);gap:8px;justify-content:start}
+.nm-thumb{position:relative;width:52px;height:52px;padding:0;background:rgba(255,255,255,.18);border:3px solid transparent;border-radius:12px;cursor:pointer;
   display:flex;align-items:center;justify-content:center;overflow:hidden;color:#fff}
 .nm-thumb[aria-pressed="true"]{border-color:var(--nm-accent)}
 .nm-thumb[aria-pressed="true"]:hover{border-color:var(--nm-accent-hover)}
 .nm-thumb:hover{background:rgba(255,255,255,.3)}
 .nm-thumb img{width:100%;height:100%;max-width:none;object-fit:contain;border-radius:8px;display:block}
 .nm-thumb.is-locked img{opacity:.75}
-.nm-lock{position:absolute;right:2px;bottom:2px;width:20px;height:20px;border-radius:50%;background:var(--nm-ink);display:flex;align-items:center;justify-content:center}
-.nm-lock svg{width:12px;height:12px}
+.nm-thumb.is-flash,.nm-thumb:focus-visible{outline:3px solid #fff;outline-offset:2px}   /* focus = white ring; selection = blue border */
+/* one lock badge for every locked thumb: 18 px white circle, navy glyph, bottom-right */
+.nm-lock{position:absolute;right:2px;bottom:2px;width:18px;height:18px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.nm-lock svg{width:11px;height:11px;stroke:var(--nm-ink)}
 .nm-legend{margin:8px 0 0;font:600 .8rem/1.4 var(--nm-font);opacity:.85}
-.nm-ind{grid-template-columns:repeat(2,150px)}
-.nm-ind .nm-thumb{width:150px;height:72px;padding:4px 8px}   /* dial / bar preview, no caption (aria-label only) */
+.nm-ind{grid-template-columns:repeat(2,142px)}
+.nm-ind .nm-thumb{width:142px;height:72px;padding:4px 8px}   /* dial / bar preview, no caption (aria-label only) */
 .nm-ind .nm-thumb svg{width:100px;height:auto;flex:none}
 /* inline interest card (after a locked tap) */
-.nm-card{margin:12px 0 0;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.12)}
+.nm-card{margin:10px 0 0;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.12)}
 .nm-card p{margin:0 0 10px;font:600 .92rem/1.45 var(--nm-font)}
 .nm-card .nm-pill{min-height:44px}
 .nm-card-thanks{margin:0 !important}
@@ -140,11 +142,11 @@
 .nm-panel .nm-select option{color:#111;background:#fff}
 .nm-range{display:block;width:100%;max-width:26rem;accent-color:var(--nm-accent);margin:4px 0 8px}
 @media (max-width:699px){
-  .nm-panel{top:auto;left:0;right:0;bottom:0;width:auto;max-width:none;max-height:45%;border-radius:20px 20px 0 0;padding:14px 16px 20px;
+  .nm-panel{top:auto;left:0;right:0;bottom:0;width:auto;max-width:none;max-height:45%;border-radius:20px 20px 0 0;padding:24px 16px 20px;
     transform:translateY(100%)}
   .nm.is-panel-open .nm-panel{transform:none}
-  .nm-grid{grid-template-columns:repeat(5,minmax(0,56px))}
-  .nm-ind{grid-template-columns:repeat(2,minmax(0,150px))}
+  .nm-grid{grid-template-columns:repeat(5,minmax(0,52px))}
+  .nm-ind{grid-template-columns:repeat(2,minmax(0,142px))}
   .nm.is-fresh .nm-stack{right:0;width:auto;top:60px;transform:none;text-align:center;padding:0 16px}   /* kicker + title + pill on top, full width … */
   .nm.is-fresh .nm-char{bottom:12%;height:42%}                                       /* … the cat smaller below … */
   .nm.is-fresh .nm-indicator{opacity:0;visibility:hidden}                            /* … no dial before the first start */
@@ -170,7 +172,7 @@
 @media (max-width:560px){
   .nm-char{height:52%;bottom:19%}
   .nm-indicator{width:min(62vw,260px);bottom:15%}
-  .nm-fsbar{right:10px}
+  .nm-round{width:42px;height:42px;top:14px;left:14px}
 }
 /* reduced motion: no cross-fade, no marker glide; the needle steps per level (set by JS) */
 @media (prefers-reduced-motion:reduce){
@@ -178,4 +180,4 @@
 }
 .nm-reduced .nm-scene,.nm-reduced .nm-bar-marker,.nm-reduced .nm-overlay,.nm-reduced .nm-start,.nm-reduced .nm-panel,.nm-reduced .nm-char,.nm-reduced .nm-chars,.nm-reduced .nm-indicator,.nm-reduced .nm-bottom{transition:none}
 .nm :focus-visible{outline:3px solid var(--nm-accent);outline-offset:2px}
-.nm-start:focus-visible,.nm-pill:focus-visible,.nm-fsbar:focus-visible{outline:3px solid var(--nm-accent);outline-offset:3px}
+.nm-start:focus-visible,.nm-pill:focus-visible,.nm-round:focus-visible{outline:3px solid var(--nm-accent);outline-offset:3px}
