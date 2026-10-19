@@ -50,12 +50,11 @@
 .nm:not(.is-running) .nm-bottom{opacity:0;visibility:hidden;pointer-events:none}
 /* fullscreen button, top-left, all states: white pill with text while fresh/paused, round icon while running.
    Where the Fullscreen API is missing it toggles .is-expanded (stage fixed over the page). */
-.nm-fs{position:absolute;top:18px;left:18px;z-index:7;display:flex;align-items:center;gap:8px;height:44px;padding:0 16px 0 12px;border:0;border-radius:999px;
-  background:#fff;color:var(--nm-ink);font:700 .95rem var(--nm-font);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.25);text-shadow:none}
+.nm-fs{position:absolute;top:18px;left:18px;z-index:5;display:flex;align-items:center;gap:8px;height:44px;padding:0 16px 0 12px;border:0;border-radius:999px;
+  background:rgba(0,0,0,.28);color:#fff;font:700 .95rem var(--nm-font);cursor:pointer;text-shadow:none}   /* z 5: below the panel (6), so the open panel / phone sheet covers it */
 .nm-fs svg{width:22px;height:22px;flex:none}
-.nm-fs:hover{background:#f3f3f3}
-.nm.is-running .nm-fs{width:46px;height:46px;padding:0;justify-content:center;background:rgba(0,0,0,.28);color:#fff;box-shadow:none}
-.nm.is-running .nm-fs:hover{background:rgba(0,0,0,.42)}
+.nm-fs:hover{background:rgba(0,0,0,.4)}
+.nm.is-running .nm-fs{width:46px;height:46px;padding:0;justify-content:center}
 .nm.is-running .nm-fs-text{display:none}
 /* expanded mode (no Fullscreen API): the stage covers the viewport above the header, page scroll locked */
 .nm.is-expanded .nm-stage{position:fixed;inset:0;z-index:100;height:100vh;height:100dvh;min-height:0;background:#000}
