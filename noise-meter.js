@@ -40,7 +40,9 @@
       </div>
       <div class="nm-microw"></div>                       ← mic selector row, filled by this script
     </div>
-  This script adds: the round fullscreen button (top-left, all states), the settings panel
+  This script adds: the fullscreen button (top-left; pill "Fullscreen" in fresh/paused, round icon while
+  running; where the Fullscreen API is missing it toggles an "expanded" mode: stage fixed over the page,
+  body scroll locked, Escape/back exits, one-time Home-Screen hint), the settings panel
   (Character, Background, Indicator, Microphone, Sensitivity — right side,
   bottom sheet under 700 px; shown while paused, hidden before the first
   start and while running, no toggle), the bar indicator, and the mic row.
@@ -80,7 +82,7 @@
   var DB_FLOOR = -60, DB_SPAN = 45;  // internal: -60 dBFS → 0, -15 dBFS → 100
   var NEEDLE_MIN = -100, NEEDLE_MAX = 100;   // degrees, matches the arc in the SVG
   var STEP_POS = [0, 20, 57, 88];    // reduced motion: one fixed position per level
-  var LS_SENS = 'kq-nm-sensitivity', LS_MIC = 'kq-nm-mic', LS_IND = 'kq-nm-indicator', LS_FEEDBACK = 'kq-feedback';
+  var LS_SENS = 'kq-nm-sensitivity', LS_MIC = 'kq-nm-mic', LS_IND = 'kq-nm-indicator', LS_FEEDBACK = 'kq-feedback', LS_FS_HINT = 'kq-fs-hint';
   var LS_VISITS = 'kq-visits', LS_FIRST = 'kq-first-seen';
 
   // Names are used ONLY in alt / aria-label text, never as visible labels.
@@ -382,6 +384,7 @@
     var sessionMs = sessionStart ? Date.now() - sessionStart : 0;
     reportSession();
     running = false;
+    sheetClosed = false;
     cancelAnimationFrame(rafId);
     stopTracks();
     releaseWakeLock();
@@ -526,8 +529,8 @@
   /* ---------- controls: fullscreen button, settings panel, mic row ---------- */
   // Panel (bouncyballs-style): translucent dark panel over the right of the scene (bottom sheet under
   // 700 px). Visible whenever the meter is stopped or paused, hidden while running. No toggle button.
-  var fsBtn, panel, interestCard, feedbackLine, feedbackTimer = 0;
-  var micSelects = [], sensSlider;
+  var fsBtn, fsText, panel, panelBody, sheetClosed = false, interestCard, feedbackLine, feedbackTimer = 0;
+  var micSelects = [], sensSlider, sensDefaultBtn;
 
   function el(tag, cls, html) {
     var n = document.createElement(tag);
@@ -559,15 +562,27 @@
   }
 
   function buildControls() {
-    // one round fullscreen button, top-left, visible in all three states
-    fsBtn = button('nm-round nm-fs', 'Fullscreen', ICON.full);
+    // fullscreen button, top-left, all states: pill with text (fresh/paused), round icon while running (CSS)
+    fsBtn = button('nm-fs', 'Fullscreen', ICON.full);
+    fsText = el('span', 'nm-fs-text', 'Fullscreen');
+    fsBtn.appendChild(fsText);
     fsBtn.addEventListener('click', toggleFullscreen);
-    if (!fullscreenSupported()) fsBtn.hidden = true;
     stage.appendChild(fsBtn);
 
     panel = el('div', 'nm-panel');
     panel.id = 'nm-panel';
     panel.setAttribute('role', 'region'); panel.setAttribute('aria-label', 'Settings');
+    panelBody = el('div', 'nm-panel-body');
+    panel.appendChild(panelBody);
+    // phone sheet only (CSS hides both ≥ 700 px): × closes the sheet, sticky bar resumes directly
+    var closeBtn = button('nm-sheet-close', 'Close settings', ICON.close);
+    closeBtn.addEventListener('click', function () { sheetClosed = true; applyPanel(); });
+    panel.appendChild(closeBtn);
+    var resumeBar = el('div', 'nm-sheet-resume');
+    var resumeBtn = button('nm-sheet-resume-btn', 'Resume the noise meter', '\u25B6 Resume');
+    resumeBtn.addEventListener('click', function () { if (!running) start(); });
+    resumeBar.appendChild(resumeBtn);
+    panel.appendChild(resumeBar);
     stage.appendChild(panel);
     buildPanel();
 
@@ -581,13 +596,15 @@
   }
 
   // Panel = paused state only (after the first start; CSS slides it out via .is-panel-open).
+  // On phones the × closes it for the current pause (sheetClosed is reset by the next pause).
   function applyPanel() {
-    var vis = !running && everStarted;
+    var vis = !running && everStarted && !sheetClosed;
     root.classList.toggle('is-panel-open', vis);
     if (panel) { panel.setAttribute('aria-hidden', vis ? 'false' : 'true'); try { panel.inert = !vis; } catch (e) {} }
   }
 
   function buildPanel() {
+    var panel = panelBody;   // sections live in the scrolling body
     panel.appendChild(el('h3', 'nm-h', 'Character'));
     var charGrid = el('div', 'nm-grid'); charGrid.setAttribute('role', 'group'); charGrid.setAttribute('aria-label', 'Character');
     fillGrid(charGrid, 'char', CHARACTERS);
@@ -639,13 +656,14 @@
     var sensId = 'nm-sens';
     var sensHead = el('div', 'nm-h nm-h-row');
     var sensLab = el('label', '', 'Sensitivity'); sensLab.setAttribute('for', sensId);
-    var sensReset = button('nm-reset', 'Reset sensitivity', 'Reset');
-    sensReset.addEventListener('click', function () {
+    sensDefaultBtn = button('nm-reset', 'Back to the default sensitivity', 'Default');   // hidden while already at the default
+    sensDefaultBtn.addEventListener('click', function () {
       if (sensitivity === 1) return;
       sensitivity = 1; lsSet(LS_SENS, '1'); sensSlider.value = '100';
+      updateSensDefault();
       signal('setting-change', { what: 'sensitivity' });
     });
-    sensHead.appendChild(sensLab); sensHead.appendChild(sensReset);
+    sensHead.appendChild(sensLab); sensHead.appendChild(sensDefaultBtn);
     panel.appendChild(sensHead);
     sensSlider = document.createElement('input');
     sensSlider.type = 'range'; sensSlider.id = sensId; sensSlider.className = 'nm-range';
@@ -654,15 +672,15 @@
     sensSlider.addEventListener('input', function () {        // live while dragging
       sensitivity = parseInt(sensSlider.value, 10) / 100;
       lsSet(LS_SENS, String(sensitivity));
+      updateSensDefault();
     });
     sensSlider.addEventListener('change', function () {       // once per drag end
       signal('setting-change', { what: 'sensitivity' });
     });
     panel.appendChild(sensSlider);
-    var sensRow = el('div', 'nm-sens-row'); sensRow.setAttribute('aria-hidden', 'true');
-    sensRow.appendChild(el('span', '', 'Less')); sensRow.appendChild(el('span', '', 'More'));
-    panel.appendChild(sensRow);
+    updateSensDefault();
   }
+  function updateSensDefault() { if (sensDefaultBtn) sensDefaultBtn.hidden = (sensitivity === 1); }
 
   /* ---------- feedback line: after a pause that ends a session of ≥ 2 min, at most once per 30 days ---------- */
   function feedbackRecent() {
@@ -697,7 +715,7 @@
       removeFeedback();
     });
     feedbackLine.appendChild(up); feedbackLine.appendChild(down); feedbackLine.appendChild(x);
-    panel.insertBefore(feedbackLine, panel.firstChild);
+    panelBody.insertBefore(feedbackLine, panelBody.firstChild);
   }
 
   function thumbPicture(kind, item) {
@@ -741,9 +759,9 @@
       interestCard.hidden = false;
       // bring the card into the PANEL's view (the panel scrolls itself; the page never moves)
       var bottom = interestCard.offsetTop + interestCard.offsetHeight;
-      if (bottom > panel.scrollTop + panel.clientHeight) {
-        var top = Math.max(0, bottom - panel.clientHeight + 12);
-        try { panel.scrollTo({ top: top, behavior: reducedMotion ? 'auto' : 'smooth' }); } catch (e) { panel.scrollTop = top; }
+      if (bottom > panelBody.scrollTop + panelBody.clientHeight) {
+        var top = Math.max(0, bottom - panelBody.clientHeight + 12);
+        try { panelBody.scrollTo({ top: top, behavior: reducedMotion ? 'auto' : 'smooth' }); } catch (e) { panelBody.scrollTop = top; }
       }
     }
     try { root.dispatchEvent(new CustomEvent('kq:pro-click', { bubbles: true, detail: { item: item } })); } catch (e) {}
@@ -800,15 +818,23 @@
     navigator.mediaDevices.addEventListener('devicechange', function () { if (running) fillMicList(); });
   }
 
-  /* ---------- fullscreen ---------- */
+  /* ---------- fullscreen: native API, or "expanded" mode where it is missing (iPhone Safari) ---------- */
+  var expanded = false, expandedHistory = false, fsHint = null;
   function fullscreenSupported() { return !!(stage.requestFullscreen || stage.webkitRequestFullscreen); }
   function isFullscreen() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+  function updateFsBtn() {
+    var on = isFullscreen() || expanded;
+    root.classList.toggle('is-fullscreen', on);
+    if (fsBtn) fsBtn.setAttribute('aria-label', on ? 'Exit fullscreen' : 'Fullscreen');
+    if (fsText) fsText.textContent = on ? 'Exit' : 'Fullscreen';
+  }
   function toggleFullscreen() {
+    if (!fullscreenSupported()) { if (expanded) leaveExpanded(false); else enterExpanded(); return; }
     if (isFullscreen()) { exitFullscreen(); return; }
     var p;
     try { p = stage.requestFullscreen ? stage.requestFullscreen() : stage.webkitRequestFullscreen(); } catch (e) { return; }
     if (p && p.catch) p.catch(function () {});
-    signal('fullscreen', {});
+    signal('fullscreen', { mode: 'native' });
   }
   function exitFullscreen() {
     try {
@@ -816,13 +842,42 @@
       if (p && p.catch) p.catch(function () {});
     } catch (e) {}
   }
-  function onFsChange() {
-    var on = isFullscreen();
-    root.classList.toggle('is-fullscreen', on);
-    if (fsBtn) fsBtn.setAttribute('aria-label', on ? 'Exit fullscreen' : 'Fullscreen');
+  document.addEventListener('fullscreenchange', updateFsBtn);
+  document.addEventListener('webkitfullscreenchange', updateFsBtn);
+
+  // expanded mode: the stage is fixed over the whole page, body scroll locked; Escape or the back button exits
+  function enterExpanded() {
+    expanded = true;
+    root.classList.add('is-expanded');
+    document.documentElement.classList.add('nm-lock');
+    try { history.pushState({ nmExpanded: true }, ''); expandedHistory = true; } catch (e) { expandedHistory = false; }
+    updateFsBtn();
+    showFsHintOnce();
+    signal('fullscreen', { mode: 'expanded' });
   }
-  document.addEventListener('fullscreenchange', onFsChange);
-  document.addEventListener('webkitfullscreenchange', onFsChange);
+  function leaveExpanded(fromHistory) {
+    if (!expanded) return;
+    expanded = false;
+    root.classList.remove('is-expanded');
+    document.documentElement.classList.remove('nm-lock');
+    removeFsHint();
+    updateFsBtn();
+    if (!fromHistory && expandedHistory) { expandedHistory = false; try { history.back(); } catch (e) {} }
+    expandedHistory = false;
+  }
+  window.addEventListener('popstate', function () { if (expanded) leaveExpanded(true); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && expanded) leaveExpanded(false); });
+  function removeFsHint() { if (fsHint && fsHint.parentNode) fsHint.parentNode.removeChild(fsHint); fsHint = null; }
+  function showFsHintOnce() {
+    if (lsGet(LS_FS_HINT) === '1' || fsHint) return;
+    lsSet(LS_FS_HINT, '1');
+    fsHint = el('div', 'nm-hint'); fsHint.setAttribute('role', 'status');
+    fsHint.appendChild(el('span', '', 'For a true full screen, add this page to your Home Screen.'));
+    var x = button('nm-hint-x', 'Dismiss', ICON.close);
+    x.addEventListener('click', removeFsHint);
+    fsHint.appendChild(x);
+    stage.appendChild(fsHint);
+  }
 
   /* ---------- hash → open the targeted FAQ <details> (privacy link on the overlay) ---------- */
   function openHashDetails() {
