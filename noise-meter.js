@@ -183,12 +183,19 @@
   } catch (e) { /* dynamic import unsupported: same */ }
 
   /* ---------- pictures ---------- */
-  function makePicture(base, fallbackExt, alt, w, h, cls, jpegFirst) {
+  // characters: 500 px variant (-500.webp / -500.png) + 1000 px original via srcset; sizes = the character box
+  // while running (.nm-char: height 52 % of the stage under 560 px, 64 % above; width = height * 1000/1200)
+  var CHAR_SIZES = '(max-width:560px) calc((100vh - 65px) * .433), calc((100vh - 65px) * .533)';
+  function makePicture(base, fallbackExt, alt, w, h, cls, jpegFirst, sizes) {
     var pic = document.createElement('picture');
     pic.className = cls;
     var src = document.createElement('source');
     var img = document.createElement('img');
     if (jpegFirst) { src.type = 'image/jpeg'; src.srcset = base + '.jpg'; img.src = base + '.webp'; }
+    else if (sizes) {
+      src.type = 'image/webp'; src.srcset = base + '-500.webp 500w, ' + base + '.webp 1000w'; src.sizes = sizes;
+      img.src = base + '.' + fallbackExt; img.srcset = base + '-500.' + fallbackExt + ' 500w, ' + base + '.' + fallbackExt + ' 1000w'; img.sizes = sizes;
+    }
     else { src.type = 'image/webp'; src.srcset = base + '.webp'; img.src = base + '.' + fallbackExt; }
     img.alt = alt; img.width = w; img.height = h; img.decoding = 'async';
     pic.appendChild(src); pic.appendChild(img);
@@ -205,7 +212,7 @@
   function ensureCharState(state) {
     if (charsBox.querySelector('.nm-char[data-state="' + state + '"]')) return;
     var pic = makePicture(ASSETS + 'char/' + current.character + '-' + state, 'png',
-      characterName() + ', ' + STATE_ALT[state], 1000, 1200, 'nm-char', false);
+      characterName() + ', ' + STATE_ALT[state], 1000, 1200, 'nm-char', false, CHAR_SIZES);
     pic.setAttribute('data-state', String(state));
     charsBox.appendChild(pic);
   }

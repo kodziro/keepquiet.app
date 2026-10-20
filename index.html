@@ -6,7 +6,7 @@
 <title>Free Online Classroom Noise Meter for Kids | Keep Quiet</title>
 <meta name="description" content="Free online noise meter for classrooms. Friendly characters react as the room gets louder. Works on Chromebook, Windows and iPad. No sign-up, no ads, audio stays on your device.">
 <link rel="canonical" href="https://keepquiet.app/">
-<link rel="icon" href="assets/icon.jpg">
+<link rel="icon" href="assets/icon-64.png" type="image/png" sizes="64x64">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Free Online Classroom Noise Meter for Kids | Keep Quiet">
 <meta property="og:description" content="Free online noise meter for classrooms. Friendly characters react as the room gets louder. Works on Chromebook, Windows and iPad. No sign-up, no ads, audio stays on your device.">
@@ -16,46 +16,90 @@
 <meta name="twitter:title" content="Free Online Classroom Noise Meter for Kids | Keep Quiet">
 <meta name="twitter:description" content="Friendly characters react as the room gets louder. Works on Chromebook, Windows, Mac and iPad. No sign-up, no ads, audio stays on your device.">
 <meta name="twitter:image" content="https://keepquiet.app/assets/screenshot-1.jpg">
-<link rel="preload" as="image" href="assets/tool/char/cat-1.webp" type="image/webp" fetchpriority="high">
+<link rel="preload" as="image" href="assets/tool/char/cat-1.webp" imagesrcset="assets/tool/char/cat-1-500.webp 500w, assets/tool/char/cat-1.webp 1000w" imagesizes="(max-width:699px) calc((100vh - 65px) * .35), min(calc((100vh - 65px) * .533), 40vw - 48px)" type="image/webp" fetchpriority="high">
 <link rel="preload" as="image" href="assets/tool/scene/city-1.webp" type="image/webp" fetchpriority="high">
+<link rel="preload" href="assets/fonts/fredoka-600.woff2" as="font" type="font/woff2" crossorigin>
 <style>
+/* Critical CSS for the page frame above the fold (fonts, header, nav, tool section) — mirrors the same rules in styles.css; change both together. */
+@font-face{font-family:"Fredoka";font-style:normal;font-weight:600;font-display:swap;src:url(assets/fonts/fredoka-600.woff2) format("woff2")}
+@font-face{font-family:"Nunito";font-style:normal;font-weight:400 800;font-display:swap;src:url(assets/fonts/nunito-400-800.woff2) format("woff2")}
+:root{--paper:#F3F8FC;--card:#FFFFFF;--ink:#1E2A44;--ink-soft:#51607F;--quiet:#2FA46E;--medium:#FFB13D;--loud:#EF5D60;--cta:#3556E0;--cta-dark:#2843BC;--line:#DDE7F0;--radius:20px;--meter:linear-gradient(90deg,var(--quiet) 0%,var(--medium) 55%,var(--loud) 100%);--shadow:0 10px 30px rgba(30,42,68,.10);--font-display:"Fredoka",system-ui,sans-serif;--font-body:"Nunito",system-ui,sans-serif;}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);color:var(--ink);background:var(--paper);line-height:1.65;font-size:17px}
+img{max-width:100%;height:auto;display:block}
+a{color:var(--cta)}
+h1,h2,h3{font-family:var(--font-display);font-weight:600;line-height:1.15;letter-spacing:-.01em}
+h1{font-size:clamp(2rem,5vw,3.3rem)}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+.meter-strip{height:6px;background:var(--meter)}
+.site-header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.site-header .wrap{display:flex;align-items:center;gap:14px;padding-top:10px;padding-bottom:10px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-family:var(--font-display);font-weight:600;font-size:1.05rem}
+.brand img{width:38px;height:38px;border-radius:9px}
+.site-nav{margin-left:auto;display:flex;align-items:center;gap:20px;font-size:.95rem}
+.site-nav a{color:var(--ink-soft);text-decoration:none;font-weight:600}
+.site-nav a:hover{color:var(--ink)}
+.tool-section{padding:0;background:#fff}
+.under-tool{text-align:center;font-size:.95rem;padding:10px 20px 0;margin:0}
+.under-tool a{color:var(--ink-soft);font-weight:700;text-decoration:none}
+.under-tool a:hover{color:var(--cta);text-decoration:underline}
+section{padding:56px 0}
+@media(max-width:560px){.site-nav a:not(.btn){display:none}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+:focus-visible{outline:3px solid var(--cta);outline-offset:2px;border-radius:6px}
 /* Critical CSS for the noise meter's first paint — mirrors the same rules in noise-meter.css; change both together. */
 .nm{--nm-g1:#3ABF5A;--nm-g2:#F2D22B;--nm-g3:#F58A2A;--nm-g4:#F0423B;--nm-accent:#4DA3FF;--nm-accent-hover:#3690F0;--nm-ink:#1E2A44;--nm-grad:linear-gradient(90deg,var(--nm-g1) 0%,var(--nm-g2) 45%,var(--nm-g3) 72%,var(--nm-g4) 100%);--nm-font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--nm-bar-h:clamp(88px,12vh,124px);--nm-icon:clamp(68px,9.2vh,96px);--nm-start-h:64px;--nm-start-f:1.25rem;--nm-cap:90%;position:relative;width:100%;font-family:var(--nm-font)}
 .nm-stage{position:relative;width:100%;height:calc(100vh - var(--nm-above,0px));height:max(480px,calc(100svh - var(--nm-above,0px)));min-height:480px;overflow:hidden;background:#9bd0ee;isolation:isolate}
 .nm-scenes,.nm-chars{position:absolute;inset:0;pointer-events:none}
 .nm-scene,.nm-scene img{position:absolute;inset:0;width:100%;height:100%}
 .nm-scene img{object-fit:cover;object-position:50% 60%;display:block}
-.nm-scene{opacity:0}.nm-scene.is-active{opacity:1}
-.nm-char{position:absolute;left:50%;bottom:17%;height:64%;width:var(--nm-cap);max-width:90%;transform:translateX(-50%);display:none}
+.nm-scene{opacity:0;transition:opacity .4s ease}.nm-scene.is-active{opacity:1}
+.nm-char{position:absolute;left:50%;bottom:17%;height:64%;width:var(--nm-cap);max-width:90%;transform:translateX(-50%);display:none;transition:width .4s ease,bottom .4s ease,height .4s ease}
 .nm-char.is-active{display:block}
 .nm-char img{width:100%;height:100%;max-width:none;object-fit:contain;object-position:bottom center;display:block}
-.nm-indicator{position:absolute;left:50%;bottom:14.5%;z-index:3;transform:translateX(-50%);width:min(clamp(220px,34vh,420px),var(--nm-cap));pointer-events:none}
-.nm-dial{display:block;width:100%;height:auto}
-.nm-bottom{position:absolute;left:5%;right:5%;bottom:2.5%;z-index:4;height:var(--nm-bar-h);border-radius:24px;background:rgba(255,255,255,.28);display:flex;align-items:center;justify-content:center}
+.nm-indicator{position:absolute;left:50%;bottom:14.5%;z-index:3;transform:translateX(-50%);width:min(clamp(220px,34vh,420px),var(--nm-cap));pointer-events:none;transition:width .4s ease,opacity .4s ease,visibility .4s}
+.nm-dial{display:block;width:100%;height:auto;filter:drop-shadow(0 3px 6px rgba(0,0,0,.28))}
+.nm[data-indicator="bar"] .nm-dial{display:none}
+.nm[data-indicator="dial"] .nm-bar{display:none}
+.nm-bar{position:relative;height:clamp(40px,6vh,56px);border-radius:16px;background:var(--nm-grad);box-shadow:0 3px 10px rgba(0,0,0,.25)}
+.nm-bar-marker{position:absolute;top:50%;left:0;height:50%;aspect-ratio:1;background:#fff;border-radius:4px;transform:translate(-50%,-50%) rotate(45deg);transition:left .12s linear;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.nm-bottom{position:absolute;left:5%;right:5%;bottom:2.5%;z-index:4;height:var(--nm-bar-h);border-radius:24px;background:rgba(255,255,255,.28);display:flex;align-items:center;justify-content:center;transition:opacity .3s ease,visibility .3s}
 .nm-play{width:100%;height:100%;min-width:64px;min-height:64px;border:0;background:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:24px;padding:0}
-.nm-play svg{width:var(--nm-icon);height:auto;fill:#fff}
+.nm-play svg{width:var(--nm-icon);height:auto;fill:#fff;filter:drop-shadow(0 2px 5px rgba(0,0,0,.3))}
 .nm:not(.is-running) .nm-bottom{opacity:0;visibility:hidden;pointer-events:none}
-.nm-overlay{position:absolute;inset:0;z-index:4;background:rgba(0,0,0,.2)}
+.nm-fs{position:absolute;top:18px;left:18px;z-index:5;display:flex;align-items:center;gap:8px;height:44px;padding:0 16px 0 12px;border:0;border-radius:999px;background:rgba(0,0,0,.28);color:#fff;font:700 .95rem var(--nm-font);cursor:pointer;text-shadow:none}
+.nm-fs svg{width:22px;height:22px;flex:none}
+.nm-overlay{position:absolute;inset:0;z-index:4;background:rgba(0,0,0,.2);transition:opacity .3s ease,visibility .3s,background .3s}
 .nm.is-fresh .nm-overlay{background:rgba(0,0,0,.3)}
 .nm-stack{position:absolute;left:0;right:0;top:87%;transform:translateY(-50%);text-align:center;padding:0 16px;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.5)}
 .nm.is-fresh .nm-stack{right:auto;width:30%;top:50%;text-align:left;padding:0 0 0 6%}
 .nm-stack h1{color:#fff;margin:0;line-height:1.05}
 .nm-stack .kicker{display:block;font:700 1.1rem/1.4 "Nunito",system-ui,sans-serif;text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px}
 .nm-stack .big{display:block;font-size:clamp(2.6rem,5vw,4.6rem)}
-.nm-start{display:inline-flex;align-items:center;justify-content:center;min-height:var(--nm-start-h);margin-top:28px;padding:0 2em;border:0;border-radius:999px;background:#fff;color:var(--nm-ink);font:700 var(--nm-start-f) var(--nm-font);text-transform:uppercase;letter-spacing:.04em;text-shadow:none;cursor:pointer}
+.nm-start{display:inline-flex;align-items:center;justify-content:center;min-height:var(--nm-start-h);margin-top:28px;padding:0 2em;border:0;border-radius:999px;background:#fff;color:var(--nm-ink);font:700 var(--nm-start-f) var(--nm-font);text-transform:uppercase;letter-spacing:.04em;text-shadow:none;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.3);transition:background .15s,transform .15s}
 .nm-privacy{position:absolute;left:0;right:0;bottom:16px;margin:0;padding:0 16px;text-align:center;font:600 .9rem/1.4 var(--nm-font);text-shadow:0 1px 6px rgba(0,0,0,.6)}
-.nm-privacy a{display:inline-block;color:#fff}
+.nm-privacy a{display:inline-block;color:#fff;text-decoration:underline;text-underline-offset:3px}
 @media (min-width:700px){.nm.is-fresh{--nm-cap:calc(40% - 48px)}}
 .nm.is-running .nm-overlay{opacity:0;visibility:hidden;pointer-events:none}
+.sr-only{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+.nm-msg{position:absolute;left:50%;bottom:45%;z-index:5;transform:translateX(-50%);pointer-events:none;width:max-content;max-width:min(90%,34rem);margin:0;padding:.55rem 1rem;border-radius:14px;background:rgba(0,0,0,.55);color:#fff;font-size:1rem;font-weight:600;text-align:center}
 .nm-msg:empty{display:none}
-@media (max-width:699px){.nm.is-fresh .nm-stack{right:0;width:auto;top:72px;transform:none;text-align:center;padding:0 16px}.nm.is-fresh .nm-char{bottom:12%;height:42%}.nm.is-fresh .nm-indicator{opacity:0;visibility:hidden}.nm-privacy{font-size:.82rem}}
+.nm.is-fresh .nm-msg{bottom:12%}
+.nm-msg.is-error{background:rgba(240,66,59,.95)}
+.nm-panel{position:absolute;top:0;right:0;bottom:0;z-index:6;width:340px;max-width:85%;background:rgba(0,0,0,.45);color:#fff;display:flex;flex-direction:column;overflow:hidden;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);transform:translateX(100%);visibility:hidden;transition:transform .3s ease,visibility .3s}
+.nm-sheet-close,.nm-sheet-resume{display:none}
+.nm-select{display:block;width:100%;max-width:26rem;font:600 1rem var(--nm-font);color:var(--nm-ink);background:#F2F2F2;border:0;border-radius:12px;padding:.6rem .8rem}
+.nm-microw{display:flex;align-items:center;gap:12px;padding:12px 16px;background:#fff;border-top:1px solid #DDE7F0}
+.nm-microw-label{display:flex;align-items:center;gap:12px;width:100%;max-width:34rem}
+.nm-microw-text{font:700 .95rem var(--nm-font);color:var(--nm-ink);white-space:nowrap}
+.nm-microw .nm-select{margin:0}
+@media (max-width:699px){.nm-panel{left:0;right:0;width:auto;max-width:none;border-radius:0;transform:translateY(100%)}.nm.is-fresh .nm-stack{right:0;width:auto;top:72px;transform:none;text-align:center;padding:0 16px}.nm.is-fresh .nm-char{bottom:12%;height:42%}.nm.is-fresh .nm-indicator{opacity:0;visibility:hidden}.nm-privacy{font-size:.82rem}}
 @media (max-width:560px){.nm-char{height:52%;bottom:19%}.nm-indicator{width:min(62vw,260px);bottom:15%}}
 </style>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20261018c">
-<link rel="stylesheet" href="noise-meter.css?v=20261019l">
+<link rel="stylesheet" href="styles.css?v=20261020b" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="noise-meter.css?v=20261019l" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="styles.css?v=20261020b"><link rel="stylesheet" href="noise-meter.css?v=20261019l"></noscript>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -132,9 +176,9 @@
   ]
 }
 </script>
-<script src="https://cdn.telemetrydeck.com/websdk/telemetrydeck.min.js" data-app-id="43A2ECAF-E4DA-4440-B847-7A1FCE01600C"></script>
+<script defer src="https://cdn.telemetrydeck.com/websdk/telemetrydeck.min.js" data-app-id="43A2ECAF-E4DA-4440-B847-7A1FCE01600C"></script>
 <script type="module" src="assets/appstore-click.js"></script>
-<script type="module" src="noise-meter.js?v=20261019l"></script>
+<script type="module" src="noise-meter.js?v=20261020a"></script>
 </head>
 <body>
 <div class="meter-strip" aria-hidden="true"></div>
@@ -142,7 +186,7 @@
 <header class="site-header">
   <div class="wrap">
     <a class="brand" href="index.html">
-      <img src="assets/icon.jpg" alt="Keep Quiet icon" width="38" height="38">
+      <picture><source srcset="assets/icon-76.webp" type="image/webp"><img src="assets/icon-76.jpg" alt="Keep Quiet icon" width="38" height="38"></picture>
       Keep Quiet – free classroom tools
     </a>
     <nav class="site-nav" aria-label="Main">
@@ -166,8 +210,8 @@
         </div>
         <div class="nm-chars">
           <picture class="nm-char is-active" data-state="1">
-            <source srcset="assets/tool/char/cat-1.webp" type="image/webp">
-            <img src="assets/tool/char/cat-1.png" alt="Cat, happy" width="1000" height="1200" fetchpriority="high">
+            <source srcset="assets/tool/char/cat-1-500.webp 500w, assets/tool/char/cat-1.webp 1000w" sizes="(max-width:699px) calc((100vh - 65px) * .35), min(calc((100vh - 65px) * .533), 40vw - 48px)" type="image/webp">
+            <img src="assets/tool/char/cat-1.png" srcset="assets/tool/char/cat-1-500.png 500w, assets/tool/char/cat-1.png 1000w" sizes="(max-width:699px) calc((100vh - 65px) * .35), min(calc((100vh - 65px) * .533), 40vw - 48px)" alt="Cat, happy" width="1000" height="1200" fetchpriority="high">
           </picture>
         </div>
         <div class="nm-indicator">
@@ -367,12 +411,12 @@
       </div>
 
       <div class="shots" id="screenshots">
-        <figure class="shot"><img src="assets/screenshot-1.jpg" alt="Noise Meter – Keep Quiet app showing a friendly character reacting to a quiet room with a green noise level bar" loading="lazy" width="1242" height="2688"></figure>
-        <figure class="shot"><img src="assets/screenshot-2.jpg" alt="Kids noise meter character changing expression as classroom noise level rises to yellow" loading="lazy" width="1242" height="2688"></figure>
-        <figure class="shot"><img src="assets/screenshot-3.jpg" alt="Visual noise level meter turning red when the room is too loud for kids" loading="lazy" width="1242" height="2688"></figure>
-        <figure class="shot"><img src="assets/screenshot-4.jpg" alt="Speedometer-style sound level indicator for classrooms in the Noise Meter app" loading="lazy" width="1242" height="2688"></figure>
-        <figure class="shot"><img src="assets/screenshot-5.jpg" alt="Quiet time timer with noise monitoring for kids in Noise Meter – Keep Quiet" loading="lazy" width="1242" height="2688"></figure>
-        <figure class="shot"><img src="assets/screenshot-6.jpg" alt="Choice of kid-friendly characters including owl and robot in the noise meter app" loading="lazy" width="1242" height="2688"></figure>
+        <figure class="shot"><picture><source srcset="assets/screenshot-1-600.webp" type="image/webp"><img src="assets/screenshot-1-600.jpg" alt="Noise Meter – Keep Quiet app showing a friendly character reacting to a quiet room with a green noise level bar" loading="lazy" width="600" height="1299"></picture></figure>
+        <figure class="shot"><picture><source srcset="assets/screenshot-2-600.webp" type="image/webp"><img src="assets/screenshot-2-600.jpg" alt="Kids noise meter character changing expression as classroom noise level rises to yellow" loading="lazy" width="600" height="1299"></picture></figure>
+        <figure class="shot"><picture><source srcset="assets/screenshot-3-600.webp" type="image/webp"><img src="assets/screenshot-3-600.jpg" alt="Visual noise level meter turning red when the room is too loud for kids" loading="lazy" width="600" height="1299"></picture></figure>
+        <figure class="shot"><picture><source srcset="assets/screenshot-4-600.webp" type="image/webp"><img src="assets/screenshot-4-600.jpg" alt="Speedometer-style sound level indicator for classrooms in the Noise Meter app" loading="lazy" width="600" height="1299"></picture></figure>
+        <figure class="shot"><picture><source srcset="assets/screenshot-5-600.webp" type="image/webp"><img src="assets/screenshot-5-600.jpg" alt="Quiet time timer with noise monitoring for kids in Noise Meter – Keep Quiet" loading="lazy" width="600" height="1299"></picture></figure>
+        <figure class="shot"><picture><source srcset="assets/screenshot-6-600.webp" type="image/webp"><img src="assets/screenshot-6-600.jpg" alt="Choice of kid-friendly characters including owl and robot in the noise meter app" loading="lazy" width="600" height="1299"></picture></figure>
       </div>
     </div>
   </section>
@@ -442,7 +486,7 @@
 <footer class="site-footer">
   <div class="wrap foot-grid">
     <div>
-      <a class="brand" href="index.html"><img src="assets/icon.jpg" alt="" width="38" height="38" loading="lazy">Keep Quiet – free classroom tools</a>
+      <a class="brand" href="index.html"><picture><source srcset="assets/icon-76.webp" type="image/webp"><img src="assets/icon-76.jpg" alt="" width="38" height="38" loading="lazy"></picture>Keep Quiet – free classroom tools</a>
       <p style="margin-top:12px">A free online classroom noise meter, and the Noise Meter – Keep Quiet app for iPhone, iPad and Mac. Friendly characters react to sound in real time, helping children stay calm and quiet at home, in classrooms and in sensory-friendly spaces.</p>
     </div>
     <div>
@@ -466,7 +510,7 @@
     </div>
   </div>
   <div class="wrap foot-note">
-    <p>© 2026 Natalia Jakubczyk-Gajewska. Apple, the Apple logo, iPhone, iPad and Mac are trademarks of Apple Inc. App Store is a service mark of Apple Inc. Last updated: <time datetime="2026-10-19">October 19, 2026</time>.</p>
+    <p>© 2026 Natalia Jakubczyk-Gajewska. Apple, the Apple logo, iPhone, iPad and Mac are trademarks of Apple Inc. App Store is a service mark of Apple Inc. Last updated: <time datetime="2026-10-20">October 20, 2026</time>.</p>
   </div>
 </footer>
 </body>

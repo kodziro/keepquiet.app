@@ -1,4 +1,7 @@
 /* Noise Meter – Keep Quiet · site styles */
+/* Self-hosted fonts (latin subset, weights in use only). The same two @font-face rules are inlined in index.html; change both together. */
+@font-face{font-family:"Fredoka";font-style:normal;font-weight:600;font-display:swap;src:url(assets/fonts/fredoka-600.woff2) format("woff2")}
+@font-face{font-family:"Nunito";font-style:normal;font-weight:400 800;font-display:swap;src:url(assets/fonts/nunito-400-800.woff2) format("woff2")}
 :root{
   --paper:#F3F8FC;
   --card:#FFFFFF;
@@ -27,7 +30,7 @@ h2{font-size:clamp(1.5rem,3.4vw,2.2rem)}
 h3{font-size:1.2rem}
 .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
 .meter-strip{height:6px;background:var(--meter)}
-.eyebrow{display:inline-flex;align-items:center;gap:.5rem;font-family:var(--font-display);font-size:.85rem;font-weight:500;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-soft)}
+.eyebrow{display:inline-flex;align-items:center;gap:.5rem;font-family:var(--font-display);font-size:.85rem;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-soft)}
 .eyebrow::before{content:"";width:26px;height:6px;border-radius:3px;background:var(--meter)}
 .muted{color:var(--ink-soft)}
 
@@ -65,7 +68,7 @@ h3{font-size:1.2rem}
 .pro-card.is-highlighted{box-shadow:0 0 0 4px rgba(53,86,224,.35),var(--shadow)}
 .pro-card h2{margin:10px 0 8px}
 .pro-card p{color:var(--ink-soft);margin-bottom:18px;max-width:34rem;margin-left:auto;margin-right:auto}
-.pro-thanks{font-weight:800;color:var(--quiet);margin:14px 0 0 !important}
+.pro-thanks{font-weight:800;color:var(--ink-soft);margin:14px 0 0 !important}
 .pro-card .btn:disabled{opacity:.55;cursor:default;transform:none}
 
 /* app section */
@@ -94,7 +97,7 @@ section{padding:56px 0}
 /* how it works */
 .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
 .step{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:26px}
-.step .dot{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:600;color:#fff;margin-bottom:14px}
+.step .dot{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:600;font-size:1.5rem;color:var(--ink);margin-bottom:14px}   /* ink on the meter colours: contrast (white failed WCAG AA) */
 .step:nth-child(1) .dot{background:var(--quiet)}
 .step:nth-child(2) .dot{background:var(--medium)}
 .step:nth-child(3) .dot{background:var(--loud)}
@@ -108,10 +111,11 @@ section{padding:56px 0}
 .guide-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
 .guide-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;text-decoration:none;color:var(--ink);display:flex;flex-direction:column;gap:10px;transition:transform .15s,box-shadow .15s}
 .guide-card:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
-.guide-card .tag{font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.09em}
-.guide-card .tag.t-teach{color:var(--quiet)}
-.guide-card .tag.t-home{color:var(--medium)}
-.guide-card .tag.t-send{color:var(--loud)}
+.guide-card .tag{display:inline-flex;align-items:center;gap:.5em;font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:var(--ink-soft)}   /* text in ink-soft (contrast); the meter colour is the dot */
+.guide-card .tag::before{content:"";width:8px;height:8px;border-radius:50%;flex:none}
+.guide-card .tag.t-teach::before{background:var(--quiet)}
+.guide-card .tag.t-home::before{background:var(--medium)}
+.guide-card .tag.t-send::before{background:var(--loud)}
 .guide-card p{color:var(--ink-soft);font-size:.92rem;flex:1}
 .guide-card .more{font-weight:800;color:var(--cta);font-size:.92rem}
 
