@@ -57,8 +57,8 @@
   (detail {type, payload}) so tool-test.html can log it.
 
   Optional page hooks:
-    #pro-card                 → scrolled to + highlighted on a locked-item click;
-                                pro-view is sent once when it is ≥ 50 % visible
+    #pro-card                 → the price card of the pricing section (index.html) or the test
+                                stand-in (tool-test.html); pro-view is sent once when ≥ 50 % visible
     [data-kq-interest]        → "I'm interested" button on the card below the fold: counted
                                 pro-click {item:"interest", from:"card"}, then shows [data-kq-interest-thanks]
     body[data-td-test="1"]    → TelemetryDeck test mode (used by tool-test.html)
@@ -66,6 +66,30 @@
                                 polluting the data; appstore-click.js honours it too)
     details[id] + URL hash   → a <details> targeted by the hash (e.g. the overlay's privacy
                                 link → #faq-record) is opened on load and on hashchange
+
+  Unlock (UNLOCK-PLAN.md § 3.4, worker/README.md § 8; UI and texts live in unlock.js):
+    - lock badges stay here; "key stored?" = localStorage kq-license (in-memory fallback when
+      storage throws) or the FREE_UNTIL window; no network call on load, ever.
+    - unlock.js?v=UNLOCK_V is imported lazily: when the panel first opens, at init when
+      window.__kqUnlock exists (set by the inline head script from ?unlock= / ?k=) or a key is
+      stored, or on the first interaction with #pro-card below the fold. It receives
+      window.__kqTool (signal, el, button, storage, panel hooks) and owns the unlock UI: a
+      centred modal <dialog> (decided 2026-11-02) plus the panel entry (.nm-unlock-line:
+      locked → primary button "Unlock all — $19.99 one-time" straight to /checkout, caption,
+      "Already unlocked? Restore" link; unlocked → "✓ Unlocked · KQ-••••-••••-1234 Show ·
+      Manage"; free window → "free until <date> · Restore"). Browsers without showModal get
+      the dialog content as a card in the panel (.nm-unlock, the old slot).
+    - body[data-kq-unlock-gate] (tool-test.html): the unlock UI renders only when
+      localStorage kq-dev === "1" (set by tool-test.html?dev=1); otherwise the page behaves
+      exactly as today (interest card, no price).
+    - a locked thumb tap still counts pro-click {item} and opens the short offer dialog
+      (unlock-click {from:"thumb"} if its button is pressed); the panel button and the static
+      card's button call /checkout directly (from:"panel" / from:"card").
+      After unlock the grids are rebuilt without badges and
+      any character / background is selectable (selectItem). Every paid character and scene
+      reacts in 3 steps like cat/city (§ 5.0, art converted 2026-11-02).
+    - FREE_UNTIL (ISO date; empty = off): while today < FREE_UNTIL every browser is unlocked,
+      nothing is stored and no /checkout call is made (§ 2.11).
 */
 (function () {
   'use strict';
@@ -84,20 +108,23 @@
   var STEP_POS = [0, 20, 57, 88];    // reduced motion: one fixed position per level
   var LS_SENS = 'kq-nm-sensitivity', LS_MIC = 'kq-nm-mic', LS_IND = 'kq-nm-indicator', LS_FEEDBACK = 'kq-feedback', LS_FS_HINT = 'kq-fs-hint';
   var LS_VISITS = 'kq-visits', LS_FIRST = 'kq-first-seen';
+  var LS_LICENSE = 'kq-license', LS_DEV = 'kq-dev';
+  var FREE_UNTIL = '';               // e.g. '2026-12-31': all characters and backgrounds free until then (UNLOCK-PLAN § 2.11); '' = off
+  var UNLOCK_V = '20261102g';        // ?v= of unlock.js — bump with every change to unlock.js
 
   // Names are used ONLY in alt / aria-label text, never as visible labels.
   var CHARACTERS = [
     { id: 'cat', free: true, states: 3, name: 'Cat' },
-    { id: 'dog', name: 'Dog' }, { id: 'crocodile', name: 'Crocodile' },
-    { id: 'squirrel', name: 'Squirrel' }, { id: 'tiger', name: 'Tiger' },
-    { id: 'parrot', name: 'Parrot' }, { id: 'owl', name: 'Owl' }, { id: 'robot', name: 'Robot' }
+    { id: 'dog', states: 3, name: 'Dog' }, { id: 'crocodile', states: 3, name: 'Crocodile' },
+    { id: 'squirrel', states: 3, name: 'Squirrel' }, { id: 'tiger', states: 3, name: 'Tiger' },
+    { id: 'parrot', states: 3, name: 'Parrot' }, { id: 'owl', states: 3, name: 'Owl' }, { id: 'robot', states: 3, name: 'Robot' }
   ];
   var SCENES = [
     { id: 'city', free: true, levels: 3, name: 'City' },
-    { id: 'beach', name: 'Beach' }, { id: 'ice', name: 'Ice and mountains' },
-    { id: 'space', name: 'Earth and space' }, { id: 'forest', name: 'Forest' }
+    { id: 'beach', levels: 3, name: 'Beach' }, { id: 'ice', levels: 3, name: 'Ice and mountains' },
+    { id: 'space', levels: 3, name: 'Earth and space' }, { id: 'forest', levels: 3, name: 'Forest' }
   ];
-  var JPEG_FIRST = { 'city-2': true, 'city-3': true };   // grain: JPEG smaller than WebP
+  var JPEG_FIRST = { 'city-2': true, 'city-3': true, 'ice-3': true };   // grain: JPEG smaller than WebP
   var STATE_ALT = ['', 'happy', 'sad, ears down', 'eyes shut, paws on ears'];
   var LEVEL_TEXT = ['', 'Quiet', 'Getting loud', 'Too loud'];
 
@@ -128,8 +155,23 @@
   try { reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
   if (reducedMotion) root.classList.add('nm-reduced');
 
-  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
-  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  // localStorage with an in-memory fallback (README § 8.2): when storage throws, values live for this page's lifetime
+  var mem = {};
+  function lsGet(k) {
+    try { var v = localStorage.getItem(k); if (v !== null) return v; } catch (e) {}
+    return Object.prototype.hasOwnProperty.call(mem, k) ? mem[k] : null;
+  }
+  function lsSet(k, v) { mem[k] = String(v); try { localStorage.setItem(k, String(v)); } catch (e) {} }
+  function lsDel(k) { delete mem[k]; try { localStorage.removeItem(k); } catch (e) {} }
+
+  /* ---------- unlock: gate, key check, free window (no network) ---------- */
+  function unlockActive() {   // tool-test.html: only with the kq-dev flag; every other page: always
+    if (document.body && document.body.hasAttribute('data-kq-unlock-gate')) return lsGet(LS_DEV) === '1';
+    return true;
+  }
+  function todayISO() { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+  function freeWindow() { return !!FREE_UNTIL && todayISO() < FREE_UNTIL; }
+  function isUnlocked() { return unlockActive() && (freeWindow() || !!lsGet(LS_LICENSE)); }
 
   /* ---------- TelemetryDeck (same SDK + request as assets/appstore-click.js) ---------- */
   var APP_ID = '43A2ECAF-E4DA-4440-B847-7A1FCE01600C';
@@ -204,24 +246,35 @@
 
   var current = { character: 'cat', scene: 'city', state: 1 };
 
-  function characterName() {
-    var name = 'Character';
-    CHARACTERS.forEach(function (c) { if (c.id === current.character) name = c.name; });
-    return name;
-  }
+  function findItem(list, id) { for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i]; return list[0]; }
+  // One file per state. Free items: cat-1 … cat-3, city-1 … city-3. Paid items: state 1 keeps its original name
+  // (dog, beach — the files the live page already serves), states 2–3 are dog-2, dog-3, beach-2, beach-3 (§ 5.0).
+  function fileKey(item, n) { return item.id + (item.free ? '-' + n : (n > 1 ? '-' + n : '')); }
   function ensureCharState(state) {
     if (charsBox.querySelector('.nm-char[data-state="' + state + '"]')) return;
-    var pic = makePicture(ASSETS + 'char/' + current.character + '-' + state, 'png',
-      characterName() + ', ' + STATE_ALT[state], 1000, 1200, 'nm-char', false, CHAR_SIZES);
+    var item = findItem(CHARACTERS, current.character);
+    var base = ASSETS + 'char/' + fileKey(item, state);
+    var pic = makePicture(base, 'png', item.name + ', ' + STATE_ALT[state], 1000, 1200, 'nm-char', false, CHAR_SIZES);
     pic.setAttribute('data-state', String(state));
     charsBox.appendChild(pic);
   }
   function ensureSceneLevel(level) {
     if (scenesBox.querySelector('.nm-scene[data-level="' + level + '"]')) return;
-    var key = current.scene + '-' + level;
+    var item = findItem(SCENES, current.scene);
+    var key = fileKey(item, level);
     var pic = makePicture(ASSETS + 'scene/' + key, 'jpg', '', 1024, 1024, 'nm-scene', !!JPEG_FIRST[key]);
     pic.setAttribute('data-level', String(level));
     scenesBox.appendChild(pic);
+  }
+  // switch character or background (unlocked items): rebuild that layer for the current state, the other states follow lazily
+  function selectItem(kind, id) {
+    if (kind === 'char') { if (current.character === id) return false; current.character = id; charsBox.innerHTML = ''; }
+    else { if (current.scene === id) return false; current.scene = id; scenesBox.innerHTML = ''; }
+    var state = current.state;
+    current.state = 0;
+    showState(state);
+    if (everStarted) preloadAfterStart();
+    return true;
   }
   function preloadAfterStart() { ensureCharState(2); ensureCharState(3); ensureSceneLevel(2); ensureSceneLevel(3); }
 
@@ -536,7 +589,7 @@
   /* ---------- controls: fullscreen button, settings panel, mic row ---------- */
   // Panel (bouncyballs-style): translucent dark panel over the right of the scene (bottom sheet under
   // 700 px). Visible whenever the meter is stopped or paused, hidden while running. No toggle button.
-  var fsBtn, fsText, panel, panelBody, sheetClosed = false, interestCard, feedbackLine, feedbackTimer = 0;
+  var fsBtn, fsText, panel, panelBody, sheetClosed = false, sheetResumeBtn, interestCard, unlockLine, legend, charGrid, sceneGrid, feedbackLine, feedbackTimer = 0;
   var micSelects = [], sensSlider, sensDefaultBtn;
 
   function el(tag, cls, html) {
@@ -586,9 +639,9 @@
     closeBtn.addEventListener('click', function () { sheetClosed = true; applyPanel(); });
     panel.appendChild(closeBtn);
     var resumeBar = el('div', 'nm-sheet-resume');
-    var resumeBtn = button('nm-sheet-resume-btn', 'Resume the noise meter', '\u25B6 Resume');
-    resumeBtn.addEventListener('click', function () { if (!running) start(); });
-    resumeBar.appendChild(resumeBtn);
+    sheetResumeBtn = button('nm-sheet-resume-btn', 'Resume the noise meter', '\u25B6 Resume');
+    sheetResumeBtn.addEventListener('click', function () { if (!running) start(); });
+    resumeBar.appendChild(sheetResumeBtn);
     panel.appendChild(resumeBar);
     stage.appendChild(panel);
     buildPanel();
@@ -604,37 +657,52 @@
 
   // Panel = paused state only (after the first start; CSS slides it out via .is-panel-open).
   // On phones the × closes it for the current pause (sheetClosed is reset by the next pause).
+  var panelForced = false;   // unlock.js opens the panel before the first start (return from Stripe, ?k= result)
   function applyPanel() {
-    var vis = !running && everStarted && !sheetClosed;
+    var vis = !running && (everStarted || panelForced) && !sheetClosed;
     root.classList.toggle('is-panel-open', vis);
     if (panel) { panel.setAttribute('aria-hidden', vis ? 'false' : 'true'); try { panel.inert = !vis; } catch (e) {} }
+    if (sheetResumeBtn) sheetResumeBtn.textContent = everStarted ? '\u25B6 Resume' : '\u25B6 Start';
+    if (vis && unlockActive()) loadUnlock();
+    if (!vis && unlockUI && unlockUI.panelClosed) unlockUI.panelClosed();
   }
 
   function buildPanel() {
     var panel = panelBody;   // sections live in the scrolling body
     panel.appendChild(el('h3', 'nm-h', 'Character'));
-    var charGrid = el('div', 'nm-grid'); charGrid.setAttribute('role', 'group'); charGrid.setAttribute('aria-label', 'Character');
+    charGrid = el('div', 'nm-grid'); charGrid.setAttribute('role', 'group'); charGrid.setAttribute('aria-label', 'Character');
     fillGrid(charGrid, 'char', CHARACTERS);
     panel.appendChild(charGrid);
 
     panel.appendChild(el('h3', 'nm-h', 'Background'));
-    var sceneGrid = el('div', 'nm-grid'); sceneGrid.setAttribute('role', 'group'); sceneGrid.setAttribute('aria-label', 'Background');
+    sceneGrid = el('div', 'nm-grid'); sceneGrid.setAttribute('role', 'group'); sceneGrid.setAttribute('aria-label', 'Background');
     fillGrid(sceneGrid, 'scene', SCENES);
     panel.appendChild(sceneGrid);
-    panel.appendChild(el('p', 'nm-legend', '\uD83D\uDD12 = locked \u2014 tap one to tell us you\u2019re interested'));
+    legend = el('p', 'nm-legend', unlockActive() ? '\uD83D\uDD12 = locked \u2014 tap to unlock' : '\uD83D\uDD12 = locked \u2014 tap one to tell us you\u2019re interested');
+    legend.hidden = isUnlocked();
+    panel.appendChild(legend);
 
-    // inline interest card: shown after a locked tap, no page scroll
+    // unlock UI: the one-line entry (filled by unlock.js) + a hidden card slot used only by browsers without
+    // <dialog>.showModal; without the unlock UI (tool-test.html without kq-dev) today's interest card
     interestCard = el('div', 'nm-card');
     interestCard.hidden = true;
-    interestCard.setAttribute('role', 'region'); interestCard.setAttribute('aria-label', 'More characters and backgrounds');
-    interestCard.appendChild(el('p', '', 'Want more characters and backgrounds? If enough teachers ask, we\u2019ll build them.'));
-    var interestBtn = button('nm-pill', '', 'I\u2019m interested');
-    interestBtn.addEventListener('click', function () {
-      signal('pro-click', { item: 'interest', from: 'panel' });
-      var thanks = el('p', 'nm-card-thanks', 'Thanks \u2014 counted!'); thanks.setAttribute('role', 'status');
-      interestCard.innerHTML = ''; interestCard.appendChild(thanks);
-    });
-    interestCard.appendChild(interestBtn);
+    if (unlockActive()) {
+      unlockLine = el('div', 'nm-unlock-line');
+      unlockLine.hidden = true;
+      panel.appendChild(unlockLine);
+      interestCard.className = 'nm-card nm-unlock';
+      interestCard.setAttribute('role', 'region'); interestCard.setAttribute('aria-label', 'Unlock');
+    } else {
+      interestCard.setAttribute('role', 'region'); interestCard.setAttribute('aria-label', 'More characters and backgrounds');
+      interestCard.appendChild(el('p', '', 'Want more characters and backgrounds? If enough teachers ask, we\u2019ll build them.'));
+      var interestBtn = button('nm-pill', '', 'I\u2019m interested');
+      interestBtn.addEventListener('click', function () {
+        signal('pro-click', { item: 'interest', from: 'panel' });
+        var thanks = el('p', 'nm-card-thanks', 'Thanks \u2014 counted!'); thanks.setAttribute('role', 'status');
+        interestCard.innerHTML = ''; interestCard.appendChild(thanks);
+      });
+      interestCard.appendChild(interestBtn);
+    }
     panel.appendChild(interestCard);
 
     panel.appendChild(el('h3', 'nm-h', 'Indicator'));
@@ -732,24 +800,26 @@
     return pic;
   }
   function fillGrid(grid, kind, items) {
+    var unlocked = isUnlocked();
     items.forEach(function (item) {
+      var locked = !item.free && !unlocked;
       var b = document.createElement('button');
       b.type = 'button';
-      b.className = 'nm-thumb' + (item.free ? '' : ' is-locked');
+      b.className = 'nm-thumb' + (locked ? ' is-locked' : '');
       var selected = (kind === 'char' ? current.character : current.scene) === item.id;
       b.setAttribute('aria-pressed', selected ? 'true' : 'false');
-      b.setAttribute('aria-label', item.name + (item.free ? '' : ' (locked)'));
+      b.setAttribute('aria-label', item.name + (locked ? ' (locked)' : ''));
       b.setAttribute('data-item', kind + '-' + item.id);
       b.appendChild(thumbPicture(kind, item));
-      if (!item.free) b.appendChild(el('span', 'nm-lock', ICON.lock));
+      if (locked) b.appendChild(el('span', 'nm-lock', ICON.lock));
       b.addEventListener('click', function () {
-        if (!item.free) {   // never becomes "selected": brief white focus flash, then the interest card
+        if (locked) {   // never becomes "selected": brief white focus flash, then the unlock / interest card
           proClick(kind + '-' + item.id);
           b.classList.add('is-flash');
           setTimeout(function () { b.classList.remove('is-flash'); try { b.blur(); } catch (e) {} }, 700);
           return;
         }
-        var changed = b.getAttribute('aria-pressed') !== 'true';
+        var changed = selectItem(kind, item.id);
         var all = grid.querySelectorAll('[aria-pressed]');
         for (var i = 0; i < all.length; i++) all[i].setAttribute('aria-pressed', 'false');
         b.setAttribute('aria-pressed', 'true');
@@ -758,20 +828,71 @@
       grid.appendChild(b);
     });
   }
+  // after an unlock (or a FREE_UNTIL window): rebuild both grids without badges, hide the legend
+  function refreshGrids() {
+    if (charGrid) { charGrid.innerHTML = ''; fillGrid(charGrid, 'char', CHARACTERS); }
+    if (sceneGrid) { sceneGrid.innerHTML = ''; fillGrid(sceneGrid, 'scene', SCENES); }
+    if (legend) legend.hidden = isUnlocked();
+  }
 
-  /* ---------- locked tap → counted + inline interest card in the panel (no page scroll) ---------- */
+  /* ---------- locked tap → counted + the unlock dialog (or, without the unlock UI, the inline interest card) ---------- */
   function proClick(item) {
     signal('pro-click', { item: item });
-    if (interestCard) {
-      interestCard.hidden = false;
-      // bring the card into the PANEL's view (the panel scrolls itself; the page never moves)
-      var bottom = interestCard.offsetTop + interestCard.offsetHeight;
-      if (bottom > panelBody.scrollTop + panelBody.clientHeight) {
-        var top = Math.max(0, bottom - panelBody.clientHeight + 12);
-        try { panelBody.scrollTo({ top: top, behavior: reducedMotion ? 'auto' : 'smooth' }); } catch (e) { panelBody.scrollTop = top; }
-      }
-    }
+    if (unlockActive()) loadUnlock().then(function (ui) { if (ui) ui.show('thumb'); });
+    else if (interestCard) { interestCard.hidden = false; scrollPanelTo(interestCard); }
     try { root.dispatchEvent(new CustomEvent('kq:pro-click', { bubbles: true, detail: { item: item } })); } catch (e) {}
+  }
+  // bring an element into the PANEL's view (the panel scrolls itself; the page never moves)
+  function scrollPanelTo(node) {
+    if (!panelBody || !node) return;
+    var bottom = node.offsetTop + node.offsetHeight;
+    if (bottom > panelBody.scrollTop + panelBody.clientHeight) {
+      var top = Math.max(0, Math.min(node.offsetTop - 12, bottom - panelBody.clientHeight + 12));
+      try { panelBody.scrollTo({ top: top, behavior: reducedMotion ? 'auto' : 'smooth' }); } catch (e) { panelBody.scrollTop = top; }
+    }
+  }
+
+  /* ---------- unlock.js: lazy loader + the API it receives (window.__kqTool) ---------- */
+  var unlockPromise = null, unlockUI = null;
+  var toolApi = {
+    root: root, signal: signal, el: el, button: button, lsGet: lsGet, lsSet: lsSet, lsDel: lsDel,
+    isTestMode: isTestMode, reducedMotion: reducedMotion,
+    freeUntil: FREE_UNTIL, freeWindow: freeWindow,
+    mount: function () { return { line: unlockLine, card: interestCard }; },   // panel line + fallback card slot
+    scrollPanelTo: scrollPanelTo,
+    setUnlocked: refreshGrids,                            // key stored → badges off, every item selectable
+    openPanel: function () { panelForced = true; sheetClosed = false; applyPanel(); },
+    isPanelOpen: function () { return root.classList.contains('is-panel-open'); },
+    isFullscreen: function () { return expanded || isFullscreen(); },   // the dialog hides its "See what's included" link then
+    pauseForRedirect: function () {                       // before location.assign(Stripe)
+      if (running) stop();
+      if (expanded) leaveExpanded(false); else if (isFullscreen()) exitFullscreen();
+    }
+  };
+  window.__kqTool = toolApi;
+  function loadUnlock() {
+    if (!unlockPromise) {
+      unlockPromise = import('./unlock.js?v=' + UNLOCK_V).then(function (mod) {
+        unlockUI = mod.default(toolApi);
+        return unlockUI;
+      }).catch(function (e) { try { console.error('[kq] unlock.js failed to load', e); } catch (x) {} return null; });
+    }
+    return unlockPromise;
+  }
+  // price card in the pricing section (index.html #pro-card[data-kq-unlock-card]): Unlock → /checkout directly,
+  // "Already unlocked? Restore" → the dialog; unlock.js loads on the first interaction and, once a key is stored,
+  // rewrites the card's actions block to "✓ Unlocked · Manage"
+  var proCardEl = document.getElementById('pro-card');
+  if (proCardEl && unlockActive()) {
+    var preload = function () { loadUnlock(); };
+    proCardEl.addEventListener('pointerenter', preload, { once: true });
+    proCardEl.addEventListener('focusin', preload, { once: true });
+    proCardEl.addEventListener('click', function (ev) {
+      var t = ev.target && ev.target.closest ? ev.target.closest('[data-kq-unlock],[data-kq-restore]') : null;
+      if (!t) return;
+      ev.preventDefault();
+      loadUnlock().then(function (ui) { if (ui) ui.cardAction(t); });
+    });
   }
   // the card below the fold: same text, same button, from:"card"
   document.addEventListener('click', function (ev) {
@@ -912,5 +1033,6 @@
   root.classList.add('is-ready');
   reportVisit();
   watchProCard();
+  if (unlockActive() && (window.__kqUnlock || lsGet(LS_LICENSE) || (document.body && document.body.hasAttribute('data-kq-unlock-gate')))) loadUnlock();
   window.addEventListener('pagehide', function () { if (running) stop(); });
 })();
