@@ -42,7 +42,7 @@
     </div>
   This script adds: the fullscreen button (top-left; pill "Fullscreen" in fresh/paused, round icon while
   running; where the Fullscreen API is missing it toggles an "expanded" mode: stage fixed over the page,
-  body scroll locked, Escape/back exits, one-time Home-Screen hint), the "🎨 Style" pill next to it
+  body scroll locked, Escape/back exits, one-time Home-Screen hint), the "🎨 Style" pill top-right
   (welcome screen only: opens the panel without starting; Microphone / Sensitivity show "Available after
   Start" until the first start; ×, Escape or the pill again closes it), the settings panel
   (Character, Background, Indicator, Microphone, Sensitivity — right side,
@@ -111,7 +111,7 @@
   var LS_VISITS = 'kq-visits', LS_FIRST = 'kq-first-seen';
   var LS_LICENSE = 'kq-license', LS_DEV = 'kq-dev';
   var FREE_UNTIL = '';               // e.g. '2026-12-31': all characters and backgrounds free until then (UNLOCK-PLAN § 2.11); '' = off
-  var UNLOCK_V = '20261102h';        // ?v= of unlock.js — bump with every change to unlock.js
+  var UNLOCK_V = '20261102i';        // ?v= of unlock.js — bump with every change to unlock.js
 
   // Names are used ONLY in alt / aria-label text, never as visible labels.
   var CHARACTERS = [
@@ -628,9 +628,9 @@
     fsText = el('span', 'nm-fs-text', 'Fullscreen');
     fsBtn.appendChild(fsText);
     fsBtn.addEventListener('click', toggleFullscreen);
-    // "🎨 Style" pill next to it, welcome screen only (CSS hides it once started): opens the panel without starting
+    // "🎨 Style" pill, top-right of the stage (mirror of Fullscreen), welcome screen only (CSS hides it once started): opens the panel without starting
     // the meter; a second press, the × or Escape closes it again (decided 2026-11-02). Icon only ≤ 560 px (CSS).
-    styleBtn = button('nm-fs nm-style', 'Customize characters and backgrounds', '<span class="nm-style-ico" aria-hidden="true">\uD83C\uDFA8</span>');
+    styleBtn = button('nm-fs nm-style', 'Style: customize characters and backgrounds', '<span class="nm-style-ico" aria-hidden="true">\uD83C\uDFA8</span>');
     styleBtn.appendChild(el('span', 'nm-fs-text', 'Style'));
     styleBtn.setAttribute('aria-controls', 'nm-panel');
     styleBtn.setAttribute('aria-expanded', 'false');
@@ -638,9 +638,8 @@
       if (root.classList.contains('is-panel-open')) closePrestart(false);
       else { panelForced = true; sheetClosed = false; applyPanel(); }
     });
-    var tl = el('div', 'nm-tl');   // top-left pill row: Fullscreen + Style
-    tl.appendChild(fsBtn); tl.appendChild(styleBtn);
-    stage.appendChild(tl);
+    stage.appendChild(fsBtn);
+    stage.appendChild(styleBtn);
 
     panel = el('div', 'nm-panel');
     panel.id = 'nm-panel';

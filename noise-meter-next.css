@@ -56,9 +56,9 @@
 .nm-fs:hover{background:rgba(0,0,0,.4)}
 .nm.is-running .nm-fs{width:46px;height:46px;padding:0;justify-content:center}
 .nm.is-running .nm-fs-text{display:none}
-/* top-left pill row (2026-11-02): Fullscreen + "🎨 Style"; the row carries the position, the pills sit in it */
-.nm-tl{position:absolute;top:18px;left:18px;z-index:5;display:flex;gap:8px}
-.nm-tl .nm-fs{position:relative;top:auto;left:auto}
+/* "🎨 Style" pill (2026-11-02): same pill, top-right of the stage (mirror of Fullscreen); z 5 like Fullscreen, so the
+   open panel / phone sheet covers it and its × (same corner) closes the panel */
+.nm-style{left:auto;right:18px}
 .nm-style-ico{width:22px;font-size:1.15rem;line-height:1;text-align:center;flex:none}
 .nm:not(.is-fresh) .nm-style{display:none}   /* welcome screen only */
 /* expanded mode (no Fullscreen API): the stage covers the viewport above the header, page scroll locked */
@@ -192,6 +192,8 @@ html.nm-lock,html.nm-lock body{overflow:hidden}
 /* the static unlock card below the fold (index.html #pro-card.kq-card: button → /checkout, Restore link → the dialog;
    "✓ Unlocked · Manage" once a key is stored) and the dialog itself */
 .kq-caption,.kq-quiet{font-size:.9rem;color:var(--ink-soft,#51607F)}
+.kq-dialog .kq-quiet{font-size:.82rem}   /* "Questions? …" small and muted, below the restore band */
+.kq-dialog .kq-lead{color:var(--ink-soft,#51607F)}   /* offer sentence */
 .kq-card .kq-caption{margin:0 0 6px}
 .kq-status{margin:0;font-weight:700;text-align:center}
 .kq-card p,.kq-dialog p{text-align:left}
@@ -204,12 +206,12 @@ html.nm-lock,html.nm-lock body{overflow:hidden}
 .kq-row .btn,.kq-row .kq-ghost{margin:0;flex:none}
 .kq-key{font:700 1rem/1.4 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.04em;word-break:break-all}
 .kq-link{word-break:break-all}
-.kq-sm{border:0;background:none;color:var(--cta,#3556E0);padding:2px 6px;font:700 .9rem var(--font-body,system-ui,sans-serif);text-decoration:underline;text-underline-offset:3px;cursor:pointer;border-radius:6px}
-.kq-sm:hover{background:rgba(53,86,224,.08)}
+.kq-sm{border:0;background:none;color:var(--nm-ink,#1E2A44);padding:2px 6px;font:700 .9rem var(--font-body,system-ui,sans-serif);text-decoration:underline;text-underline-offset:3px;cursor:pointer;border-radius:6px}
+.kq-sm:hover{background:rgba(30,42,68,.07)}
 /* secondary pill (Restore, Show, Copy key, Copy link in the dialog): blue text, 1 px border, white */
-.kq-ghost{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:.4rem 1rem;border:1px solid var(--cta,#3556E0);border-radius:999px;background:#fff;color:var(--cta,#3556E0);font:700 .95rem var(--font-body,system-ui,sans-serif);cursor:pointer}
-.kq-ghost:hover{background:rgba(53,86,224,.06)}
-.kq-ghost[aria-pressed="true"]{background:rgba(53,86,224,.1)}
+.kq-ghost{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:.4rem 1rem;border:1px solid var(--nm-ink,#1E2A44);border-radius:999px;background:#fff;color:var(--nm-ink,#1E2A44);font:700 .95rem var(--font-body,system-ui,sans-serif);cursor:pointer}
+.kq-ghost:hover{background:rgba(30,42,68,.06)}
+.kq-ghost[aria-pressed="true"]{background:rgba(30,42,68,.1)}
 /* status boxes (keep the wording; the box says error / success / neutral) */
 .kq-msg{padding:10px 12px;border-radius:12px;background:var(--paper,#F3F8FC);text-align:left}
 .kq-msg[hidden]{display:none}
@@ -231,10 +233,14 @@ html.nm-lock,html.nm-lock body{overflow:hidden}
 .kq-dialog-body>:last-child{margin-bottom:0}
 .kq-dialog p{margin:0 0 .75rem}
 .kq-dialog .btn[data-kq-primary]{display:flex;width:100%;justify-content:center;margin:0 0 .75rem}   /* one primary action per dialog */
-/* dialog primary + pricing-card primary = the panel pill's size (48 px, 1rem, 700, full width), blue stays (2026-11-02) */
-.kq-dialog .btn[data-kq-primary],.price-actions .btn[data-kq-primary]{width:100%;min-height:48px;padding:0 1.2em;font-size:1rem;font-weight:700;line-height:1.2}
+/* dialog primary + pricing-card primary (2026-11-02): the panel pill's size (48 px, 1rem, 700, full width), filled with the
+   START text navy (--nm-ink), white text, no shadow / glow (the keyboard focus ring stays), subtle hover */
+.kq-dialog .btn[data-kq-primary],.price-actions .btn[data-kq-primary]{width:100%;min-height:48px;padding:0 1.2em;font-size:1rem;font-weight:700;line-height:1.2;
+  border-radius:999px;background:var(--nm-ink,#1E2A44);box-shadow:none;transform:none}
+.kq-dialog .btn[data-kq-primary]:hover,.price-actions .btn[data-kq-primary]:hover{background:#2B3A5C;transform:none}
+.kq-dialog a,.kq-dialog a:visited{color:var(--nm-ink,#1E2A44)}
 .kq-dialog .kq-see{text-align:center;margin:-.25rem 0 .75rem}   /* wins over .kq-dialog p{text-align:left} */
-.kq-dialog .kq-restore{margin-top:.25rem;padding-top:.75rem}
+.kq-dialog .kq-restore{margin-top:.25rem;padding:1rem;border-top:0;border-radius:12px;background:#f3f4f6}   /* "Already unlocked?" band */
 .kq-dialog .kq-row{max-width:none}
 /* thank-you: key box, two small pills, restore-link row */
 .kq-keybox{padding:.9rem 1rem;border-radius:12px;background:#f3f4f6;text-align:center}
@@ -309,8 +315,8 @@ html.kq-dialog-open,html.kq-dialog-open body{overflow:hidden}
 @media (max-width:560px){
   .nm-char{height:52%;bottom:19%}
   .nm-indicator{width:min(62vw,260px);bottom:15%}
-  .nm-tl{top:14px;left:14px}
-  .nm-style{width:44px;padding:0;justify-content:center}   /* icon only */
+  .nm-fs{top:14px;left:14px}
+  .nm-style{left:auto;right:14px;width:44px;padding:0;justify-content:center}   /* icon only */
   .nm-style .nm-fs-text{display:none}
   .nm.is-running .nm-fs{width:42px;height:42px}
 }

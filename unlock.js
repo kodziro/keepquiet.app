@@ -301,7 +301,7 @@ export default function init(api) {
     b.textContent = label;
     return b;
   }
-  function ghost(label) {   // secondary pill in the dialog (blue text, 1 px border, white)
+  function ghost(label) {   // secondary pill in the dialog (navy text, 1 px navy border, white)
     const b = button('kq-ghost', '', '');
     b.textContent = label;
     return b;
@@ -412,7 +412,7 @@ export default function init(api) {
   }
   function renderOffer(host, variant) {   // the locked-thumb dialog: title, one sentence, the button, restore row, Questions
     host.appendChild(title(variant, S.offerTitle));
-    host.appendChild(p('', fill(S.offerText)));
+    host.appendChild(p(dark(variant) ? '' : 'kq-lead', fill(S.offerText)));   // dialog: muted grey
     host.appendChild(primary(variant, state.openedFrom));
     const pricing = document.getElementById('pricing');
     if (variant === 'dialog' && pricing && !(api.isFullscreen && api.isFullscreen())) {   // not in fullscreen / expanded mode, not on tool-test.html
