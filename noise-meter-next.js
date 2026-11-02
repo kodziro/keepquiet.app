@@ -42,10 +42,11 @@
     </div>
   This script adds: the fullscreen button (top-left; pill "Fullscreen" in fresh/paused, round icon while
   running; where the Fullscreen API is missing it toggles an "expanded" mode: stage fixed over the page,
-  body scroll locked, Escape/back exits, one-time Home-Screen hint), the settings panel
+  body scroll locked, Escape/back exits, one-time Home-Screen hint), the "🎨 Style" pill next to it
+  (welcome screen only: opens the panel without starting; Microphone / Sensitivity show "Available after
+  Start" until the first start; ×, Escape or the pill again closes it), the settings panel
   (Character, Background, Indicator, Microphone, Sensitivity — right side,
-  bottom sheet under 700 px; shown while paused, hidden before the first
-  start and while running, no toggle), the bar indicator, and the mic row.
+  bottom sheet under 700 px; shown while paused, hidden while running), the bar indicator, and the mic row.
   Only cat-1 + city-1 are in the HTML (first paint). States 2–3 and scene
   levels 2–3 are added as <picture> elements after start, so the browser
   picks WebP or the fallback itself — PNG/JPEG fallbacks are never preloaded
@@ -110,7 +111,7 @@
   var LS_VISITS = 'kq-visits', LS_FIRST = 'kq-first-seen';
   var LS_LICENSE = 'kq-license', LS_DEV = 'kq-dev';
   var FREE_UNTIL = '';               // e.g. '2026-12-31': all characters and backgrounds free until then (UNLOCK-PLAN § 2.11); '' = off
-  var UNLOCK_V = '20261102g';        // ?v= of unlock.js — bump with every change to unlock.js
+  var UNLOCK_V = '20261102h';        // ?v= of unlock.js — bump with every change to unlock.js
 
   // Names are used ONLY in alt / aria-label text, never as visible labels.
   var CHARACTERS = [
@@ -343,7 +344,7 @@
       if (/system|policy|denied by/i.test(text)) {
         return { reason: 'blocked-by-policy', text: 'The microphone is blocked on this device. On a school Chromebook, ask your IT admin to allow the microphone for keepquiet.app.' };
       }
-      return { reason: 'permission-denied', text: 'Allow the microphone in the address bar, then press play again. On a managed Chromebook the school may have blocked it — ask your IT admin.' };
+      return { reason: 'permission-denied', text: 'Allow the microphone in the address bar (iPhone and iPad: aA → Website Settings → Microphone), then press play again. On a managed Chromebook the school may have blocked it — ask your IT admin.' };
     }
     if (name === 'NotFoundError' || name === 'DevicesNotFoundError') return { reason: 'no-mic', text: 'No microphone found. Plug one in or choose another device, then press play again.' };
     if (name === 'NotReadableError' || name === 'TrackStartError' || name === 'AbortError') return { reason: 'mic-busy', text: 'The microphone is in use by another app or tab. Close it and press play again.' };
@@ -589,7 +590,7 @@
   /* ---------- controls: fullscreen button, settings panel, mic row ---------- */
   // Panel (bouncyballs-style): translucent dark panel over the right of the scene (bottom sheet under
   // 700 px). Visible whenever the meter is stopped or paused, hidden while running. No toggle button.
-  var fsBtn, fsText, panel, panelBody, sheetClosed = false, sheetResumeBtn, interestCard, unlockLine, legend, charGrid, sceneGrid, feedbackLine, feedbackTimer = 0;
+  var fsBtn, fsText, styleBtn, panel, panelBody, sheetClosed = false, sheetResumeBtn, interestCard, unlockLine, legend, charGrid, sceneGrid, feedbackLine, feedbackTimer = 0;
   var micSelects = [], sensSlider, sensDefaultBtn;
 
   function el(tag, cls, html) {
@@ -627,7 +628,19 @@
     fsText = el('span', 'nm-fs-text', 'Fullscreen');
     fsBtn.appendChild(fsText);
     fsBtn.addEventListener('click', toggleFullscreen);
-    stage.appendChild(fsBtn);
+    // "🎨 Style" pill next to it, welcome screen only (CSS hides it once started): opens the panel without starting
+    // the meter; a second press, the × or Escape closes it again (decided 2026-11-02). Icon only ≤ 560 px (CSS).
+    styleBtn = button('nm-fs nm-style', 'Customize characters and backgrounds', '<span class="nm-style-ico" aria-hidden="true">\uD83C\uDFA8</span>');
+    styleBtn.appendChild(el('span', 'nm-fs-text', 'Style'));
+    styleBtn.setAttribute('aria-controls', 'nm-panel');
+    styleBtn.setAttribute('aria-expanded', 'false');
+    styleBtn.addEventListener('click', function () {
+      if (root.classList.contains('is-panel-open')) closePrestart(false);
+      else { panelForced = true; sheetClosed = false; applyPanel(); }
+    });
+    var tl = el('div', 'nm-tl');   // top-left pill row: Fullscreen + Style
+    tl.appendChild(fsBtn); tl.appendChild(styleBtn);
+    stage.appendChild(tl);
 
     panel = el('div', 'nm-panel');
     panel.id = 'nm-panel';
@@ -636,7 +649,7 @@
     panel.appendChild(panelBody);
     // phone sheet only (CSS hides both ≥ 700 px): × closes the sheet, sticky bar resumes directly
     var closeBtn = button('nm-sheet-close', 'Close settings', ICON.close);
-    closeBtn.addEventListener('click', function () { sheetClosed = true; applyPanel(); });
+    closeBtn.addEventListener('click', function () { if (!everStarted) closePrestart(true); else { sheetClosed = true; applyPanel(); } });
     panel.appendChild(closeBtn);
     var resumeBar = el('div', 'nm-sheet-resume');
     sheetResumeBtn = button('nm-sheet-resume-btn', 'Resume the noise meter', '\u25B6 Resume');
@@ -657,12 +670,18 @@
 
   // Panel = paused state only (after the first start; CSS slides it out via .is-panel-open).
   // On phones the × closes it for the current pause (sheetClosed is reset by the next pause).
-  var panelForced = false;   // unlock.js opens the panel before the first start (return from Stripe, ?k= result)
+  var panelForced = false;   // the Style pill and unlock.js (return from Stripe, ?k= result) open the panel before the first start
+  // close the panel before the first start → back to the welcome screen; focus returns to the Style pill
+  function closePrestart(focusStyle) {
+    sheetClosed = true; applyPanel();
+    if (focusStyle && styleBtn) { try { styleBtn.focus({ preventScroll: true }); } catch (e) {} }
+  }
   function applyPanel() {
     var vis = !running && (everStarted || panelForced) && !sheetClosed;
     root.classList.toggle('is-panel-open', vis);
     if (panel) { panel.setAttribute('aria-hidden', vis ? 'false' : 'true'); try { panel.inert = !vis; } catch (e) {} }
     if (sheetResumeBtn) sheetResumeBtn.textContent = everStarted ? '\u25B6 Resume' : '\u25B6 Start';
+    if (styleBtn) styleBtn.setAttribute('aria-expanded', vis ? 'true' : 'false');
     if (vis && unlockActive()) loadUnlock();
     if (!vis && unlockUI && unlockUI.panelClosed) unlockUI.panelClosed();
   }
@@ -724,14 +743,18 @@
     });
     panel.appendChild(indGrid);
 
+    // Microphone and Sensitivity need the stream: before the first start (.is-fresh) CSS shows the muted note
+    // "Available after Start" instead of their controls (Style pill, decided 2026-11-02)
     panel.appendChild(el('h3', 'nm-h', 'Microphone'));
-    panel.appendChild(makeMicSelect());
+    panel.appendChild(el('p', 'nm-prestart', 'Available after Start'));
+    var micSel = makeMicSelect(); micSel.classList.add('nm-needs-stream');
+    panel.appendChild(micSel);
     if (running) fillMicList();
 
     var sensId = 'nm-sens';
     var sensHead = el('div', 'nm-h nm-h-row');
     var sensLab = el('label', '', 'Sensitivity'); sensLab.setAttribute('for', sensId);
-    sensDefaultBtn = button('nm-reset', 'Back to the default sensitivity', 'Default');   // hidden while already at the default
+    sensDefaultBtn = button('nm-reset nm-needs-stream', 'Back to the default sensitivity', 'Default');   // hidden while already at the default
     sensDefaultBtn.addEventListener('click', function () {
       if (sensitivity === 1) return;
       sensitivity = 1; lsSet(LS_SENS, '1'); sensSlider.value = '100';
@@ -741,7 +764,7 @@
     sensHead.appendChild(sensLab); sensHead.appendChild(sensDefaultBtn);
     panel.appendChild(sensHead);
     sensSlider = document.createElement('input');
-    sensSlider.type = 'range'; sensSlider.id = sensId; sensSlider.className = 'nm-range';
+    sensSlider.type = 'range'; sensSlider.id = sensId; sensSlider.className = 'nm-range nm-needs-stream';
     sensSlider.min = '50'; sensSlider.max = '200'; sensSlider.step = '5';
     sensSlider.value = String(Math.round(sensitivity * 100));
     sensSlider.addEventListener('input', function () {        // live while dragging
@@ -752,8 +775,19 @@
     sensSlider.addEventListener('change', function () {       // once per drag end
       signal('setting-change', { what: 'sensitivity' });
     });
+    panel.appendChild(el('p', 'nm-prestart', 'Available after Start'));
     panel.appendChild(sensSlider);
     updateSensDefault();
+    unlockLineSlot = interestCard;   // locked entry sits before this node; the unlocked row moves to the panel's end
+  }
+  // unlock.js: the unlocked row ("✓ Unlocked · KQ-… Show · Manage") goes to the bottom of the panel, after Sensitivity,
+  // in small muted text; the locked entry (button + caption + Restore) and the free-window line stay above the cards
+  var unlockLineSlot = null;
+  function placeUnlockLine(atEnd) {
+    if (!unlockLine || !panelBody) return;
+    unlockLine.classList.toggle('nm-unlock-foot', !!atEnd);
+    if (atEnd) { if (unlockLine !== panelBody.lastChild) panelBody.appendChild(unlockLine); }
+    else if (unlockLineSlot && unlockLine.nextSibling !== unlockLineSlot) panelBody.insertBefore(unlockLine, unlockLineSlot);
   }
   function updateSensDefault() { if (sensDefaultBtn) sensDefaultBtn.hidden = (sensitivity === 1); }
 
@@ -859,6 +893,7 @@
     isTestMode: isTestMode, reducedMotion: reducedMotion,
     freeUntil: FREE_UNTIL, freeWindow: freeWindow,
     mount: function () { return { line: unlockLine, card: interestCard }; },   // panel line + fallback card slot
+    placeLine: placeUnlockLine,                           // true = unlocked row at the panel's end (small, muted)
     scrollPanelTo: scrollPanelTo,
     setUnlocked: refreshGrids,                            // key stored → badges off, every item selectable
     openPanel: function () { panelForced = true; sheetClosed = false; applyPanel(); },
@@ -994,7 +1029,12 @@
     expandedHistory = false;
   }
   window.addEventListener('popstate', function () { if (expanded) leaveExpanded(true); });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && expanded) leaveExpanded(false); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    // panel opened by the Style pill before the first start: Escape closes it first (an open unlock dialog handles its own Escape)
+    if (!everStarted && root.classList.contains('is-panel-open') && !document.querySelector('dialog[open]')) { closePrestart(true); return; }
+    if (expanded) leaveExpanded(false);
+  });
   function removeFsHint() { if (fsHint && fsHint.parentNode) fsHint.parentNode.removeChild(fsHint); fsHint = null; }
   function showFsHintOnce() {
     if (lsGet(LS_FS_HINT) === '1' || fsHint) return;

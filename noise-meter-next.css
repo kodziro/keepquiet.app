@@ -56,6 +56,11 @@
 .nm-fs:hover{background:rgba(0,0,0,.4)}
 .nm.is-running .nm-fs{width:46px;height:46px;padding:0;justify-content:center}
 .nm.is-running .nm-fs-text{display:none}
+/* top-left pill row (2026-11-02): Fullscreen + "🎨 Style"; the row carries the position, the pills sit in it */
+.nm-tl{position:absolute;top:18px;left:18px;z-index:5;display:flex;gap:8px}
+.nm-tl .nm-fs{position:relative;top:auto;left:auto}
+.nm-style-ico{width:22px;font-size:1.15rem;line-height:1;text-align:center;flex:none}
+.nm:not(.is-fresh) .nm-style{display:none}   /* welcome screen only */
 /* expanded mode (no Fullscreen API): the stage covers the viewport above the header, page scroll locked */
 .nm.is-expanded .nm-stage{position:fixed;inset:0;z-index:100;height:100vh;height:100dvh;min-height:0;background:#000}
 html.nm-lock,html.nm-lock body{overflow:hidden}
@@ -106,7 +111,15 @@ html.nm-lock,html.nm-lock body{overflow:hidden}
   display:flex;flex-direction:column;overflow:hidden;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
   transform:translateX(100%);visibility:hidden;transition:transform .3s ease,visibility .3s}
 .nm-panel-body{flex:1;min-height:0;overflow:auto;padding:24px 14px 20px}
-.nm-sheet-close,.nm-sheet-resume{display:none}   /* phone sheet only */
+.nm-sheet-close,.nm-sheet-resume{display:none}   /* phone sheet only … */
+.nm-sheet-close{position:absolute;top:14px;right:14px;z-index:1;width:42px;height:42px;border:0;border-radius:50%;padding:0;
+  background:rgba(255,255,255,.18);color:#fff;align-items:center;justify-content:center;cursor:pointer}
+.nm-sheet-close svg{width:22px;height:22px}
+.nm.is-fresh .nm-sheet-close{display:flex}   /* … and before the first start at every width (panel opened by the Style pill) */
+/* Microphone / Sensitivity before the first start: muted note instead of the controls */
+.nm-prestart{display:none;margin:0;font:600 .85rem/1.4 var(--nm-font);opacity:.7}
+.nm.is-fresh .nm-prestart{display:block}
+.nm.is-fresh .nm-panel .nm-needs-stream{display:none}
 .nm.is-panel-open .nm-panel{transform:none;visibility:visible}
 .nm-h{display:block;color:#fff;font:700 .95rem var(--nm-font);margin:18px 0 8px}
 .nm-h:first-child{margin-top:0}
@@ -148,6 +161,10 @@ html.nm-lock,html.nm-lock body{overflow:hidden}
 .nm-unlock-caption{margin:0;font:600 .78rem/1.6 var(--nm-font);opacity:.9;text-align:center}
 .nm-unlock-caption .nm-unlock-sm{font-size:.8rem}
 .nm-unlock-status{margin:0;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.12);font:600 .88rem/1.5 var(--nm-font)}
+/* unlocked row at the bottom of the panel, after Sensitivity (2026-11-02): smaller, muted, no box */
+.nm-unlock-line.nm-unlock-foot{margin:22px 0 0}
+.nm-unlock-foot .nm-unlock-status{padding:0;background:none;font-size:.78rem;opacity:.75}
+.nm-unlock-foot .nm-unlock-sm,.nm-unlock-foot .nm-unlock-key{font-size:.78rem}
 /* unlock card in the panel: ONLY for browsers without <dialog>.showModal (same slot and look as the interest card) */
 .nm-unlock{margin:10px 0 0;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.12)}
 .nm-unlock[hidden]{display:none}
@@ -214,6 +231,8 @@ html.nm-lock,html.nm-lock body{overflow:hidden}
 .kq-dialog-body>:last-child{margin-bottom:0}
 .kq-dialog p{margin:0 0 .75rem}
 .kq-dialog .btn[data-kq-primary]{display:flex;width:100%;justify-content:center;margin:0 0 .75rem}   /* one primary action per dialog */
+/* dialog primary + pricing-card primary = the panel pill's size (48 px, 1rem, 700, full width), blue stays (2026-11-02) */
+.kq-dialog .btn[data-kq-primary],.price-actions .btn[data-kq-primary]{width:100%;min-height:48px;padding:0 1.2em;font-size:1rem;font-weight:700;line-height:1.2}
 .kq-dialog .kq-see{text-align:center;margin:-.25rem 0 .75rem}   /* wins over .kq-dialog p{text-align:left} */
 .kq-dialog .kq-restore{margin-top:.25rem;padding-top:.75rem}
 .kq-dialog .kq-row{max-width:none}
@@ -261,9 +280,7 @@ html.kq-dialog-open,html.kq-dialog-open body{overflow:hidden}
   .nm-panel{left:0;right:0;width:auto;max-width:none;border-radius:0;transform:translateY(100%)}
   .nm.is-panel-open .nm-panel{transform:none}
   .nm-panel-body{padding:24px 16px 20px}
-  .nm-sheet-close{display:flex;position:absolute;top:14px;right:14px;z-index:1;width:42px;height:42px;border:0;border-radius:50%;padding:0;
-    background:rgba(255,255,255,.18);color:#fff;align-items:center;justify-content:center;cursor:pointer}
-  .nm-sheet-close svg{width:22px;height:22px}
+  .nm-sheet-close{display:flex}
   .nm-sheet-resume{display:block;flex:none;background:#fff;padding:0 0 env(safe-area-inset-bottom,0)}
   .nm-sheet-resume-btn{display:block;width:100%;min-height:60px;border:0;background:#fff;color:var(--nm-ink);font:700 1.15rem var(--nm-font);cursor:pointer}
   .nm-sheet-resume-btn:hover{background:#f3f3f3}
@@ -292,7 +309,9 @@ html.kq-dialog-open,html.kq-dialog-open body{overflow:hidden}
 @media (max-width:560px){
   .nm-char{height:52%;bottom:19%}
   .nm-indicator{width:min(62vw,260px);bottom:15%}
-  .nm-fs{top:14px;left:14px}
+  .nm-tl{top:14px;left:14px}
+  .nm-style{width:44px;padding:0;justify-content:center}   /* icon only */
+  .nm-style .nm-fs-text{display:none}
   .nm.is-running .nm-fs{width:42px;height:42px}
 }
 /* reduced motion: no cross-fade, no marker glide; the needle steps per level (set by JS) */
@@ -301,4 +320,4 @@ html.kq-dialog-open,html.kq-dialog-open body{overflow:hidden}
 }
 .nm-reduced .nm-scene,.nm-reduced .nm-bar-marker,.nm-reduced .nm-overlay,.nm-reduced .nm-start,.nm-reduced .nm-panel,.nm-reduced .nm-char,.nm-reduced .nm-chars,.nm-reduced .nm-indicator,.nm-reduced .nm-bottom{transition:none}
 .nm :focus-visible{outline:3px solid var(--nm-accent);outline-offset:2px}
-.nm-start:focus-visible,.nm-pill:focus-visible,.nm-fs:focus-visible,.nm-sheet-resume-btn:focus-visible{outline:3px solid var(--nm-accent);outline-offset:3px}
+.nm-start:focus-visible,.nm-pill:focus-visible,.nm-fs:focus-visible,.nm-sheet-close:focus-visible,.nm-sheet-resume-btn:focus-visible{outline:3px solid var(--nm-accent);outline-offset:3px}

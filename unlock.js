@@ -9,7 +9,8 @@
   UI (decided 2026-11-02, revised the same day):
   - Panel, locked: primary button "Unlock all — $19.99 one-time" (white pill, full width) → /checkout
     → Stripe directly; under it a small caption and the link "Already unlocked? Restore" (opens the
-    dialog with the restore field focused). Unlocked: "✓ Unlocked · KQ-••••-••••-1234 Show · Manage".
+    dialog with the restore field focused). Unlocked: "✓ Unlocked · KQ-••••-••••-1234 Show · Manage",
+    small and muted at the bottom of the panel, after Sensitivity (api.placeLine).
     Free window: the free-until line + Restore link.
   - Pricing section (index.html #pricing; #pro-card = its price card): the same button and a ghost
     "Already unlocked? Restore"; after unlock the card's actions block shows "✓ Unlocked · Manage".
@@ -520,6 +521,7 @@ export default function init(api) {
   function renderLine(host) {
     host.innerHTML = '';
     host.hidden = false;
+    if (api.placeLine) api.placeLine(!!state.key);   // unlocked row → bottom of the panel, small and muted (2026-11-02)
     if (state.key) { host.appendChild(unlockedLine('line', 'panel')); return; }
     if (api.freeWindow()) {
       const line = p('nm-unlock-status');
