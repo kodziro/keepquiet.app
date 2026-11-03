@@ -7,9 +7,12 @@
   (signal, el, button, storage with in-memory fallback, panel hooks).
 
   UI (decided 2026-11-02, revised the same day):
-  - Panel, locked: primary button "Unlock all — $19.99 one-time" (white pill, full width) → /checkout
-    → Stripe directly; under it a small caption and the link "Already unlocked? Restore" (opens the
-    dialog with the restore field focused). Unlocked: "✓ Unlocked · KQ-••••-••••-1234 Show · Manage",
+  - Panel, locked: primary button, two lines "Unlock all characters + backgrounds" (short panel line 1) / "$19.99
+    one-time" (--nm-unlock deep-blue pill with a white stroke, line 1 = the short panel string, full width; conversion round 2026-11-03) → /checkout → Stripe
+    directly; under it the caption "No subscription · instant access · web version" and the link
+    "Already unlocked? Restore" (opens the dialog with the restore field focused). A compact sticky
+    copy of the button sits at the bottom of the panel while the main one is scrolled out of view
+    (IntersectionObserver; hidden when unlocked and in the free window; from:"panel"). Unlocked: "✓ Unlocked · KQ-••••-••••-1234 Show · Manage",
     small and muted at the bottom of the panel, after Sensitivity (api.placeLine).
     Free window: the free-until line + Restore link.
   - Pricing section (index.html #pricing; #pro-card = its price card): the same button and a ghost
@@ -17,7 +20,9 @@
     The offer dialog links to it ("See what's included ↓") unless the stage is fullscreen / expanded
     or the page has no #pricing (tool-test.html).
   - Dialog (native <dialog>, showModal, top layer — above the phone sheet and the expanded stage):
-    a locked thumb → the short offer (title, one sentence, the button, restore row, Questions);
+    a locked thumb → the offer (title, benefit line, thumb strip, the button, trust line, small print,
+    "See what's included ↓", the collapsed "Already unlocked? Restore" link — it expands the field —,
+    Questions); restore mode (panel link, ?k= results) opens the field expanded;
     after a purchase or a restore → the short thank-you (key masked + Show/Copy, restore link + Copy,
     "sent to …" after a purchase, Help); every error and the cancel text are shown in the dialog.
     Browsers without showModal get the same content as a card inside the panel (api.mount().card).
@@ -41,12 +46,18 @@ const PRICE_LABEL = '$19.99';
 const STRINGS = {
   support: 'AppsForParents@gmail.com',
 
-  // offer (state A): panel button + caption, the locked-thumb dialog
+  // offer (state A): panel button + caption, the locked-thumb dialog (conversion round 2026-11-03)
   offerTitle: 'Unlock all 8 characters and 5 backgrounds',
-  offerText: 'One-time {price} plus tax where applicable, for the web version (the iOS app is sold separately). Your key is shown here and emailed.',
-  unlockButton: 'Unlock all — {price} one-time',
+  offerBenefit: 'A new friend for every day — every character reacts to the noise level.',
+  offerStrip: 'All 8 characters and 5 backgrounds',   // aria-label of the dialog's thumb strip
+  offerFine: 'Web version — the iOS app is sold separately. {price} plus tax where applicable; the exact total is shown before you pay.',
+  unlockLine1: 'Unlock all 8 characters + 5 backgrounds',   // the Unlock button, line 1 (bold) …
+  unlockLine1Panel: 'Unlock all characters + backgrounds',   // … line 1 in the panel + sticky copy only (the full one wraps at the panel width)
+  unlockLine2: '{price} one-time',                          // … line 2 (smaller); index.html #pro-card mirrors both
   unlockBusy: 'Opening the payment page…',
-  caption: 'Web version · one-time · key by email',
+  // trust line under the button (dialog; #pro-card mirrors it in index.html): [icon, text]
+  trust: [['check', 'One-time payment'], ['check', 'no subscription'], ['lock', 'secure checkout by Link (Stripe)'], ['bolt', 'unlocks instantly, key also emailed']],
+  caption: 'No subscription · instant access · web version',
   restoreEntry: 'Already unlocked? Restore',
   seeIncluded: 'See what’s included ↓',
   questions: 'Questions? ',
@@ -271,6 +282,7 @@ export default function init(api) {
     pendingSession: null, // ?unlock=<session> kept for Retry (→ the "Payment received" view)
     busy: false,
     openedFrom: 'panel',  // opener of the dialog → unlock-click {from} for the dialog's own button
+    restoreOpen: false,   // dialog offer view: restore field expanded (restore mode, or the link was pressed)
     msgs: { main: null, restore: null }   // last message per slot, re-applied after every render
   };
   // views: { host, variant }  line = the panel entry · card = the static card below the fold (touched only
@@ -306,11 +318,36 @@ export default function init(api) {
     b.textContent = label;
     return b;
   }
+  // the Unlock button's label: two lines (bold value line + smaller price line), or the busy text
+  function setPrimaryLabel(b, busy) {
+    b.innerHTML = '';
+    if (busy) { b.appendChild(el('span', 'kq-u1')).textContent = S.unlockBusy; return; }
+    b.appendChild(el('span', 'kq-u1')).textContent = b.hasAttribute('data-kq-short') ? S.unlockLine1Panel : S.unlockLine1;
+    b.appendChild(el('span', 'kq-u2')).textContent = fill(S.unlockLine2);
+  }
   function primary(variant, from) {   // the Unlock button: /checkout → Stripe, label swaps while busy
-    const b = pill(variant, state.busy ? S.unlockBusy : fill(S.unlockButton));
+    const b = pill(variant, '');
+    b.classList.add('kq-unlock-btn');
     b.setAttribute('data-kq-primary', '');
+    if (variant === 'line') b.setAttribute('data-kq-short', '');   // panel button + sticky copy: short line 1
+    setPrimaryLabel(b, state.busy);
     b.addEventListener('click', () => checkout(from));
     return b;
+  }
+  const ICONS = {   // 14 px inline icons for the trust line (stroke = currentColor)
+    check: '<path d="M3 8.5l3 3 7-7"/>',
+    lock: '<rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 015 0v2"/>',
+    bolt: '<path d="M9 1.5L3.5 9H8l-1 5.5L12.5 7H8z"/>'
+  };
+  function trustLine(variant) {   // "✓ One-time payment · ✓ no subscription · 🔒 secure checkout … · ⚡ unlocks instantly …"
+    const n = el('p', dark(variant) ? 'nm-unlock-trust' : 'kq-trust');
+    S.trust.forEach((t) => {
+      const it = el('span', 'kq-trust-item');
+      it.innerHTML = '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + ICONS[t[0]] + '</svg>';
+      it.appendChild(document.createTextNode(t[1]));
+      n.appendChild(it);
+    });
+    return n;
   }
   function focusNoScroll(n) { try { n.focus({ preventScroll: true }); } catch (e) { try { n.focus(); } catch (x) {} } }
   function copyText(text, btn) {
@@ -355,8 +392,9 @@ export default function init(api) {
     views.push({ host: dlgBody, variant: 'dialog' });
   }
   // from: 'thumb' | 'panel' | 'card' (→ unlock-click {from} of the dialog's button); focusRestore: put the caret in the key field
-  function openDialog(from, focusRestore) {
+  function openDialog(from, focusRestore, expandRestore) {
     state.openedFrom = from || 'panel';
+    if (focusRestore || expandRestore) state.restoreOpen = true;   // restore mode: the field is shown expanded
     if (!DIALOG_OK) { openFallbackCard(focusRestore); return; }
     if (!dlg) buildDialog();
     renderInto(dlgBody, 'dialog');
@@ -373,6 +411,7 @@ export default function init(api) {
   function closeDialog() { if (dlg && dlg.open) { try { dlg.close(); } catch (e) { onDialogClosed(); } } }
   function onDialogClosed() {
     try { document.documentElement.classList.remove('kq-dialog-open'); } catch (e) {}
+    state.restoreOpen = false;   // the next locked-thumb open shows the collapsed "Already unlocked? Restore" link
     if (state.revealed) { state.revealed = false; render(); }
     const o = opener; opener = null;
     if (o && o.isConnected && typeof o.focus === 'function') focusNoScroll(o);
@@ -391,6 +430,7 @@ export default function init(api) {
   function render() {
     views.forEach((v) => {
       if (v.variant === 'line') renderLine(v.host);
+      else if (v.variant === 'sticky') renderSticky(v.host);
       else if (v.variant === 'card') renderCard(v.host);
       else renderInto(v.host, v.variant);
     });
@@ -410,10 +450,18 @@ export default function init(api) {
     n.textContent = text;
     return n;
   }
-  function renderOffer(host, variant) {   // the locked-thumb dialog: title, one sentence, the button, restore row, Questions
+  // the locked-thumb dialog (2026-11-03): title, benefit line, thumb strip, the button, trust line, small print,
+  // "See what's included ↓", status slot, restore (collapsed link in the dialog unless restore mode), Questions
+  function renderOffer(host, variant) {
     host.appendChild(title(variant, S.offerTitle));
-    host.appendChild(p(dark(variant) ? '' : 'kq-lead', fill(S.offerText)));   // dialog: muted grey
+    host.appendChild(p(dark(variant) ? '' : 'kq-lead', S.offerBenefit));
+    if (variant === 'dialog' && api.thumbStrip) {   // all 13 thumbs, unlocked look, lazy (the panel fallback has the real grids next to it)
+      const strip = api.thumbStrip();
+      if (strip) { strip.setAttribute('role', 'img'); strip.setAttribute('aria-label', S.offerStrip); host.appendChild(strip); }
+    }
     host.appendChild(primary(variant, state.openedFrom));
+    host.appendChild(trustLine(variant));
+    host.appendChild(p(dark(variant) ? 'nm-unlock-first' : 'kq-fine', fill(S.offerFine)));
     const pricing = document.getElementById('pricing');
     if (variant === 'dialog' && pricing && !(api.isFullscreen && api.isFullscreen())) {   // not in fullscreen / expanded mode, not on tool-test.html
       const see = p('kq-see');
@@ -426,8 +474,23 @@ export default function init(api) {
       host.appendChild(see);
     }
     host.appendChild(msgLine(variant, 'main'));
-    renderRestore(host, variant);
+    if (variant === 'dialog' && !state.restoreOpen && !state.msgs.restore) renderRestoreToggle(host);
+    else renderRestore(host, variant);
     host.appendChild(lineWithMail(dark(variant) ? 'nm-unlock-first' : 'kq-quiet', S.questions));
+  }
+  // collapsed restore: one text link; pressing it expands the field + Restore in place and focuses the field
+  function renderRestoreToggle(host) {
+    const n = p('kq-restore-toggle');
+    const b = smallBtn('dialog', S.restoreEntry);
+    b.setAttribute('aria-expanded', 'false');
+    b.addEventListener('click', () => {
+      state.restoreOpen = true;
+      renderInto(host, 'dialog');
+      const i = host.querySelector('input');
+      if (i) focusNoScroll(i);
+    });
+    n.appendChild(b);
+    host.appendChild(n);
   }
   function renderPending(host, variant) {   // back from Stripe: /verify running or failed (Try again), key field for the email
     host.appendChild(title(variant, S.pendingTitle));
@@ -532,13 +595,55 @@ export default function init(api) {
       host.appendChild(line);
       return;
     }
-    host.appendChild(primary('line', 'panel'));
+    const main = primary('line', 'panel');
+    host.appendChild(main);
+    fitLine1(main);
+    watchMain(main);
     host.appendChild(p('nm-unlock-caption', S.caption));
     const r = p('nm-unlock-caption');
     const b = smallBtn('line', S.restoreEntry);
     b.addEventListener('click', () => openDialog('panel', true));
     r.appendChild(b);
     host.appendChild(r);
+  }
+  // sticky panel CTA (2026-11-03): a compact copy of the Unlock button at the bottom of the panel's scroll area,
+  // shown only while the main button is out of view (IntersectionObserver on the panel body). The slot keeps its
+  // height while hidden (visibility), so nothing shifts; it is display:none when unlocked and in the free window.
+  let stickyIO = null, stickyHost = null;
+  function watchMain(btn) {
+    if (!stickyHost || typeof IntersectionObserver !== 'function') return;
+    if (!stickyIO) {
+      stickyIO = new IntersectionObserver((entries) => {
+        const e = entries[entries.length - 1];
+        stickyHost.classList.toggle('is-shown', !e.isIntersecting);
+      }, { root: slots.scroller || null, threshold: 0.6 });
+    }
+    stickyIO.disconnect();
+    stickyHost.classList.remove('is-shown');
+    stickyIO.observe(btn);
+  }
+  function renderSticky(host) {
+    host.innerHTML = '';
+    const off = !!state.key || api.freeWindow();
+    host.hidden = off;
+    if (slots.scroller) slots.scroller.classList.toggle('has-sticky', !off);
+    if (off) { host.classList.remove('is-shown'); if (stickyIO) stickyIO.disconnect(); return; }
+    const b = primary('line', 'panel');
+    b.classList.add('nm-unlock-compact');
+    host.appendChild(b);
+    fitLine1(b);
+  }
+  // panel line 1 must stay on one line: if it wraps at this width (classic scrollbar, the wider brand font), step it down
+  // (.is-tight .88rem, then .is-tighter .8rem). Measured while the panel is visibility:hidden too (layout exists); run again
+  // once the brand font is ready (document.fonts.ready, see mount) in case it was measured with the fallback font.
+  function fitLine1(btn) {
+    const s = btn.querySelector('.kq-u1');
+    if (!s || !s.offsetHeight) return;
+    const wraps = () => s.offsetHeight > (parseFloat(getComputedStyle(s).lineHeight) || 18) * 1.5;
+    btn.classList.remove('is-tight', 'is-tighter');
+    if (!wraps()) return;
+    btn.classList.add('is-tight');
+    if (wraps()) { btn.classList.remove('is-tight'); btn.classList.add('is-tighter'); }
   }
   // the price card in the pricing section: untouched until unlocked (its markup carries the offer), then its actions
   // block (button, Restore link, small print) becomes "✓ Unlocked · Manage"
@@ -582,7 +687,7 @@ export default function init(api) {
       v.host.querySelectorAll('button').forEach((b) => {
         if (b.classList.contains('kq-dialog-x')) return;
         b.disabled = on;
-        if (b.hasAttribute('data-kq-primary')) b.textContent = on ? S.unlockBusy : fill(S.unlockButton);
+        if (b.hasAttribute('data-kq-primary')) setPrimaryLabel(b, on);
       });
       v.host.querySelectorAll('input').forEach((i) => { i.disabled = on; });
     });
@@ -705,7 +810,7 @@ export default function init(api) {
       const key = normaliseKey(u.k);
       if (state.key && state.key === key) return;   // same key already stored: nothing to do
       const via = u.src === 'mail' ? 'mail' : 'url';
-      openDialog('panel');
+      openDialog('panel', false, true);   // restore mode: field expanded (not focused, as before)
       restore(u.k, via, 'main');
     }
   }
@@ -714,12 +819,18 @@ export default function init(api) {
 
   /* ---------- mount ---------- */
   const slots = api.mount() || {};
+  if (slots.sticky) { stickyHost = slots.sticky; views.push({ host: slots.sticky, variant: 'sticky' }); }
   if (slots.line) views.push({ host: slots.line, variant: 'line' });
   if (!DIALOG_OK && slots.card) { views.push({ host: slots.card, variant: 'panel' }); slots.card.hidden = !(state.key || api.freeWindow()); }
   const below = document.getElementById('pro-card');
   if (below && below.hasAttribute('data-kq-unlock-card')) views.push({ host: below, variant: 'card' });
   render();
   handleUrl();
+  try {   // re-fit the panel's line 1 once the brand font has loaded
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => {
+      views.forEach((v) => { if (v.variant === 'line' || v.variant === 'sticky') v.host.querySelectorAll('.kq-unlock-btn').forEach(fitLine1); });
+    });
+  } catch (e) {}
 
   return {
     show(from) { openDialog(from || 'thumb'); },                       // locked thumb tapped

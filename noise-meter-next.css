@@ -8,6 +8,11 @@
    .is-fresh only caps their width (--nm-cap) so they never touch the text column (≥ 24 px gap).
    Critical for first paint: .nm-stage, .nm-scene, .nm-char, .nm-indicator/.nm-dial, .nm-bottom, .nm-play.
    Controls use system-ui (app look); the page around the tool keeps Fredoka/Nunito. */
+/* the unlock / purchase button colour (2026-11-03, CLAUDE.md tool-rule exception), used ONLY by the Unlock button — panel,
+   sticky copy, dialog, #pro-card; never on the scene, the character or the meter. Deep blue #2563EB / hover #1D4ED8 with white
+   text (5.17:1 / 6.7:1; chosen over violet the same day). On :root because the dialog (top layer, in <body>) and #pro-card sit
+   outside .nm */
+:root{--nm-unlock:#2563EB;--nm-unlock-hover:#1D4ED8;--nm-unlock-ink:#fff}
 .nm{--nm-g1:#3ABF5A;--nm-g2:#F2D22B;--nm-g3:#F58A2A;--nm-g4:#F0423B;--nm-accent:#4DA3FF;--nm-accent-hover:#3690F0;--nm-ink:#1E2A44;
   --nm-grad:linear-gradient(90deg,var(--nm-g1) 0%,var(--nm-g2) 45%,var(--nm-g3) 72%,var(--nm-g4) 100%);
   --nm-font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
@@ -143,6 +148,7 @@ html.nm-lock,html.nm-lock body{overflow:hidden}
 /* one lock badge for every locked thumb: 18 px white circle, navy glyph, bottom-right */
 .nm-lock{position:absolute;right:2px;bottom:2px;width:18px;height:18px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.3)}
 .nm-lock svg{width:11px;height:11px;stroke:var(--nm-ink)}
+/* interest mode only (no unlock UI); the unlock UI has no legend since 2026-11-03 */
 .nm-legend{margin:8px 0 0;font:600 .8rem/1.4 var(--nm-font);opacity:.85}
 .nm-ind{grid-template-columns:repeat(2,142px)}
 .nm-ind .nm-thumb{width:142px;height:72px;padding:4px 8px}   /* dial / bar preview, no caption (aria-label only) */
@@ -152,12 +158,44 @@ html.nm-lock,html.nm-lock body{overflow:hidden}
 .nm-card p{margin:0 0 10px;font:600 .92rem/1.45 var(--nm-font)}
 .nm-card .nm-pill{min-height:44px}
 .nm-card-thanks{margin:0 !important}
-/* unlock entry in the panel (unlock.js; UNLOCK-PLAN § 3.4, decided 2026-11-02): locked → white pill "Unlock all — $19.99
-   one-time" + caption + "Already unlocked? Restore"; unlocked → "✓ Unlocked · KQ-••••-••••-1234 Show · Manage" status row;
-   free window → "free until <date> · Restore" status row */
+/* unlock entry in the panel (unlock.js; UNLOCK-PLAN § 3.4, decided 2026-11-02, conversion round 2026-11-03): locked → --nm-unlock
+   two-line pill "Unlock all characters + backgrounds / $19.99 one-time" (the one coloured element of the panel) + caption +
+   "Already unlocked? Restore"; unlocked → "✓ Unlocked · KQ-••••-••••-1234 Show · Manage" status row; free window →
+   "free until <date> · Restore" status row */
 .nm-unlock-line{margin:12px 0 0}
 .nm-unlock-line[hidden]{display:none}
 .nm-unlock-line .nm-pill{margin:0 0 6px}
+/* the Unlock button, every place (panel pill .nm-pill, dialog / price card .btn): --nm-unlock, white text, no border, two lines,
+   rounded brand font (Fredoka = --font-display, already loaded for the header and the stage title) at its real hosted weight
+   600 on both lines — no synthetic bold, no new request. Panel labels, captions, START and other controls keep system-ui. */
+.kq-unlock-btn,.kq-dialog .btn[data-kq-primary],.price-actions .btn[data-kq-primary]{flex-direction:column;gap:1px;min-height:56px;padding:.45rem 1.2em;
+  font-family:var(--font-display,"Fredoka",system-ui,sans-serif);font-weight:600;
+  border:0;background:var(--nm-unlock);color:var(--nm-unlock-ink,#fff) !important;text-align:center;line-height:1.2}
+.kq-unlock-btn:hover,.kq-dialog .btn[data-kq-primary]:hover,.price-actions .btn[data-kq-primary]:hover{background:var(--nm-unlock-hover)}
+.kq-u1{display:block;font-weight:600;font-size:1rem}
+.kq-u2{display:block;font-weight:600;font-size:.82rem;opacity:.85}
+/* panel button + sticky copy only: white 2 px stroke (the dialog and #pro-card have none), focus ring outside it; line 1 is the
+   short panel string at .95rem on one line (.is-tight = .88rem, .is-tighter = .8rem — set by unlock.js fitLine1 only if it still
+   wraps, e.g. classic scrollbars or the wider brand font) */
+.nm-unlock-line .kq-unlock-btn,.nm-unlock-sticky .kq-unlock-btn{border:2px solid rgba(255,255,255,.9);padding-left:.75em;padding-right:.75em}
+.nm-unlock-line .kq-unlock-btn:focus-visible,.nm-unlock-sticky .kq-unlock-btn:focus-visible{outline:3px solid var(--nm-accent);outline-offset:2px}
+.nm-unlock-line .kq-u1{font-size:.95rem}
+.nm-unlock-line .is-tight .kq-u1,.nm-unlock-sticky .is-tight .kq-u1{font-size:.88rem}
+.nm-unlock-line .is-tighter .kq-u1,.nm-unlock-sticky .is-tighter .kq-u1{font-size:.8rem}
+/* sticky copy at the bottom of the panel's scroll area: the slot always keeps its height while locked (no layout shift); the
+   button fades in only while the main one is out of view (.is-shown, set by unlock.js via IntersectionObserver) */
+/* .has-sticky (set by unlock.js while the slot is shown) moves the body's bottom padding into the slot, so bottom:0 means the
+   same edge in every browser */
+.nm-panel-body.has-sticky{padding-bottom:0}
+.nm-unlock-sticky{position:sticky;bottom:0;z-index:2;margin:16px -14px 0;padding:14px 14px 16px;
+  background:linear-gradient(to bottom,rgba(16,20,32,0),rgba(16,20,32,.82) 35%);visibility:hidden;opacity:0;pointer-events:none}
+.nm-unlock-sticky[hidden]{display:none}   /* unlocked / free window / before unlock.js: no reserved space */
+.nm-unlock-sticky.is-shown{visibility:visible;opacity:1;pointer-events:auto}
+@media (prefers-reduced-motion:no-preference){.nm-unlock-sticky{transition:opacity .15s,visibility .15s}}
+.nm-reduced .nm-unlock-sticky{transition:none}
+.nm-unlock-compact{min-height:48px;padding:.3rem 1em}
+.nm-unlock-compact .kq-u1{font-size:.9rem}
+.nm-unlock-compact .kq-u2{font-size:.75rem}
 .nm-unlock-caption{margin:0;font:600 .78rem/1.6 var(--nm-font);opacity:.9;text-align:center}
 .nm-unlock-caption .nm-unlock-sm{font-size:.8rem}
 .nm-unlock-status{margin:0;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.12);font:600 .88rem/1.5 var(--nm-font)}
@@ -173,6 +211,7 @@ html.nm-lock,html.nm-lock body{overflow:hidden}
 .nm-unlock-title{font-size:1rem;font-weight:700}
 .nm-unlock a{color:#fff;text-underline-offset:3px}
 .nm-unlock .nm-pill{min-height:44px;margin:4px 0 10px}
+.nm-unlock .kq-unlock-btn{min-height:56px}
 .nm-unlock-restore{margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.18)}
 .nm-unlock-restore label{display:block;margin:0 0 6px;font:600 .88rem/1.45 var(--nm-font)}
 .nm-unlock-row{display:flex;gap:6px;margin:0 0 6px}
@@ -189,11 +228,28 @@ html.nm-lock,html.nm-lock body{overflow:hidden}
 .nm-unlock-msg.is-error{background:rgba(240,66,59,.95)}
 .nm-unlock-msg.is-busy{opacity:.85}
 .nm-unlock-first{font-size:.8rem;opacity:.9}
+/* trust line under the Unlock button (dialog, #pro-card; .nm-unlock-trust = the panel fallback card): small, muted, inline icons */
+.kq-trust,.nm-unlock-trust{display:flex;flex-wrap:wrap;justify-content:center;gap:.2rem .7rem;font-size:.8rem;line-height:1.4}
+.kq-trust{color:var(--ink-soft,#51607F)}
+.nm-unlock-trust{opacity:.9}
+.kq-trust-item{display:inline-flex;align-items:center;gap:.3rem}
+.kq-trust-item svg{flex:none}
+.kq-dialog p.kq-trust{margin:-.25rem 0 .75rem}
+.price-actions .kq-trust{margin:10px 0 0}
+.kq-fine{font-size:.8rem;line-height:1.45;color:var(--ink-soft,#51607F)}
+/* the offer dialog's thumb strip: 8 characters, then 5 backgrounds, small, unlocked look; ≤ 480 px one scrollable row (below) */
+.kq-strip{display:grid;gap:6px}
+.kq-strip-row{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
+.kq-strip-thumb{display:flex;width:40px;height:40px;border-radius:10px;background:#eef1f5;overflow:hidden}
+.kq-strip-thumb picture{display:block;width:100%;height:100%}
+.kq-strip-thumb img{display:block;width:100%;height:100%;max-width:none;object-fit:cover;object-position:50% 60%}
+.kq-strip-row:first-child img{object-fit:contain}   /* characters: whole figure */
+.kq-dialog .kq-restore-toggle{text-align:center}
 /* the static unlock card below the fold (index.html #pro-card.kq-card: button → /checkout, Restore link → the dialog;
    "✓ Unlocked · Manage" once a key is stored) and the dialog itself */
 .kq-caption,.kq-quiet{font-size:.9rem;color:var(--ink-soft,#51607F)}
 .kq-dialog .kq-quiet{font-size:.82rem}   /* "Questions? …" small and muted, below the restore band */
-.kq-dialog .kq-lead{color:var(--ink-soft,#51607F)}   /* offer sentence */
+.kq-dialog .kq-lead{color:var(--ink,#1E2A44)}   /* benefit line (2026-11-03: ink, it is the value line now) */
 .kq-card .kq-caption{margin:0 0 6px}
 .kq-status{margin:0;font-weight:700;text-align:center}
 .kq-card p,.kq-dialog p{text-align:left}
@@ -233,11 +289,11 @@ html.nm-lock,html.nm-lock body{overflow:hidden}
 .kq-dialog-body>:last-child{margin-bottom:0}
 .kq-dialog p{margin:0 0 .75rem}
 .kq-dialog .btn[data-kq-primary]{display:flex;width:100%;justify-content:center;margin:0 0 .75rem}   /* one primary action per dialog */
-/* dialog primary + pricing-card primary (2026-11-02): the panel pill's size (48 px, 1rem, 700, full width), filled with the
-   START text navy (--nm-ink), white text, no shadow / glow (the keyboard focus ring stays), subtle hover */
-.kq-dialog .btn[data-kq-primary],.price-actions .btn[data-kq-primary]{width:100%;min-height:48px;padding:0 1.2em;font-size:1rem;font-weight:700;line-height:1.2;
-  border-radius:999px;background:var(--nm-ink,#1E2A44);box-shadow:none;transform:none}
-.kq-dialog .btn[data-kq-primary]:hover,.price-actions .btn[data-kq-primary]:hover{background:#2B3A5C;transform:none}
+/* dialog primary + pricing-card primary (2026-11-02; colour since 2026-11-03 = --nm-unlock with white text, two lines,
+   56 px — rule with the panel pill above): full width, pill radius, no shadow / glow (the keyboard focus ring stays) */
+.kq-dialog .btn[data-kq-primary],.price-actions .btn[data-kq-primary]{width:100%;font-size:1rem;font-weight:600;
+  border-radius:999px;box-shadow:none;transform:none}
+.kq-dialog .btn[data-kq-primary]:hover,.price-actions .btn[data-kq-primary]:hover{transform:none}
 .kq-dialog a,.kq-dialog a:visited{color:var(--nm-ink,#1E2A44)}
 .kq-dialog .kq-see{text-align:center;margin:-.25rem 0 .75rem}   /* wins over .kq-dialog p{text-align:left} */
 .kq-dialog .kq-restore{margin-top:.25rem;padding:1rem;border-top:0;border-radius:12px;background:#f3f4f6}   /* "Already unlocked?" band */
@@ -255,6 +311,13 @@ html.kq-dialog-open,html.kq-dialog-open body{overflow:hidden}
 @media (max-width:480px){
   .kq-dialog-box{padding:1.25rem}
   .kq-keybox .kq-key{font-size:1.1rem}
+  /* phones: one horizontally scrollable row (8 characters + 5 backgrounds) — keeps "Already unlocked? Restore" above the fold
+     and avoids a 7 + 1 wrap; the right edge fades to show there is more */
+  .kq-strip{display:flex;gap:6px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;padding-right:24px;
+    -webkit-mask-image:linear-gradient(to right,#000 85%,transparent);mask-image:linear-gradient(to right,#000 85%,transparent)}
+  .kq-strip::-webkit-scrollbar{display:none}
+  .kq-strip-row{display:contents}
+  .kq-strip-thumb{flex:none;width:40px;height:40px}
   .kq-btnrow{flex-direction:column}
   .kq-btnrow .kq-ghost,.kq-linkrow .kq-ghost{width:100%}
   .kq-dialog .kq-row{flex-direction:column}
@@ -286,6 +349,7 @@ html.kq-dialog-open,html.kq-dialog-open body{overflow:hidden}
   .nm-panel{left:0;right:0;width:auto;max-width:none;border-radius:0;transform:translateY(100%)}
   .nm.is-panel-open .nm-panel{transform:none}
   .nm-panel-body{padding:24px 16px 20px}
+  .nm-unlock-sticky{margin-left:-16px;margin-right:-16px;padding-left:16px;padding-right:16px}
   .nm-sheet-close{display:flex}
   .nm-sheet-resume{display:block;flex:none;background:#fff;padding:0 0 env(safe-area-inset-bottom,0)}
   .nm-sheet-resume-btn{display:block;width:100%;min-height:60px;border:0;background:#fff;color:var(--nm-ink);font:700 1.15rem var(--nm-font);cursor:pointer}

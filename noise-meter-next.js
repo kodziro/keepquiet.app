@@ -76,8 +76,9 @@
       stored, or on the first interaction with #pro-card below the fold. It receives
       window.__kqTool (signal, el, button, storage, panel hooks) and owns the unlock UI: a
       centred modal <dialog> (decided 2026-11-02) plus the panel entry (.nm-unlock-line:
-      locked → primary button "Unlock all — $19.99 one-time" straight to /checkout, caption,
-      "Already unlocked? Restore" link; unlocked → "✓ Unlocked · KQ-••••-••••-1234 Show ·
+      locked → --nm-unlock two-line button "Unlock all 8 characters + 5 backgrounds / $19.99
+      one-time" straight to /checkout, caption, "Already unlocked? Restore" link, and a compact
+      sticky copy at the bottom of the panel (.nm-unlock-sticky) while it is scrolled away; unlocked → "✓ Unlocked · KQ-••••-••••-1234 Show ·
       Manage"; free window → "free until <date> · Restore"). Browsers without showModal get
       the dialog content as a card in the panel (.nm-unlock, the old slot).
     - body[data-kq-unlock-gate] (tool-test.html): the unlock UI renders only when
@@ -111,7 +112,7 @@
   var LS_VISITS = 'kq-visits', LS_FIRST = 'kq-first-seen';
   var LS_LICENSE = 'kq-license', LS_DEV = 'kq-dev';
   var FREE_UNTIL = '';               // e.g. '2026-12-31': all characters and backgrounds free until then (UNLOCK-PLAN § 2.11); '' = off
-  var UNLOCK_V = '20261102i';        // ?v= of unlock.js — bump with every change to unlock.js
+  var UNLOCK_V = '20261103a';        // ?v= of unlock.js — bump with every change to unlock.js
 
   // Names are used ONLY in alt / aria-label text, never as visible labels.
   var CHARACTERS = [
@@ -696,9 +697,12 @@
     sceneGrid = el('div', 'nm-grid'); sceneGrid.setAttribute('role', 'group'); sceneGrid.setAttribute('aria-label', 'Background');
     fillGrid(sceneGrid, 'scene', SCENES);
     panel.appendChild(sceneGrid);
-    legend = el('p', 'nm-legend', unlockActive() ? '\uD83D\uDD12 = locked \u2014 tap to unlock' : '\uD83D\uDD12 = locked \u2014 tap one to tell us you\u2019re interested');
-    legend.hidden = isUnlocked();
-    panel.appendChild(legend);
+    // legend only without the unlock UI (interest mode); with it the Unlock button below says it all (removed 2026-11-03)
+    if (!unlockActive()) {
+      legend = el('p', 'nm-legend', '\uD83D\uDD12 = locked \u2014 tap one to tell us you\u2019re interested');
+      legend.hidden = isUnlocked();
+      panel.appendChild(legend);
+    }
 
     // unlock UI: the one-line entry (filled by unlock.js) + a hidden card slot used only by browsers without
     // <dialog>.showModal; without the unlock UI (tool-test.html without kq-dev) today's interest card
@@ -777,11 +781,13 @@
     panel.appendChild(el('p', 'nm-prestart', 'Available after Start'));
     panel.appendChild(sensSlider);
     updateSensDefault();
+    // sticky copy of the Unlock button (filled by unlock.js): last node of the scrolling body, fixed height while locked
+    if (unlockActive()) { unlockSticky = el('div', 'nm-unlock-sticky'); unlockSticky.hidden = true; panel.appendChild(unlockSticky); }
     unlockLineSlot = interestCard;   // locked entry sits before this node; the unlocked row moves to the panel's end
   }
   // unlock.js: the unlocked row ("✓ Unlocked · KQ-… Show · Manage") goes to the bottom of the panel, after Sensitivity,
   // in small muted text; the locked entry (button + caption + Restore) and the free-window line stay above the cards
-  var unlockLineSlot = null;
+  var unlockLineSlot = null, unlockSticky = null;
   function placeUnlockLine(atEnd) {
     if (!unlockLine || !panelBody) return;
     unlockLine.classList.toggle('nm-unlock-foot', !!atEnd);
@@ -831,6 +837,22 @@
     var pic = makePicture(base, kind === 'char' ? 'png' : 'jpg', '', 160, 160, 'nm-thumb-pic', false);
     pic.querySelector('img').loading = 'lazy';
     return pic;
+  }
+  // offer dialog (unlock.js, 2026-11-03): every character and background thumb, no lock badge, lazy-loaded; names as alt
+  function thumbStrip() {
+    var wrap = el('div', 'kq-strip');
+    [['char', CHARACTERS], ['scene', SCENES]].forEach(function (g) {
+      var row = el('div', 'kq-strip-row');
+      g[1].forEach(function (item) {
+        var cell = el('span', 'kq-strip-thumb');
+        var pic = thumbPicture(g[0], item);
+        pic.querySelector('img').alt = item.name;
+        cell.appendChild(pic);
+        row.appendChild(cell);
+      });
+      wrap.appendChild(row);
+    });
+    return wrap;
   }
   function fillGrid(grid, kind, items) {
     var unlocked = isUnlocked();
@@ -891,7 +913,8 @@
     root: root, signal: signal, el: el, button: button, lsGet: lsGet, lsSet: lsSet, lsDel: lsDel,
     isTestMode: isTestMode, reducedMotion: reducedMotion,
     freeUntil: FREE_UNTIL, freeWindow: freeWindow,
-    mount: function () { return { line: unlockLine, card: interestCard }; },   // panel line + fallback card slot
+    mount: function () { return { line: unlockLine, card: interestCard, sticky: unlockSticky, scroller: panelBody }; },   // panel line, fallback card slot, sticky CTA slot, the panel's scroll area (IntersectionObserver root)
+    thumbStrip: thumbStrip,                               // the offer dialog's strip: all 8 + 5 thumbs, unlocked look, lazy
     placeLine: placeUnlockLine,                           // true = unlocked row at the panel's end (small, muted)
     scrollPanelTo: scrollPanelTo,
     setUnlocked: refreshGrids,                            // key stored → badges off, every item selectable
