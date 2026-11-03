@@ -278,9 +278,11 @@ html.nm-lock,html.nm-lock body{overflow:hidden}
 /* the unlock dialog (unlock.js; native <dialog>, top layer — above the phone sheet and the expanded stage). The few
    box rules are repeated in the critical block of index.html (it can open before this file loads, ?unlock= / ?k=). */
 .kq-dialog{border:0;border-radius:16px;padding:0;width:calc(100% - 2rem);max-width:28rem;max-height:calc(100vh - 2rem);max-height:calc(100dvh - 2rem);margin:auto;overflow:auto;
-  background:#fff;color:var(--ink,#1E2A44);font-family:var(--font-body,system-ui,sans-serif);font-size:1rem;line-height:1.5;text-align:left;box-shadow:0 12px 40px rgba(0,0,0,.22)}
+  background:transparent;color:var(--ink,#1E2A44);font-family:var(--font-body,system-ui,sans-serif);font-size:1rem;line-height:1.5;text-align:left;box-shadow:0 12px 40px rgba(0,0,0,.22)}
 .kq-dialog::backdrop{background:rgba(10,20,40,.55)}
-.kq-dialog-box{position:relative;padding:1.5rem}
+/* the white surface is the box (2026-11-03), so the purchase confetti canvas (unlock.js, fixed, z-index 0, inside the dialog)
+   sits above the backdrop and below the box; the dialog still scrolls and clips the box to its rounded corners */
+.kq-dialog-box{position:relative;z-index:1;min-height:100%;box-sizing:border-box;padding:1.5rem;background:#fff}
 .kq-dialog-box:focus{outline:none}
 .kq-dialog-x{position:absolute;top:8px;right:8px;width:40px;height:40px;border:0;border-radius:50%;padding:0;background:none;color:var(--ink-soft,#51607F);font:400 1.6rem/1 var(--font-body,system-ui,sans-serif);cursor:pointer;display:flex;align-items:center;justify-content:center}
 .kq-dialog-x:hover{background:rgba(30,42,68,.08)}
@@ -289,6 +291,11 @@ html.nm-lock,html.nm-lock body{overflow:hidden}
 .kq-dialog-body>:last-child{margin-bottom:0}
 .kq-dialog p{margin:0 0 .75rem}
 .kq-dialog .btn[data-kq-primary]{display:flex;width:100%;justify-content:center;margin:0 0 .75rem}   /* one primary action per dialog */
+/* purchase thank-you: "Choose a character →" (unlock.js .kq-choose; the only primary there) — --nm-unlock + Fredoka 600 via
+   .kq-unlock-btn, one line, full width; the fallback card in the panel gets the same pill */
+.kq-dialog .kq-choose,.nm-card .kq-choose{display:flex;width:100%;justify-content:center;min-height:48px;margin:0 0 .75rem;border-radius:999px;
+  box-shadow:none;transform:none;font-size:1rem}
+.kq-dialog .kq-choose:hover{transform:none}
 /* dialog primary + pricing-card primary (2026-11-02; colour since 2026-11-03 = --nm-unlock with white text, two lines,
    56 px — rule with the panel pill above): full width, pill radius, no shadow / glow (the keyboard focus ring stays) */
 .kq-dialog .btn[data-kq-primary],.price-actions .btn[data-kq-primary]{width:100%;font-size:1rem;font-weight:600;
@@ -318,8 +325,9 @@ html.kq-dialog-open,html.kq-dialog-open body{overflow:hidden}
   .kq-strip::-webkit-scrollbar{display:none}
   .kq-strip-row{display:contents}
   .kq-strip-thumb{flex:none;width:40px;height:40px}
-  .kq-btnrow{flex-direction:column}
-  .kq-btnrow .kq-ghost,.kq-linkrow .kq-ghost{width:100%}
+  .kq-btnrow{flex-wrap:nowrap}   /* thank-you: Show + Copy key side by side, two half-width ghost pills (2026-11-03) */
+  .kq-btnrow .kq-ghost{flex:1 1 0;min-width:0}
+  .kq-linkrow .kq-ghost{width:100%}   /* Copy link stays full width */
   .kq-dialog .kq-row{flex-direction:column}
   .kq-dialog .kq-row .kq-ghost{width:100%}
 }

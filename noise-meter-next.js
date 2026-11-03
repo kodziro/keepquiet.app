@@ -112,7 +112,7 @@
   var LS_VISITS = 'kq-visits', LS_FIRST = 'kq-first-seen';
   var LS_LICENSE = 'kq-license', LS_DEV = 'kq-dev';
   var FREE_UNTIL = '';               // e.g. '2026-12-31': all characters and backgrounds free until then (UNLOCK-PLAN § 2.11); '' = off
-  var UNLOCK_V = '20261103a';        // ?v= of unlock.js — bump with every change to unlock.js
+  var UNLOCK_V = '20261103b';        // ?v= of unlock.js — bump with every change to unlock.js
 
   // Names are used ONLY in alt / aria-label text, never as visible labels.
   var CHARACTERS = [
@@ -919,6 +919,12 @@
     scrollPanelTo: scrollPanelTo,
     setUnlocked: refreshGrids,                            // key stored → badges off, every item selectable
     openPanel: function () { panelForced = true; sheetClosed = false; applyPanel(); },
+    showCharacters: function () {                         // thank-you "Choose a character →": panel open at its top (= the character
+      panelForced = true; sheetClosed = false; applyPanel();   // grid, phones too), focus on the selected character, no page scroll
+      if (panelBody) panelBody.scrollTop = 0;
+      var b = charGrid && (charGrid.querySelector('[aria-pressed="true"]') || charGrid.querySelector('button'));
+      if (b) { try { b.focus({ preventScroll: true }); } catch (e) { try { b.focus(); } catch (x) {} } }
+    },
     isPanelOpen: function () { return root.classList.contains('is-panel-open'); },
     isFullscreen: function () { return expanded || isFullscreen(); },   // the dialog hides its "See what's included" link then
     pauseForRedirect: function () {                       // before location.assign(Stripe)

@@ -25,6 +25,12 @@
     Questions); restore mode (panel link, ?k= results) opens the field expanded;
     after a purchase or a restore → the short thank-you (key masked + Show/Copy, restore link + Copy,
     "sent to …" after a purchase, Help); every error and the cancel text are shown in the dialog.
+    Purchase view only (?unlock= return, 2026-11-03): "All 8 characters and 5 backgrounds are yours." under the
+    title, the primary "Choose a character →" above the key box (closes the dialog, opens the panel at the top =
+    the character grid, focus on the selected character) and a one-time confetti burst (confetti() below; never
+    on restore, Manage, ?k= or reload; none under reduced motion or in the no-showModal fallback).
+    Dev hook: tool-test.html?dev-thanks=1 with kq-dev = "1" opens that view with an example key (not stored,
+    no request, no signal) and fires the confetti — for screenshots.
     Browsers without showModal get the same content as a card inside the panel (api.mount().card).
 
   Restore row: input with "@" → POST /magic (email path, Step 5b), otherwise POST /restore.
@@ -73,6 +79,8 @@ const STRINGS = {
 
   // thank-you (state B) and the permanent block (state C)
   unlocked: 'Unlocked 🎉',
+  boughtLine: 'All 8 characters and 5 backgrounds are yours.',   // purchase view only (2026-11-03)
+  chooseChar: 'Choose a character →',                            // purchase view only: the one primary action
   keyLabel: 'Your license key',
   show: 'Show',
   hide: 'Hide',
@@ -80,7 +88,7 @@ const STRINGS = {
   copyLink: 'Copy link',
   copied: 'Copied ✓',
   copyFailed: 'Copy failed — select and copy by hand',
-  restoreLink: 'Restore link',
+  restoreLink: 'Restore link (for other devices)',
   sentTo: 'We sent the key and this link to {email}.',
   help: 'Help: ',
 
@@ -282,6 +290,8 @@ export default function init(api) {
     pendingSession: null, // ?unlock=<session> kept for Retry (→ the "Payment received" view)
     busy: false,
     openedFrom: 'panel',  // opener of the dialog → unlock-click {from} for the dialog's own button
+    justBought: false,    // thank-you after a real purchase (verify → unlockedNow 'checkout'); cleared when the dialog closes
+    preview: null,        // dev hook only (?dev-thanks=1): example key shown in the dialog, never stored
     restoreOpen: false,   // dialog offer view: restore field expanded (restore mode, or the link was pressed)
     msgs: { main: null, restore: null }   // last message per slot, re-applied after every render
   };
@@ -412,9 +422,56 @@ export default function init(api) {
   function onDialogClosed() {
     try { document.documentElement.classList.remove('kq-dialog-open'); } catch (e) {}
     state.restoreOpen = false;   // the next locked-thumb open shows the collapsed "Already unlocked? Restore" link
-    if (state.revealed) { state.revealed = false; render(); }
+    const wasThanks = state.justBought || !!state.preview;
+    state.justBought = false; state.preview = null;   // the next open (Manage) is the plain view
+    if (state.revealed || wasThanks) { state.revealed = false; render(); }
     const o = opener; opener = null;
     if (o && o.isConnected && typeof o.focus === 'function') focusNoScroll(o);
+  }
+  // "Choose a character →": close the dialog without giving focus back to its opener, then the panel at its top
+  // (character grid) with focus on the selected character (api.showCharacters, noise-meter.js)
+  function chooseCharacter() {
+    opener = null;
+    state.justBought = false;
+    if (dlg && dlg.open) closeDialog(); else render();   // fallback card: back to the plain unlocked view
+    if (api.showCharacters) api.showCharacters();
+  }
+  // confetti (purchase only, once per page load): canvas inside the <dialog> — fixed, full viewport, above the backdrop,
+  // below .kq-dialog-box (z-index 1; the white background lives on the box); pointer-events none, aria-hidden, never
+  // focusable, so focus and the dialog's focus trap are untouched. Removed when the last piece has fallen.
+  let confettiDone = false;
+  function confetti() {
+    if (confettiDone || !dlg || !dlg.open) return;
+    confettiDone = true;
+    try { if (api.reducedMotion || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return; } catch (e) {}
+    const cv = document.createElement('canvas'), ctx = cv.getContext && cv.getContext('2d');
+    if (!ctx) return;
+    cv.className = 'kq-confetti'; cv.setAttribute('aria-hidden', 'true');
+    const dpr = Math.min(window.devicePixelRatio || 1, 2), W = window.innerWidth, H = window.innerHeight;
+    cv.width = W * dpr; cv.height = H * dpr;
+    cv.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none';
+    ctx.scale(dpr, dpr);
+    dlg.insertBefore(cv, dlg.firstChild);
+    const COLS = ['#4DA3FF', '#1E2A44', '#2563EB', '#FFFFFF', '#8EE4AF'], R = Math.random, bits = [];
+    for (let i = 0; i < 100; i++) bits.push({
+      x: W * (.15 + R() * .7), y: H * (.25 + R() * .15), vx: (R() - .5) * 9, vy: -(5 + R() * 8),
+      w: 6 + R() * 5, h: 4 + R() * 4, a: R() * 6.3, va: (R() - .5) * .35, c: COLS[i % 5], f: R() * 6.3
+    });
+    let t0 = 0;
+    (function frame(t) {
+      if (!t0) t0 = t;
+      const k = t - t0;
+      ctx.clearRect(0, 0, W, H);
+      ctx.globalAlpha = k > 1300 ? Math.max(0, 1 - (k - 1300) / 500) : 1;   // fade out over the last 0.5 s → gone at 1.8 s
+      bits.forEach((b) => {
+        b.vy += .28; b.vx *= .985; b.f += .1;
+        b.x += b.vx + Math.sin(b.f) * .6; b.y += b.vy; b.a += b.va;   // gravity + drift + spin
+        ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(b.a);
+        ctx.fillStyle = b.c; ctx.fillRect(-b.w / 2, -b.h / 2, b.w, b.h * Math.abs(Math.cos(b.f)) + 1);
+        ctx.restore();
+      });
+      if (k < 1800 && cv.isConnected) requestAnimationFrame(frame); else cv.remove();
+    })(0);
   }
   // browsers without showModal: the same content as a card in the panel (api.mount().card)
   function openFallbackCard(focusRestore) {
@@ -437,8 +494,9 @@ export default function init(api) {
   }
   function renderInto(host, variant) {   // dialog body or the fallback card
     host.innerHTML = '';
-    host.classList.toggle('is-unlocked', !!state.key);
-    if (state.key) renderUnlocked(host, variant);
+    const unlockedView = !!state.key || (!!state.preview && variant === 'dialog');   // preview = dev hook, dialog only
+    host.classList.toggle('is-unlocked', unlockedView);
+    if (unlockedView) renderUnlocked(host, variant);
     else if (state.pendingSession) renderPending(host, variant);
     else if (api.freeWindow()) renderFree(host, variant);
     else renderOffer(host, variant);
@@ -524,7 +582,7 @@ export default function init(api) {
     host.appendChild(box);
   }
   function keyCode(variant) {
-    const key = state.key;
+    const key = state.preview || state.key;
     const code = el('code', dark(variant) ? 'nm-unlock-key' : 'kq-key');
     code.textContent = state.revealed ? key : maskKey(key);
     code.setAttribute('aria-label', state.revealed ? 'License key ' + key.split('').join(' ') : 'License key, hidden, ends with ' + key.slice(-4).split('').join(' '));
@@ -536,10 +594,17 @@ export default function init(api) {
     show.addEventListener('click', () => { state.revealed = !state.revealed; render(); });
     return show;
   }
-  function renderUnlocked(host, variant) {   // thank-you (after a purchase: with the "sent to" line) and Manage
-    const key = state.key, d = dark(variant), c = (n) => (d ? 'nm-unlock-' : 'kq-') + n;
+  function renderUnlocked(host, variant) {   // thank-you (after a purchase: bought line, "Choose a character →", "sent to") and Manage
+    const key = state.preview || state.key, d = dark(variant), c = (n) => (d ? 'nm-unlock-' : 'kq-') + n;
     const action = (label, aria, fn) => { const b = d ? smallBtn(variant, label) : ghost(label); b.setAttribute('aria-label', aria); b.addEventListener('click', fn); return b; };
     host.appendChild(title(variant, S.unlocked));
+    if (state.justBought || state.preview) {
+      host.appendChild(p(d ? '' : 'kq-lead', S.boughtLine));
+      const go = pill(variant, S.chooseChar);
+      go.classList.add('kq-unlock-btn', 'kq-choose');   // --nm-unlock deep blue, Fredoka 600; not data-kq-primary (that label is the Unlock text)
+      go.addEventListener('click', chooseCharacter);
+      host.appendChild(go);
+    }
 
     const box = el('div', c('keybox'));            // the key, masked by default, centred and large
     box.setAttribute('aria-label', S.keyLabel);
@@ -562,7 +627,8 @@ export default function init(api) {
     linkBlock.appendChild(action(S.copyLink, 'Copy the restore link', (e) => copyText(restoreLinkFor(key), e.currentTarget)));
     host.appendChild(linkBlock);
 
-    if (state.emailMasked) host.appendChild(p('', fill(S.sentTo, { email: state.emailMasked })));
+    const sent = state.preview ? 't***@example.org' : state.emailMasked;   // dev hook: example address, never stored
+    if (sent) host.appendChild(p('', fill(S.sentTo, { email: sent })));
     host.appendChild(lineWithMail(d ? 'nm-unlock-first' : 'kq-quiet', S.help));
     host.appendChild(msgLine(variant, 'main'));
   }
@@ -697,13 +763,15 @@ export default function init(api) {
   /* ---------- actions ---------- */
   function unlockedNow(key, via, emailMasked) {
     state.key = key; state.emailMasked = emailMasked || ''; state.revealed = false;
-    state.pendingSession = null;
+    state.pendingSession = null; state.preview = null;
+    state.justBought = via === 'checkout';   // the purchase view (bought line, Choose a character, confetti) — never for restores
     state.msgs = { main: null, restore: null };
     lsSet(LS_LICENSE, key);
     signal('unlock-success', { via });
     api.setUnlocked();
     render();
     if (dlg && dlg.open) dlg.scrollTop = 0;
+    if (state.justBought) confetti();
   }
 
   // from: 'panel' (panel button), 'card' (static card button), or the dialog opener (thumb|panel|card)
@@ -801,6 +869,7 @@ export default function init(api) {
 
   /* ---------- URL params (window.__kqUnlock, README § 8.1): a purchase beats a bookmark ---------- */
   function handleUrl() {
+    devThanks();
     const u = window.__kqUnlock;
     if (!u) return;
     window.__kqUnlock = undefined;   // handled once (Safari bfcache may bring the page back)
@@ -813,6 +882,22 @@ export default function init(api) {
       openDialog('panel', false, true);   // restore mode: field expanded (not focused, as before)
       restore(u.k, via, 'main');
     }
+  }
+  // dev hook (screenshots): tool-test.html (body[data-kq-unlock-gate]) + kq-dev = "1" + ?dev-thanks=1 → the purchase
+  // thank-you with an example key and the confetti. Nothing stored, no request, no signal; the param is removed.
+  function devThanks() {
+    try {
+      if (!(document.body && document.body.hasAttribute('data-kq-unlock-gate') && lsGet('kq-dev') === '1')) return;
+      const q = new URLSearchParams(location.search);
+      if (q.get('dev-thanks') !== '1') return;
+      q.delete('dev-thanks');
+      const rest = q.toString();
+      history.replaceState(null, '', location.pathname + (rest ? '?' + rest : '') + location.hash);
+      state.preview = 'KQ-TEST-TEST-TEST';
+      openDialog('panel');
+      confettiDone = false;
+      confetti();
+    } catch (e) {}
   }
   // Safari back button from Stripe restores the page from the bfcache with the busy state of the click
   window.addEventListener('pageshow', (e) => { if (e.persisted && state.busy) { setBusy(false); setMsg('main', ''); } });
@@ -834,7 +919,11 @@ export default function init(api) {
 
   return {
     show(from) { openDialog(from || 'thumb'); },                       // locked thumb tapped
-    panelClosed() { if (state.revealed) { state.revealed = false; render(); } },   // Show lasts until the panel (or the dialog) closes
+    panelClosed() {
+      const thanks = !DIALOG_OK && state.justBought;   // fallback card: the purchase view ends with the panel
+      if (thanks) state.justBought = false;
+      if (state.revealed || thanks) { state.revealed = false; render(); }
+    },   // Show lasts until the panel (or the dialog) closes
     cardAction(target) {                                               // Unlock / Restore on the static card below the fold
       if (!target) return;
       if (target.hasAttribute('data-kq-unlock')) checkout('card');
