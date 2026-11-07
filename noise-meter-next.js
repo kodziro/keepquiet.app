@@ -16,11 +16,18 @@
   - Privacy: audio never leaves the device — sound is analysed in the
     browser, nothing is recorded, stored or sent. The only network calls are
     TelemetryDeck counts (tool-start, tool-session, visit, pro-view, pro-click,
-    setting-change, mic-error, mic-switch, fullscreen) with no audio, no IDs and no free text —
+    setting-change, mic-error, mic-switch, fullscreen, timer-start, timer-done, timer-cancel) with no audio, no IDs and no free text —
     every value is a bucketed string.
-  - AudioContext is created and resumed only inside the first play click
-    (iPad Safari). AGC / noise suppression / echo cancellation are off so
-    the meter reflects the room, not the browser's voice processing.
+  - AudioContext is created and resumed only inside a click handler — the first play click
+    or the timer's Start (iPad Safari); ensureAudioContext() is shared by both. AGC / noise
+    suppression / echo cancellation are off so the meter reflects the room, not the browser's voice processing.
+  - Quiet-time timer (2026-11-07, inspired by the app): a top-right button opens a sheet (presets
+    1–30 min or a custom 1–90 min, last length in localStorage kq-nm-timer-seconds); Start shows
+    a white pill under the top row (m:ss, shrinking bar, ↻ restart, ✕ close). Target timestamp +
+    250 ms interval, re-rendered on visibilitychange so background throttling cannot drift. At 0:00
+    the pill turns red, the time pulses twice (not under reduced motion) and a soft two-tone chime
+    plays on the shared AudioContext (skipped silently if none could be created). The meter runs
+    unchanged next to it; the timer sheet and the settings panel never show at the same time.
 
   Markup contract (tool-test.html; index.html uses the same block):
     <div id="noise-meter" class="nm is-fresh" data-assets="assets/tool/">   ← is-fresh until the first successful start
@@ -42,15 +49,36 @@
     </div>
   This script adds: the fullscreen button (top-left; pill "Fullscreen" in fresh/paused, round icon while
   running; where the Fullscreen API is missing it toggles an "expanded" mode: stage fixed over the page,
-  body scroll locked, Escape/back exits, one-time Home-Screen hint), the "🎨 Style" pill top-right
+  body scroll locked, Escape/back exits, one-time Home-Screen hint), the top-right row .nm-tr with the
+  "⏱ Timer" button (every state; same pill/round look as Fullscreen, icon only ≤ 560 px) and the "🎨 Style" pill
   (welcome screen only: opens the panel without starting; Microphone / Sensitivity show "Available after
-  Start" until the first start; ×, Escape or the pill again closes it), the settings panel
+  Start" until the first start; ×, Escape or the pill again closes it), the timer sheet and pill
+  (below), the settings panel
   (Character, Background, Indicator, Microphone, Sensitivity — right side,
   bottom sheet under 700 px; shown while paused, hidden while running), the bar indicator, and the mic row.
   Only cat-1 + city-1 are in the HTML (first paint). States 2–3 and scene
   levels 2–3 are added as <picture> elements after start, so the browser
   picks WebP or the fallback itself — PNG/JPEG fallbacks are never preloaded
   by hand. Thumbnails are created only when the settings sheet first opens.
+
+  Quiet-time timer markup (all built by this script, inside .nm-stage):
+    <div class="nm-tr">                                   ← top-right row (flex): Timer, then Style
+      <button class="nm-fs nm-timer" aria-label="Quiet-time timer" aria-controls="nm-timer-sheet" aria-expanded="false">⏱ <span class="nm-fs-text">Timer</span></button>
+      <button class="nm-fs nm-style" …>🎨 Style</button>   ← as before; hidden once started (CSS)
+    </div>
+    <div class="nm-tsheet" id="nm-timer-sheet" role="dialog" aria-label="Set timer" hidden>   ← looks like the settings panel, z 7
+      <div class="nm-tsheet-head"><button class="nm-tcancel">Cancel</button><h3 class="nm-h nm-tsheet-title">Set timer</h3><button class="nm-tstart">Start</button></div>
+      <div class="nm-tchips" role="radiogroup" aria-label="Minutes"><button class="nm-tchip" role="radio" aria-checked="true" data-min="5">5 min</button> …1, 2, 3, 5, 10, 15, 20, 30 (arrow keys move and select)</div>
+      <label class="nm-tcustom">Custom: <input class="nm-tinput" type="number" min="1" max="90"> min</label>
+    </div>
+    <div class="nm-tpill" role="group" aria-label="Quiet-time timer">   ← while a timer is set (root .is-timer); .is-done at 0:00
+      <span class="nm-ttime" aria-hidden="true">5:00</span><span class="sr-only" aria-live="polite">5 minutes left</span>   ← live text only at full minutes, in the last 10 s and at 0:00
+      <span class="nm-tbar"><span class="nm-tfill" style="width:100%"></span></span>
+      <button class="nm-tbtn nm-trestart" aria-label="Restart timer">↻</button><button class="nm-tbtn nm-tclose" aria-label="Close timer">✕</button>
+    </div>
+  Timer signals: timer-start {seconds: "<exact length>"} (Start in the sheet, and ↻ after 0:00 = a new run),
+  timer-done {}, timer-cancel {remaining: tool-session minute bucket} (✕ while running, or Start in the
+  sheet replacing a running timer). ↻ while running sends nothing.
 
   Stage height: --nm-above (px above the stage: the site header) is measured on
   load/resize and set on the root; CSS makes the stage max(480px, 100svh - that).
@@ -111,8 +139,10 @@
   var LS_SENS = 'kq-nm-sensitivity', LS_MIC = 'kq-nm-mic', LS_IND = 'kq-nm-indicator', LS_FEEDBACK = 'kq-feedback', LS_FS_HINT = 'kq-fs-hint';
   var LS_VISITS = 'kq-visits', LS_FIRST = 'kq-first-seen';
   var LS_LICENSE = 'kq-license', LS_DEV = 'kq-dev';
+  var LS_TIMER = 'kq-nm-timer-seconds';
+  var TIMER_PRESETS = [1, 2, 3, 5, 10, 15, 20, 30], TIMER_MAX_MIN = 90, TIMER_DEFAULT = 300;   // minutes / seconds
   var FREE_UNTIL = '';               // e.g. '2026-12-31': all characters and backgrounds free until then (UNLOCK-PLAN § 2.11); '' = off
-  var UNLOCK_V = '20261103b';        // ?v= of unlock.js — bump with every change to unlock.js
+  var UNLOCK_V = '20261106a';        // ?v= of unlock.js — bump with every change to unlock.js
 
   // Names are used ONLY in alt / aria-label text, never as visible labels.
   var CHARACTERS = [
@@ -135,6 +165,7 @@
     pause: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3.5" width="5" height="17" rx="1.6"/><rect x="14" y="3.5" width="5" height="17" rx="1.6"/></svg>',
     full: '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg>',
     close: '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+    timer: '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.6 2M9.5 2.5h5M12 2.5V6M18.6 7.2l1.4-1.4"/></svg>',
     lock: '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
     miniBar: '<svg viewBox="0 0 120 56" aria-hidden="true"><defs><linearGradient id="nm-gb" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3ABF5A"/><stop offset=".45" stop-color="#F2D22B"/><stop offset=".72" stop-color="#F58A2A"/><stop offset="1" stop-color="#F0423B"/></linearGradient></defs><rect x="6" y="10" width="108" height="36" rx="10" fill="url(#nm-gb)"/><rect x="50" y="18" width="20" height="20" rx="4" fill="#fff" transform="rotate(45 60 28)"/></svg>',
     miniDial: '<svg viewBox="0 0 120 70" aria-hidden="true"><defs><linearGradient id="nm-gd" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3ABF5A"/><stop offset=".45" stop-color="#F2D22B"/><stop offset=".72" stop-color="#F58A2A"/><stop offset="1" stop-color="#F0423B"/></linearGradient></defs><path d="M20 58A42 42 0 1 1 100 58" fill="none" stroke="url(#nm-gd)" stroke-width="13" stroke-linecap="round"/><g transform="rotate(60 60 58)"><line x1="60" y1="58" x2="60" y2="30" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/><path d="M60 22l-5 10h10z" fill="#fff"/><circle cx="60" cy="58" r="3.5" fill="#fff"/></g></svg>'
@@ -355,6 +386,24 @@
     return { reason: 'other', text: 'The microphone could not be started. Reload the page and try again.' };
   }
 
+  // Created and resumed only inside a click handler (iPad Safari): the first play click or the timer's Start.
+  // One context for the meter and the timer chime. false = this browser has no Web Audio.
+  function ensureAudioContext() {
+    try {
+      if (!ctx) {
+        var AC = window.AudioContext || window.webkitAudioContext;
+        ctx = new AC();
+        analyser = ctx.createAnalyser();
+        analyser.fftSize = 2048;
+        analyser.smoothingTimeConstant = 0;
+        floatBuf = analyser.getFloatTimeDomainData ? new Float32Array(analyser.fftSize) : null;
+        byteBuf = floatBuf ? null : new Uint8Array(analyser.fftSize);
+      }
+      var p = ctx.resume(); if (p && p.catch) p.catch(function () {});
+      return true;
+    } catch (err) { ctx = null; analyser = null; return false; }
+  }
+
   function constraintsFor(deviceId) {
     var audio = { echoCancellation: false, noiseSuppression: false, autoGainControl: false };
     if (deviceId) audio.deviceId = { exact: deviceId };
@@ -403,18 +452,7 @@
     }
     setMessage('Starting…');
     setBusy(true);
-    try {
-      if (!ctx) {   // created and resumed inside the click handler (iPad Safari requirement)
-        var AC = window.AudioContext || window.webkitAudioContext;
-        ctx = new AC();
-        analyser = ctx.createAnalyser();
-        analyser.fftSize = 2048;
-        analyser.smoothingTimeConstant = 0;
-        floatBuf = analyser.getFloatTimeDomainData ? new Float32Array(analyser.fftSize) : null;
-        byteBuf = floatBuf ? null : new Uint8Array(analyser.fftSize);
-      }
-      ctx.resume().catch(function () {});
-    } catch (err) {
+    if (!ensureAudioContext()) {
       setBusy(false);
       var ue = errorText({ name: 'unsupported' });
       setMessage(ue.text, 'error'); signal('mic-error', { reason: ue.reason }); return;
@@ -636,11 +674,22 @@
     styleBtn.setAttribute('aria-controls', 'nm-panel');
     styleBtn.setAttribute('aria-expanded', 'false');
     styleBtn.addEventListener('click', function () {
+      if (timerOpen) { closeTimerSheet(false); panelForced = true; sheetClosed = false; applyPanel(); return; }   // sheet → panel (never both)
       if (root.classList.contains('is-panel-open')) closePrestart(false);
       else { panelForced = true; sheetClosed = false; applyPanel(); }
     });
+    // top-right row: "⏱ Timer" (every state; round while running like Fullscreen), then Style (welcome screen only)
+    var topRight = el('div', 'nm-tr');
+    timerBtn = button('nm-fs nm-timer', 'Quiet-time timer', ICON.timer);
+    timerBtn.appendChild(el('span', 'nm-fs-text', 'Timer'));
+    timerBtn.setAttribute('aria-controls', 'nm-timer-sheet');
+    timerBtn.setAttribute('aria-expanded', 'false');
+    timerBtn.addEventListener('click', function () { if (timerOpen) closeTimerSheet(true); else openTimerSheet(); });
+    topRight.appendChild(timerBtn);
+    topRight.appendChild(styleBtn);
     stage.appendChild(fsBtn);
-    stage.appendChild(styleBtn);
+    stage.appendChild(topRight);
+    buildTimerSheet();
 
     panel = el('div', 'nm-panel');
     panel.id = 'nm-panel';
@@ -677,7 +726,7 @@
     if (focusStyle && styleBtn) { try { styleBtn.focus({ preventScroll: true }); } catch (e) {} }
   }
   function applyPanel() {
-    var vis = !running && (everStarted || panelForced) && !sheetClosed;
+    var vis = !running && (everStarted || panelForced) && !sheetClosed && !timerOpen;   // hidden while the timer sheet is open
     root.classList.toggle('is-panel-open', vis);
     if (panel) { panel.setAttribute('aria-hidden', vis ? 'false' : 'true'); try { panel.inert = !vis; } catch (e) {} }
     if (sheetResumeBtn) sheetResumeBtn.textContent = everStarted ? '\u25B6 Resume' : '\u25B6 Start';
@@ -918,9 +967,10 @@
     placeLine: placeUnlockLine,                           // true = unlocked row at the panel's end (small, muted)
     scrollPanelTo: scrollPanelTo,
     setUnlocked: refreshGrids,                            // key stored → badges off, every item selectable
-    openPanel: function () { panelForced = true; sheetClosed = false; applyPanel(); },
+    openPanel: function () { closeTimerSheet(false); panelForced = true; sheetClosed = false; applyPanel(); },
     showCharacters: function () {                         // thank-you "Choose a character →": panel open at its top (= the character
-      panelForced = true; sheetClosed = false; applyPanel();   // grid, phones too), focus on the selected character, no page scroll
+      closeTimerSheet(false);                             // grid, phones too), focus on the selected character, no page scroll
+      panelForced = true; sheetClosed = false; applyPanel();
       if (panelBody) panelBody.scrollTop = 0;
       var b = charGrid && (charGrid.querySelector('[aria-pressed="true"]') || charGrid.querySelector('button'));
       if (b) { try { b.focus({ preventScroll: true }); } catch (e) { try { b.focus(); } catch (x) {} } }
@@ -1059,8 +1109,10 @@
   window.addEventListener('popstate', function () { if (expanded) leaveExpanded(true); });
   document.addEventListener('keydown', function (e) {
     if (e.key !== 'Escape') return;
-    // panel opened by the Style pill before the first start: Escape closes it first (an open unlock dialog handles its own Escape)
-    if (!everStarted && root.classList.contains('is-panel-open') && !document.querySelector('dialog[open]')) { closePrestart(true); return; }
+    var dialogOpen = !!document.querySelector('dialog[open]');   // an open unlock dialog handles its own Escape
+    if (timerOpen && !dialogOpen) { closeTimerSheet(true); return; }   // timer sheet = Cancel
+    // panel opened by the Style pill before the first start: Escape closes it first
+    if (!everStarted && root.classList.contains('is-panel-open') && !dialogOpen) { closePrestart(true); return; }
     if (expanded) leaveExpanded(false);
   });
   function removeFsHint() { if (fsHint && fsHint.parentNode) fsHint.parentNode.removeChild(fsHint); fsHint = null; }
@@ -1074,6 +1126,201 @@
     fsHint.appendChild(x);
     stage.appendChild(fsHint);
   }
+
+  /* ---------- quiet-time timer: button (top-right row), sheet, pill, chime (2026-11-07) ---------- */
+  var timerBtn, timerSheet, timerChips = [], timerInput, timerOpen = false, timerSeconds = TIMER_DEFAULT;
+  var timerPill = null, timerTime = null, timerLive = null, timerFill = null, timerLastLive = '';
+  var timerTarget = 0, timerLen = 0, timerInterval = 0, timerRunning = false;
+
+  function savedTimerSeconds() {
+    var v = parseInt(lsGet(LS_TIMER), 10);
+    return (v >= 60 && v <= TIMER_MAX_MIN * 60 && v % 60 === 0) ? v : TIMER_DEFAULT;
+  }
+  function buildTimerSheet() {
+    timerSheet = el('div', 'nm-tsheet');
+    timerSheet.id = 'nm-timer-sheet';
+    timerSheet.setAttribute('role', 'dialog'); timerSheet.setAttribute('aria-label', 'Set timer'); timerSheet.setAttribute('aria-modal', 'false');
+    timerSheet.hidden = true;
+    var head = el('div', 'nm-tsheet-head');
+    var cancel = button('nm-tcancel', '', 'Cancel');
+    cancel.addEventListener('click', function () { closeTimerSheet(true); });
+    head.appendChild(cancel);
+    head.appendChild(el('h3', 'nm-h nm-tsheet-title', 'Set timer'));
+    var go = button('nm-tstart', 'Start the timer', 'Start');
+    go.addEventListener('click', startTimer);
+    head.appendChild(go);
+    timerSheet.appendChild(head);
+    // presets: a radio group with a roving tabindex — arrow keys move AND select, like native radios
+    var chips = el('div', 'nm-tchips'); chips.setAttribute('role', 'radiogroup'); chips.setAttribute('aria-label', 'Minutes');
+    TIMER_PRESETS.forEach(function (m, i) {
+      var c = el('button', 'nm-tchip', m + ' min'); c.type = 'button';
+      c.setAttribute('role', 'radio'); c.setAttribute('data-min', String(m));
+      c.addEventListener('click', function () { setTimerSelection(m * 60, true); });
+      c.addEventListener('keydown', function (e) {
+        var d = (e.key === 'ArrowRight' || e.key === 'ArrowDown') ? 1 : ((e.key === 'ArrowLeft' || e.key === 'ArrowUp') ? -1 : 0);
+        var to = d ? (i + d + TIMER_PRESETS.length) % TIMER_PRESETS.length : (e.key === 'Home' ? 0 : (e.key === 'End' ? TIMER_PRESETS.length - 1 : -1));
+        if (to < 0) return;
+        e.preventDefault();
+        setTimerSelection(TIMER_PRESETS[to] * 60, true);
+        try { timerChips[to].focus({ preventScroll: true }); } catch (x) {}
+      });
+      chips.appendChild(c); timerChips.push(c);
+    });
+    timerSheet.appendChild(chips);
+    var custom = el('label', 'nm-tcustom');
+    custom.appendChild(el('span', '', 'Custom:'));
+    timerInput = document.createElement('input');
+    timerInput.type = 'number'; timerInput.className = 'nm-tinput';
+    timerInput.min = '1'; timerInput.max = String(TIMER_MAX_MIN); timerInput.step = '1';
+    timerInput.setAttribute('inputmode', 'numeric');
+    timerInput.setAttribute('aria-label', 'Custom length in minutes, 1 to ' + TIMER_MAX_MIN);
+    timerInput.addEventListener('input', function () {
+      var m = parseInt(timerInput.value, 10);
+      if (m >= 1 && m <= TIMER_MAX_MIN) setTimerSelection(m * 60, false);
+    });
+    timerInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); startTimer(); } });
+    custom.appendChild(timerInput);
+    custom.appendChild(el('span', '', 'min'));
+    timerSheet.appendChild(custom);
+    stage.appendChild(timerSheet);
+  }
+  // seconds → chips (the matching preset is checked, else none; the checked or first chip is the tab stop); fromChip clears Custom
+  function setTimerSelection(seconds, fromChip) {
+    timerSeconds = seconds;
+    var checkedAt = -1;
+    timerChips.forEach(function (c, i) {
+      var on = parseInt(c.getAttribute('data-min'), 10) * 60 === seconds;
+      if (on) checkedAt = i;
+      c.setAttribute('aria-checked', on ? 'true' : 'false');
+    });
+    timerChips.forEach(function (c, i) { c.tabIndex = i === (checkedAt < 0 ? 0 : checkedAt) ? 0 : -1; });
+    if (timerInput && fromChip) timerInput.value = '';
+    else if (timerInput && checkedAt < 0 && timerInput.value !== String(seconds / 60)) timerInput.value = String(seconds / 60);
+  }
+  function openTimerSheet() {
+    if (timerOpen) return;
+    timerOpen = true;
+    setTimerSelection(savedTimerSeconds(), false);
+    if (timerInput && timerChips.some(function (c) { return c.getAttribute('aria-checked') === 'true'; })) timerInput.value = '';
+    timerSheet.hidden = false;
+    root.classList.add('is-timer-open');
+    timerBtn.setAttribute('aria-expanded', 'true');
+    applyPanel();   // hides the settings panel while the sheet is open
+    var first = timerChips.filter(function (c) { return c.tabIndex === 0; })[0];
+    if (first) { try { first.focus({ preventScroll: true }); } catch (e) {} }
+  }
+  // Cancel, Escape, the button again, or after Start; focusBtn = the Timer button takes the focus back
+  function closeTimerSheet(focusBtn) {
+    if (!timerOpen) return;
+    timerOpen = false;
+    timerSheet.hidden = true;
+    root.classList.remove('is-timer-open');
+    timerBtn.setAttribute('aria-expanded', 'false');
+    applyPanel();   // the panel comes back where it was (paused, or opened by Style)
+    if (focusBtn) { try { timerBtn.focus({ preventScroll: true }); } catch (e) {} }
+  }
+  function startTimer() {
+    var m = timerInput ? parseInt(timerInput.value, 10) : NaN;
+    var seconds = (m >= 1 && m <= TIMER_MAX_MIN) ? m * 60 : timerSeconds;
+    if (!(seconds >= 60 && seconds <= TIMER_MAX_MIN * 60)) seconds = TIMER_DEFAULT;
+    lsSet(LS_TIMER, String(seconds));
+    ensureAudioContext();   // inside the click: the chime can play later even if the meter never started (no microphone involved)
+    if (timerRunning) signal('timer-cancel', { remaining: minutesBucket(Math.max(0, timerTarget - Date.now())) });   // replaced
+    closeTimerSheet(true);
+    runTimer(seconds);
+    signal('timer-start', { seconds: String(seconds) });
+  }
+  function runTimer(seconds) {
+    if (!timerPill) buildTimerPill();
+    timerPill.classList.remove('is-done');
+    timerLen = seconds;
+    timerTarget = Date.now() + seconds * 1000;
+    timerRunning = true;
+    timerLastLive = '';
+    root.classList.add('is-timer');
+    clearInterval(timerInterval);
+    timerInterval = setInterval(renderTimer, 250);
+    renderTimer();
+  }
+  function buildTimerPill() {
+    timerPill = el('div', 'nm-tpill'); timerPill.setAttribute('role', 'group'); timerPill.setAttribute('aria-label', 'Quiet-time timer');
+    timerTime = el('span', 'nm-ttime'); timerTime.setAttribute('aria-hidden', 'true');   // ticks every 250 ms: never read aloud itself
+    timerLive = el('span', 'sr-only'); timerLive.setAttribute('aria-live', 'polite'); timerLive.setAttribute('aria-atomic', 'true');
+    var bar = el('span', 'nm-tbar'); bar.setAttribute('aria-hidden', 'true');
+    timerFill = el('span', 'nm-tfill'); bar.appendChild(timerFill);
+    var re = button('nm-tbtn nm-trestart', 'Restart timer', '↻');
+    re.addEventListener('click', restartTimer);
+    var x = button('nm-tbtn nm-tclose', 'Close timer', '✕');
+    x.addEventListener('click', closeTimer);
+    timerPill.appendChild(timerTime); timerPill.appendChild(timerLive); timerPill.appendChild(bar); timerPill.appendChild(re); timerPill.appendChild(x);
+    stage.appendChild(timerPill);
+  }
+  function renderTimer() {
+    if (!timerPill) return;
+    var left = Math.max(0, Math.ceil((timerTarget - Date.now()) / 1000));
+    var m = Math.floor(left / 60), s = left % 60;
+    timerTime.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+    timerFill.style.width = (timerLen ? left / timerLen * 100 : 0).toFixed(1) + '%';
+    var live = '';   // the live region speaks only at full minutes, in the last 10 s and at the end
+    if (left === 0) live = 'Time is up';
+    else if (left <= 10) live = left + (left === 1 ? ' second left' : ' seconds left');
+    else if (s === 0) live = m + (m === 1 ? ' minute left' : ' minutes left');
+    if (live && live !== timerLastLive) { timerLastLive = live; timerLive.textContent = live; }
+    if (left === 0 && timerRunning) finishTimer();
+  }
+  function finishTimer() {
+    timerRunning = false;
+    clearInterval(timerInterval); timerInterval = 0;
+    timerPill.classList.add('is-done');   // CSS: red pill, the time pulses twice (not under reduced motion)
+    chime();
+    signal('timer-done', {});
+  }
+  // ↻: back to the chosen length. While running it just resets (no signal); after 0:00 it is a new run (timer-start)
+  function restartTimer() {
+    if (!timerLen) return;
+    var wasDone = !timerRunning;
+    runTimer(timerLen);
+    if (wasDone) signal('timer-start', { seconds: String(timerLen) });
+  }
+  // ✕: stop and remove the pill (timer-cancel only if it was still running)
+  function closeTimer() {
+    if (!timerPill) return;
+    if (timerRunning) signal('timer-cancel', { remaining: minutesBucket(Math.max(0, timerTarget - Date.now())) });
+    timerRunning = false;
+    clearInterval(timerInterval); timerInterval = 0;
+    if (timerPill.parentNode) timerPill.parentNode.removeChild(timerPill);
+    timerPill = timerTime = timerLive = timerFill = null;
+    root.classList.remove('is-timer');
+    try { timerBtn.focus({ preventScroll: true }); } catch (e) {}
+  }
+  // soft chime: two sine tones 880 → 1175 Hz, 150 ms each, gain .15 with a short fade, on the shared context;
+  // a suspended context (meter paused) is resumed first; no context or a refused resume = silent
+  function chime() {
+    if (!ctx) return;
+    function play() {
+      try {
+        var t0 = ctx.currentTime + 0.02;
+        [880, 1175].forEach(function (f, i) {
+          var o = ctx.createOscillator(), g = ctx.createGain(), t = t0 + i * 0.16;
+          o.type = 'sine'; o.frequency.value = f;
+          g.gain.setValueAtTime(0.0001, t);
+          g.gain.linearRampToValueAtTime(0.15, t + 0.015);
+          g.gain.setValueAtTime(0.15, t + 0.11);
+          g.gain.linearRampToValueAtTime(0.0001, t + 0.15);
+          o.connect(g); g.connect(ctx.destination);
+          o.start(t); o.stop(t + 0.16);
+        });
+        // the meter is not running: give the context back to its paused state once the chime is over
+        setTimeout(function () { if (ctx && !running && ctx.state === 'running') { var p = ctx.suspend(); if (p && p.catch) p.catch(function () {}); } }, 600);
+      } catch (e) {}
+    }
+    try {
+      if (ctx.state === 'running') play();
+      else { var p = ctx.resume(); if (p && p.then) p.then(play, function () {}); else play(); }
+    } catch (e) {}
+  }
+  // background tabs throttle timers: re-read the clock as soon as the tab is visible again
+  document.addEventListener('visibilitychange', function () { if (!document.hidden && timerRunning) renderTimer(); });
 
   /* ---------- hash → open the targeted FAQ <details> (privacy link on the overlay) ---------- */
   function openHashDetails() {
