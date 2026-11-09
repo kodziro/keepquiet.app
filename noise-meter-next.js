@@ -154,7 +154,7 @@
   var LS_TIMER = 'kq-nm-timer-seconds';
   var TIMER_PRESETS = [1, 2, 3, 5, 10, 15, 20, 30], TIMER_MAX_MIN = 90, TIMER_DEFAULT = 300;   // minutes / seconds
   var FREE_UNTIL = '';               // e.g. '2026-12-31': all characters and backgrounds free until then (UNLOCK-PLAN § 2.11); '' = off
-  var UNLOCK_V = '20261106a';        // ?v= of unlock.js — bump with every change to unlock.js
+  var UNLOCK_V = '20261109e';        // ?v= of unlock.js — bump with every change to unlock.js
 
   // Names are used ONLY in alt / aria-label text, never as visible labels.
   var CHARACTERS = [

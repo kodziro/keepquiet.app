@@ -50,13 +50,15 @@
 const PRICE_LABEL = '$19.99';
 
 const STRINGS = {
-  support: 'AppsForParents@gmail.com',
+  support: 'support@keepquiet.app',   // buyer-facing unlock support (since 2026-11-09); the iOS app keeps its own address
 
   // offer (state A): panel button + caption, the locked-thumb dialog (conversion round 2026-11-03)
   offerTitle: 'Unlock all 8 characters and 5 backgrounds',
   offerBenefit: 'A new friend for every day — every character reacts to the noise level.',
   offerStrip: 'All 8 characters and 5 backgrounds',   // aria-label of the dialog's thumb strip
   offerFine: 'Web version — the iOS app is sold separately. {price} plus tax where applicable; the exact total is shown before you pay.',
+  legalTerms: 'Terms',      // → terms.html, new tab (end of the small print, 2026-11-06)
+  legalPrivacy: 'Privacy',  // → privacy.html, new tab
   unlockLine1: 'Unlock all 8 characters + 5 backgrounds',   // the Unlock button, line 1 (bold) …
   unlockLine1Panel: 'Unlock all characters + backgrounds',   // … line 1 in the panel + sticky copy only (the full one wraps at the panel width)
   unlockLine2: '{price} one-time',                          // … line 2 (smaller); index.html #pro-card mirrors both
@@ -300,10 +302,11 @@ export default function init(api) {
   const views = [];
 
   /* ---------- DOM helpers ---------- */
+  function legalLink(href, text) { const a = el('a'); a.href = href; a.target = '_blank'; a.rel = 'noopener'; a.textContent = text; return a; }
   function p(cls, text) { const n = el('p', cls); if (text) n.textContent = text; return n; }
   function mailLink() { const a = el('a'); a.href = 'mailto:' + S.support; a.textContent = S.support; return a; }
   function lineWithMail(cls, prefix) { const n = p(cls); n.appendChild(document.createTextNode(prefix)); n.appendChild(mailLink()); return n; }
-  function textWithMail(text) {   // "… Help: AppsForParents@gmail.com" → the address becomes a link
+  function textWithMail(text) {   // "… Help: support@keepquiet.app" → the address becomes a link
     const n = p('');
     const i = text.indexOf(S.support);
     if (i < 0) { n.textContent = text; return n; }
@@ -519,7 +522,9 @@ export default function init(api) {
     }
     host.appendChild(primary(variant, state.openedFrom));
     host.appendChild(trustLine(variant));
-    host.appendChild(p(dark(variant) ? 'nm-unlock-first' : 'kq-fine', fill(S.offerFine)));
+    const fine = p(dark(variant) ? 'nm-unlock-first' : 'kq-fine', fill(S.offerFine));
+    fine.append(' ', legalLink('terms.html', S.legalTerms), ' · ', legalLink('privacy.html', S.legalPrivacy));
+    host.appendChild(fine);
     const pricing = document.getElementById('pricing');
     if (variant === 'dialog' && pricing && !(api.isFullscreen && api.isFullscreen())) {   // not in fullscreen / expanded mode, not on tool-test.html
       const see = p('kq-see');
