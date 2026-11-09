@@ -71,39 +71,57 @@
 /* quiet-time timer (2026-11-07). Sheet: looks like the settings panel (right side, phone = whole stage), z 7 above it — the
    script hides the panel while the sheet is open, so the two never show together. Pill: white, under the top row, same side
    margins as the pause bar (5 %), z 5 under the panel; while the panel is open (≥ 700 px) the pill ends before it. */
-.nm-tsheet{position:absolute;top:0;right:0;bottom:0;z-index:7;width:340px;max-width:85%;padding:18px 16px;background:rgba(0,0,0,.45);color:#fff;
+.nm-tsheet{position:absolute;top:0;right:0;bottom:0;z-index:7;width:340px;max-width:85%;padding:20px;background:rgba(0,0,0,.45);color:#fff;
   -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);overflow:auto}
 .nm-tsheet[hidden]{display:none}
-.nm-tsheet-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 16px}
-.nm-tsheet-title{margin:0;font-size:1.05rem}
-.nm-tcancel{border:0;background:none;color:#fff;padding:8px 4px;border-radius:6px;font:600 .95rem var(--nm-font);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
-.nm-tcancel:hover{text-decoration-thickness:2px}
-.nm-tstart{min-height:40px;padding:0 1.2em;border:0;border-radius:999px;background:#fff;color:var(--nm-ink);font:700 .95rem var(--nm-font);cursor:pointer}
+/* header: one 44 px row — ghost Cancel · centred title · filled "Start · 5 min" (label follows the selection, set by the script) */
+.nm-tsheet-head{display:flex;align-items:center;gap:8px;height:44px;margin:0 0 20px}
+.nm-tsheet-title{flex:1;margin:0;text-align:center;font:600 17px/1.2 var(--nm-font)}
+.nm-tcancel,.nm-tstart{flex:none;height:40px;padding:0 14px;border-radius:999px;font:700 .95rem var(--nm-font);cursor:pointer;white-space:nowrap}
+.nm-tcancel{border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff}
+.nm-tcancel:hover{background:rgba(255,255,255,.12)}
+.nm-tstart{border:0;background:#fff;color:var(--nm-ink)}
 .nm-tstart:hover{background:#f3f3f3}
-.nm-tchips{display:flex;flex-wrap:wrap;gap:8px}
-.nm-tchip{min-width:64px;min-height:40px;padding:0 12px;border:3px solid transparent;border-radius:999px;background:rgba(255,255,255,.18);color:#fff;font:700 .95rem var(--nm-font);cursor:pointer}
+/* presets: 4 equal columns → exactly 2 rows (1 2 3 5 / 10 15 20 30); selected = white chip with dark text */
+.nm-tchips{display:grid;grid-template-columns:repeat(4,minmax(64px,1fr));gap:10px;margin:0 0 20px}
+.nm-tchip{height:44px;padding:0 6px;border:0;border-radius:22px;background:rgba(255,255,255,.18);color:#fff;font:600 15px var(--nm-font);cursor:pointer}
 .nm-tchip:hover{background:rgba(255,255,255,.3)}
-.nm-tchip[aria-checked="true"]{border-color:var(--nm-accent);background:rgba(255,255,255,.25)}
-.nm-tcustom{display:flex;align-items:center;gap:8px;margin:16px 0 0;font:700 .95rem var(--nm-font)}
-.nm-tinput{width:5em;font:600 1rem var(--nm-font);color:#fff;background:rgba(255,255,255,.18);border:0;border-radius:12px;padding:.5rem .6rem}
-.nm-tpill{position:absolute;top:72px;left:5%;right:5%;z-index:5;display:flex;align-items:center;gap:12px;min-height:52px;padding:6px 8px 6px 16px;
-  border-radius:16px;background:rgba(255,255,255,.85);color:#1E5A45;font-family:var(--nm-font)}
-.nm-ttime{display:inline-block;flex:none;min-width:2.3em;font-weight:700;font-size:clamp(24px,4vw,40px);line-height:1;font-variant-numeric:tabular-nums}
-.nm-tbar{flex:1;height:10px;border-radius:5px;background:rgba(0,0,0,.08);overflow:hidden}
+.nm-tchip[aria-checked="true"]{background:#fff;color:var(--nm-ink)}
+.nm-tcustom{display:flex;align-items:center;gap:10px;margin:0;font:600 15px var(--nm-font)}
+.nm-tinput{width:88px;height:44px;box-sizing:border-box;text-align:center;font:600 17px var(--nm-font);color:#fff;background:rgba(255,255,255,.18);border:0;border-radius:12px;padding:0 .5rem;-moz-appearance:textfield}
+.nm-tinput::-webkit-outer-spin-button,.nm-tinput::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.nm-tinput::placeholder{color:rgba(255,255,255,.5)}
+.nm-thint{margin:8px 0 0;font:600 .8rem/1.4 var(--nm-font);opacity:.7}
+/* pill — mobile first: full width with the pause bar's 5 % margins; ≥ 700 px a compact centred card (below) */
+.nm-tpill{position:absolute;top:72px;left:5%;right:5%;z-index:5;display:flex;align-items:center;gap:10px;min-height:52px;padding:8px 8px 8px 14px;
+  border-radius:16px;background:rgba(255,255,255,.85);color:#1E5A45;font-family:var(--nm-font);box-shadow:0 4px 16px rgba(0,0,0,.12)}
+.nm-ttime{display:inline-block;flex:none;min-width:4.5ch;font-weight:700;font-size:clamp(28px,7vw,36px);line-height:1;font-variant-numeric:tabular-nums}
+.nm-tbar{flex:1;min-width:80px;height:8px;border-radius:5px;background:rgba(0,0,0,.08);overflow:hidden}
 .nm-tfill{display:block;height:100%;width:100%;border-radius:5px;background:#4CAF7A;transition:width .25s linear}
-.nm-tbtn{width:40px;height:40px;flex:none;border:0;border-radius:50%;padding:0;background:none;color:inherit;font:700 1.3rem/1 var(--nm-font);cursor:pointer;display:flex;align-items:center;justify-content:center}
-.nm-tbtn:hover{background:rgba(0,0,0,.08)}
+.nm-tbtn{width:36px;height:36px;flex:none;border:0;border-radius:50%;padding:0;background:rgba(0,0,0,.06);color:inherit;font:700 1.2rem/1 var(--nm-font);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.nm-tbtn:hover{background:rgba(0,0,0,.12)}
 .nm-tpill.is-done{background:rgba(255,225,215,.92);color:#B3261E}
+.nm-tpill.is-done .nm-tbar{background:rgba(179,38,30,.15)}
 .nm-tpill.is-done .nm-tfill{background:#B3261E}
 @media (prefers-reduced-motion:no-preference){.nm-tpill.is-done .nm-ttime{animation:nm-tpulse .5s ease-in-out 2}}
 @keyframes nm-tpulse{50%{transform:scale(1.12)}}
 .nm-reduced .nm-tpill.is-done .nm-ttime{animation:none}
 .nm-reduced .nm-tfill{transition:none}
 .nm.is-timer .nm-hint{top:136px}   /* the one-time Home-Screen hint moves under the pill */
-@media (min-width:700px){.nm.is-panel-open .nm-tpill{right:calc(min(340px,85%) + 18px)}}
+.nm.is-timer-running .nm-timer{box-shadow:0 0 0 2px rgba(76,175,122,.9)}   /* green ring on the Timer button while a timer runs (visible when the pill is scrolled away in expanded mode) */
+@media (min-width:700px){
+  .nm-tpill{left:50%;right:auto;width:min(560px,90%);transform:translateX(-50%);gap:12px;padding:12px 18px;border-radius:20px}
+  .nm-ttime{font-size:clamp(36px,3.2vw,52px)}
+  .nm-tbar{min-width:160px;height:10px}
+  .nm-tbtn{width:40px;height:40px;font-size:1.3rem}
+  /* settings panel open (paused): a 560 px card overlaps the panel on stages under ~1240 px, so centre the pill in the space left of it */
+  .nm.is-panel-open .nm-tpill{left:calc((100% - min(340px,85%)) / 2);width:min(560px,calc(100% - min(340px,85%) - 36px))}
+  .nm-stage:fullscreen .nm-tpill,.nm-stage:-webkit-full-screen .nm-tpill,.nm.is-expanded .nm-tpill{width:min(720px,90%)}
+}
+.nm-stage:fullscreen .nm-ttime,.nm-stage:-webkit-full-screen .nm-ttime,.nm.is-expanded .nm-ttime{font-size:clamp(44px,3.6vw,64px)}
+.nm-stage:fullscreen .nm-tbar,.nm-stage:-webkit-full-screen .nm-tbar,.nm.is-expanded .nm-tbar{height:12px}
 @media (max-width:699px){.nm-tsheet{left:0;width:auto;max-width:none}}
 @media (max-height:600px) and (min-width:561px){.nm.is-timer .nm-char{height:56%}}   /* short stages: the pill must not touch the face */
-.nm-stage:fullscreen .nm-ttime,.nm-stage:-webkit-full-screen .nm-ttime{font-size:clamp(32px,5vw,56px)}
 /* expanded mode (no Fullscreen API): the stage covers the viewport above the header, page scroll locked */
 .nm.is-expanded .nm-stage{position:fixed;inset:0;z-index:100;height:100vh;height:100dvh;min-height:0;background:#000}
 html.nm-lock,html.nm-lock body{overflow:hidden}
@@ -429,7 +447,6 @@ html.kq-dialog-open,html.kq-dialog-open body{overflow:hidden}
   .nm-tr{top:14px;right:14px}
   .nm-style,.nm-timer{width:44px;padding:0;justify-content:center}   /* icon only */
   .nm-style .nm-fs-text,.nm-timer .nm-fs-text{display:none}
-  .nm-tpill{gap:8px;padding:4px 4px 4px 12px;min-height:48px}
   .nm.is-running .nm-fs{width:42px;height:42px}
 }
 /* reduced motion: no cross-fade, no marker glide; the needle steps per level (set by JS) */

@@ -67,11 +67,12 @@
       <button class="nm-fs nm-style" …>🎨 Style</button>   ← as before; hidden once started (CSS)
     </div>
     <div class="nm-tsheet" id="nm-timer-sheet" role="dialog" aria-label="Set timer" hidden>   ← looks like the settings panel, z 7
-      <div class="nm-tsheet-head"><button class="nm-tcancel">Cancel</button><h3 class="nm-h nm-tsheet-title">Set timer</h3><button class="nm-tstart">Start</button></div>
-      <div class="nm-tchips" role="radiogroup" aria-label="Minutes"><button class="nm-tchip" role="radio" aria-checked="true" data-min="5">5 min</button> …1, 2, 3, 5, 10, 15, 20, 30 (arrow keys move and select)</div>
-      <label class="nm-tcustom">Custom: <input class="nm-tinput" type="number" min="1" max="90"> min</label>
+      <div class="nm-tsheet-head"><button class="nm-tcancel">Cancel</button><h3 class="nm-h nm-tsheet-title">Set timer</h3><button class="nm-tstart">Start · 5 min</button></div>   ← Start label follows the selection
+      <div class="nm-tchips" role="radiogroup" aria-label="Minutes"><button class="nm-tchip" role="radio" aria-checked="true" data-min="5">5 min</button> …1, 2, 3, 5, 10, 15, 20, 30 (4-column grid; arrow keys move and select)</div>
+      <label class="nm-tcustom">Custom <input class="nm-tinput" type="number" min="1" max="90" placeholder="45" aria-describedby="nm-timer-hint"> min</label>
+      <p class="nm-thint" id="nm-timer-hint">1–90 minutes</p>
     </div>
-    <div class="nm-tpill" role="group" aria-label="Quiet-time timer">   ← while a timer is set (root .is-timer); .is-done at 0:00
+    <div class="nm-tpill" role="group" aria-label="Quiet-time timer">   ← while a timer is set (root .is-timer; .is-timer-running while it counts = green ring on the Timer button); .is-done at 0:00
       <span class="nm-ttime" aria-hidden="true">5:00</span><span class="sr-only" aria-live="polite">5 minutes left</span>   ← live text only at full minutes, in the last 10 s and at 0:00
       <span class="nm-tbar"><span class="nm-tfill" style="width:100%"></span></span>
       <button class="nm-tbtn nm-trestart" aria-label="Restart timer">↻</button><button class="nm-tbtn nm-tclose" aria-label="Close timer">✕</button>
@@ -1128,7 +1129,7 @@
   }
 
   /* ---------- quiet-time timer: button (top-right row), sheet, pill, chime (2026-11-07) ---------- */
-  var timerBtn, timerSheet, timerChips = [], timerInput, timerOpen = false, timerSeconds = TIMER_DEFAULT;
+  var timerBtn, timerSheet, timerStartBtn, timerChips = [], timerInput, timerOpen = false, timerSeconds = TIMER_DEFAULT;
   var timerPill = null, timerTime = null, timerLive = null, timerFill = null, timerLastLive = '';
   var timerTarget = 0, timerLen = 0, timerInterval = 0, timerRunning = false;
 
@@ -1146,9 +1147,9 @@
     cancel.addEventListener('click', function () { closeTimerSheet(true); });
     head.appendChild(cancel);
     head.appendChild(el('h3', 'nm-h nm-tsheet-title', 'Set timer'));
-    var go = button('nm-tstart', 'Start the timer', 'Start');
-    go.addEventListener('click', startTimer);
-    head.appendChild(go);
+    timerStartBtn = button('nm-tstart', '', 'Start');   // label "Start · 5 min" follows the selection (setTimerSelection)
+    timerStartBtn.addEventListener('click', startTimer);
+    head.appendChild(timerStartBtn);
     timerSheet.appendChild(head);
     // presets: a radio group with a roving tabindex — arrow keys move AND select, like native radios
     var chips = el('div', 'nm-tchips'); chips.setAttribute('role', 'radiogroup'); chips.setAttribute('aria-label', 'Minutes');
@@ -1168,12 +1169,14 @@
     });
     timerSheet.appendChild(chips);
     var custom = el('label', 'nm-tcustom');
-    custom.appendChild(el('span', '', 'Custom:'));
+    custom.appendChild(el('span', '', 'Custom'));
     timerInput = document.createElement('input');
     timerInput.type = 'number'; timerInput.className = 'nm-tinput';
     timerInput.min = '1'; timerInput.max = String(TIMER_MAX_MIN); timerInput.step = '1';
+    timerInput.placeholder = '45';
     timerInput.setAttribute('inputmode', 'numeric');
     timerInput.setAttribute('aria-label', 'Custom length in minutes, 1 to ' + TIMER_MAX_MIN);
+    timerInput.setAttribute('aria-describedby', 'nm-timer-hint');
     timerInput.addEventListener('input', function () {
       var m = parseInt(timerInput.value, 10);
       if (m >= 1 && m <= TIMER_MAX_MIN) setTimerSelection(m * 60, false);
@@ -1182,6 +1185,8 @@
     custom.appendChild(timerInput);
     custom.appendChild(el('span', '', 'min'));
     timerSheet.appendChild(custom);
+    var hint = el('p', 'nm-thint', '1–90 minutes'); hint.id = 'nm-timer-hint';
+    timerSheet.appendChild(hint);
     stage.appendChild(timerSheet);
   }
   // seconds → chips (the matching preset is checked, else none; the checked or first chip is the tab stop); fromChip clears Custom
@@ -1196,6 +1201,7 @@
     timerChips.forEach(function (c, i) { c.tabIndex = i === (checkedAt < 0 ? 0 : checkedAt) ? 0 : -1; });
     if (timerInput && fromChip) timerInput.value = '';
     else if (timerInput && checkedAt < 0 && timerInput.value !== String(seconds / 60)) timerInput.value = String(seconds / 60);
+    if (timerStartBtn) timerStartBtn.textContent = 'Start · ' + (seconds / 60) + ' min';
   }
   function openTimerSheet() {
     if (timerOpen) return;
@@ -1237,7 +1243,7 @@
     timerTarget = Date.now() + seconds * 1000;
     timerRunning = true;
     timerLastLive = '';
-    root.classList.add('is-timer');
+    root.classList.add('is-timer'); root.classList.add('is-timer-running');   // is-timer-running: green ring on the Timer button
     clearInterval(timerInterval);
     timerInterval = setInterval(renderTimer, 250);
     renderTimer();
@@ -1270,6 +1276,7 @@
   }
   function finishTimer() {
     timerRunning = false;
+    root.classList.remove('is-timer-running');
     clearInterval(timerInterval); timerInterval = 0;
     timerPill.classList.add('is-done');   // CSS: red pill, the time pulses twice (not under reduced motion)
     chime();
@@ -1290,7 +1297,7 @@
     clearInterval(timerInterval); timerInterval = 0;
     if (timerPill.parentNode) timerPill.parentNode.removeChild(timerPill);
     timerPill = timerTime = timerLive = timerFill = null;
-    root.classList.remove('is-timer');
+    root.classList.remove('is-timer'); root.classList.remove('is-timer-running');
     try { timerBtn.focus({ preventScroll: true }); } catch (e) {}
   }
   // soft chime: two sine tones 880 → 1175 Hz, 150 ms each, gain .15 with a short fade, on the shared context;
