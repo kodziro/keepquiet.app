@@ -27,9 +27,11 @@
     bar, ↻ restart, ✕ close). The timer counts ONLY while the meter runs: none → set (waiting, full
     length shown) → running → paused (meter paused: remaining frozen, ⏸ glyph) → done. Target
     timestamp + 250 ms interval, re-rendered on visibilitychange so background throttling cannot
-    drift. At 0:00 the pill turns red, the time pulses twice (not under reduced motion) and a soft
-    two-tone chime plays on the meter's AudioContext. The timer sheet and the settings panel never
-    show at the same time.
+    drift. At 0:00 the meter pauses through the same path as the Pause button (mic released, wake
+    lock released, Resume shown, settings panel as after a manual pause) and the pill turns red with
+    an empty bar — the colour change is the signal, there is no sound (chime removed 2026-11-09,
+    backlog in GEO-PLAN). ↻ after 0:00 = full length in the waiting state; Resume starts the count.
+    The timer sheet and the settings panel never show at the same time.
 
   Markup contract (tool-test.html; index.html uses the same block):
     <div id="noise-meter" class="nm is-fresh" data-assets="assets/tool/">   ← is-fresh until the first successful start
@@ -53,8 +55,9 @@
   running; where the Fullscreen API is missing it toggles an "expanded" mode: stage fixed over the page,
   body scroll locked, Escape/back exits, one-time Home-Screen hint), the top-right row .nm-tr with the
   "⏱ Timer" button (every state; same pill/round look as Fullscreen, icon only ≤ 560 px) and the "🎨 Style" pill
-  (welcome screen only: opens the panel without starting; Microphone / Sensitivity show "Available after
-  Start" until the first start; ×, Escape or the pill again closes it), the timer sheet and pill
+  (every state, same rules as Timer: toggles the settings panel — before the first start without starting;
+  Microphone / Sensitivity show "Available after Start" until then; while running it opens the panel over
+  the running meter; ×, Escape (before the first start) or the pill again closes it), the timer sheet and pill
   (below), the settings panel
   (Character, Background, Indicator, Microphone, Sensitivity — right side,
   bottom sheet under 700 px; shown while paused, hidden while running), the bar indicator, and the mic row.
@@ -66,7 +69,7 @@
   Quiet-time timer markup (all built by this script, inside .nm-stage):
     <div class="nm-tr">                                   ← top-right row (flex): Timer, then Style
       <button class="nm-fs nm-timer" aria-label="Quiet-time timer" aria-controls="nm-timer-sheet" aria-expanded="false">⏱ <span class="nm-fs-text">Timer</span></button>
-      <button class="nm-fs nm-style" …>🎨 Style</button>   ← as before; hidden once started (CSS)
+      <button class="nm-fs nm-style" aria-controls="nm-panel" aria-expanded="false">🎨 <span class="nm-fs-text">Style</span></button>   ← every state; toggles the settings panel
     </div>
     <div class="nm-tsheet" id="nm-timer-sheet" role="dialog" aria-label="Timer" hidden>   ← looks like the settings sheet, z 7
       <button class="nm-sheet-close" aria-label="Close timer settings">×</button>   ← same grey round × as the settings sheet, same corner
@@ -77,7 +80,7 @@
       <button class="nm-pill nm-tsave">Save</button>   ← disabled while Custom is out of 1–90; Save = set the timer, close, focus back on the Timer button
       <button class="nm-tremove" hidden>Remove timer</button>   ← text link under Save, only while a timer exists: same as the pill's ✕, closes the sheet
     </div>
-    <div class="nm-tpill" role="group" aria-label="Quiet-time timer">   ← while a timer exists (root .is-timer); .is-waiting (set), .is-paused (aria-label "Timer paused"), .is-done; root .is-timer-running = green ring, .is-timer-set (set/paused) = amber ring on the Timer button
+    <div class="nm-tpill" role="group" aria-label="Quiet-time timer">   ← while a timer exists (root .is-timer); .is-waiting (set), .is-paused (aria-label "Timer paused"), .is-done (red, bar empty, meter paused); root .is-timer-running = green ring, .is-timer-set (set/paused) = amber ring on the Timer button
       <span class="nm-tpause" aria-hidden="true">⏸</span>   ← shown in .is-paused only
       <span class="nm-ttime" aria-hidden="true">5:00</span><span class="sr-only" aria-live="polite">5 minutes left</span>   ← live text only while running: full minutes, last 10 s, 0:00
       <span class="nm-tbar"><span class="nm-tfill" style="width:100%"></span></span>
@@ -395,8 +398,8 @@
     return { reason: 'other', text: 'The microphone could not be started. Reload the page and try again.' };
   }
 
-  // Created and resumed only inside a click handler (iPad Safari): the first play click or the timer's Start.
-  // One context for the meter and the timer chime. false = this browser has no Web Audio.
+  // Created and resumed only inside a click handler (iPad Safari): the Start / Resume click.
+  // false = this browser has no Web Audio.
   function ensureAudioContext() {
     try {
       if (!ctx) {
@@ -469,6 +472,7 @@
     getMic(lsGet(LS_MIC) || '').then(function (s) {
       attachStream(s);
       running = true; everStarted = true;
+      panelWhileRunning = false;   // Resume with the panel open: the panel hides like after any start
       removeFeedback();
       smoothed = 0;
       sessionStart = Date.now(); sessionReported = false;
@@ -494,7 +498,7 @@
     var sessionMs = sessionStart ? Date.now() - sessionStart : 0;
     reportSession();
     running = false;
-    sheetClosed = false;
+    sheetClosed = false; panelWhileRunning = false;
     onMeterStop();   // a running quiet-time timer freezes (paused)
     cancelAnimationFrame(rafId);
     stopTracks();
@@ -678,18 +682,19 @@
     fsText = el('span', 'nm-fs-text', 'Fullscreen');
     fsBtn.appendChild(fsText);
     fsBtn.addEventListener('click', toggleFullscreen);
-    // "🎨 Style" pill, top-right of the stage (mirror of Fullscreen), welcome screen only (CSS hides it once started): opens the panel without starting
-    // the meter; a second press, the × or Escape closes it again (decided 2026-11-02). Icon only ≤ 560 px (CSS).
+    // "🎨 Style" pill, top-right of the stage (mirror of Fullscreen), every state since 2026-11-09 (was welcome screen only): toggles the
+    // settings panel — before the first start without starting the meter, while running over the running meter (closed again by the ×
+    // or Style; Start / Resume / Pause reset it). Round icon while running, icon only ≤ 560 px (CSS, same rules as Timer).
     styleBtn = button('nm-fs nm-style', 'Style: customize characters and backgrounds', '<span class="nm-style-ico" aria-hidden="true">\uD83C\uDFA8</span>');
     styleBtn.appendChild(el('span', 'nm-fs-text', 'Style'));
     styleBtn.setAttribute('aria-controls', 'nm-panel');
     styleBtn.setAttribute('aria-expanded', 'false');
     styleBtn.addEventListener('click', function () {
-      if (timerOpen) { closeTimerSheet(false); panelForced = true; sheetClosed = false; applyPanel(); focusPanelClose(); return; }   // sheet → panel (never both)
-      if (root.classList.contains('is-panel-open')) closePrestart(false);
-      else { panelForced = true; sheetClosed = false; applyPanel(); focusPanelClose(); }   // the row hides while the panel is open: focus moves to its ×
+      if (timerOpen) { closeTimerSheet(false); openPanelByStyle(); return; }   // sheet → panel (never both)
+      if (root.classList.contains('is-panel-open')) closePanel(false);
+      else openPanelByStyle();
     });
-    // top-right row: "⏱ Timer" (every state; round while running like Fullscreen), then Style (welcome screen only)
+    // top-right row: "⏱ Timer" then "🎨 Style" — both in every state, round while running like Fullscreen, hidden while a sheet is open (CSS)
     var topRight = el('div', 'nm-tr');
     timerBtn = button('nm-fs nm-timer', 'Quiet-time timer', ICON.timer);
     timerBtn.appendChild(el('span', 'nm-fs-text', 'Timer'));
@@ -709,7 +714,7 @@
     panel.appendChild(panelBody);
     // phone sheet only (CSS hides both ≥ 700 px): × closes the sheet, sticky bar resumes directly
     panelCloseBtn = button('nm-sheet-close', 'Close settings', ICON.close);
-    panelCloseBtn.addEventListener('click', function () { if (!everStarted) closePrestart(true); else { sheetClosed = true; applyPanel(); } });
+    panelCloseBtn.addEventListener('click', function () { closePanel(true); });   // focus back on the Style pill (visible in every state)
     panel.appendChild(panelCloseBtn);
     var resumeBar = el('div', 'nm-sheet-resume');
     sheetResumeBtn = button('nm-sheet-resume-btn', 'Resume the noise meter', '\u25B6 Resume');
@@ -731,15 +736,23 @@
   // Panel = paused state only (after the first start; CSS slides it out via .is-panel-open).
   // On phones the × closes it for the current pause (sheetClosed is reset by the next pause).
   var panelForced = false;   // the Style pill and unlock.js (return from Stripe, ?k= result) open the panel before the first start
+  var panelWhileRunning = false;   // Style pressed while the meter runs: the panel shows over the running meter until closed, paused or resumed
   var panelCloseBtn = null;
   function focusPanelClose() { if (panelCloseBtn) { try { panelCloseBtn.focus({ preventScroll: true }); } catch (e) {} } }
-  // close the panel before the first start → back to the welcome screen; focus returns to the Style pill
-  function closePrestart(focusStyle) {
-    sheetClosed = true; applyPanel();
+  // Style: open the panel in the current state; the top-right row hides while it is open, so the focus moves to its ×
+  function openPanelByStyle() {
+    panelForced = true; panelWhileRunning = running; sheetClosed = false;
+    applyPanel(); focusPanelClose();
+  }
+  // × / Style / Escape (before the first start): close the panel for now — fresh: back to the welcome screen; paused: until the
+  // next pause reopens it; running: until Style is pressed again. focusStyle = the Style pill takes the focus back
+  function closePanel(focusStyle) {
+    sheetClosed = true; panelWhileRunning = false; applyPanel();
     if (focusStyle && styleBtn) { try { styleBtn.focus({ preventScroll: true }); } catch (e) {} }
   }
   function applyPanel() {
-    var vis = !running && (everStarted || panelForced) && !sheetClosed && !timerOpen;   // hidden while the timer sheet is open
+    // paused (after the first start) or requested by Style / unlock.js; while running only when Style asked for it; never with the timer sheet
+    var vis = (running ? panelWhileRunning : (everStarted || panelForced)) && !sheetClosed && !timerOpen;
     root.classList.toggle('is-panel-open', vis);
     if (panel) { panel.setAttribute('aria-hidden', vis ? 'false' : 'true'); try { panel.inert = !vis; } catch (e) {} }
     if (sheetResumeBtn) sheetResumeBtn.textContent = everStarted ? '\u25B6 Resume' : '\u25B6 Start';
@@ -1125,7 +1138,7 @@
     var dialogOpen = !!document.querySelector('dialog[open]');   // an open unlock dialog handles its own Escape
     if (timerOpen && !dialogOpen) { closeTimerSheet(true); return; }   // timer sheet = Cancel
     // panel opened by the Style pill before the first start: Escape closes it first
-    if (!everStarted && root.classList.contains('is-panel-open') && !dialogOpen) { closePrestart(true); return; }
+    if (!everStarted && root.classList.contains('is-panel-open') && !dialogOpen) { closePanel(true); return; }
     if (expanded) leaveExpanded(false);
   });
   function removeFsHint() { if (fsHint && fsHint.parentNode) fsHint.parentNode.removeChild(fsHint); fsHint = null; }
@@ -1140,9 +1153,9 @@
     stage.appendChild(fsHint);
   }
 
-  /* ---------- quiet-time timer: button (top-right row), sheet, pill, chime (2026-11-07; bound to the meter 2026-11-09) ---------- */
+  /* ---------- quiet-time timer: button (top-right row), sheet, pill (2026-11-07; bound to the meter 2026-11-09) ---------- */
   // States: none → set (waiting, pill shows the full length) → running (counts only while the meter runs) → paused
-  // (meter paused: remaining ms frozen) → done (0:00). Meter Start/Resume → running, meter Pause → paused.
+  // (meter paused: remaining ms frozen) → done (0:00: the meter pauses itself, no sound). Meter Start/Resume → running, meter Pause → paused.
   var timerBtn, timerSheet, timerSaveBtn, timerRemoveBtn, timerChips = [], timerInput, timerOpen = false, timerSeconds = TIMER_DEFAULT;
   var timerPill = null, timerTime = null, timerLive = null, timerFill = null, timerLastLive = '';
   var timerState = 'none', timerLen = 0, timerRemaining = 0, timerTarget = 0, timerInterval = 0, timerStartSent = false;
@@ -1332,14 +1345,18 @@
     }
     if (left === 0 && timerState === 'running') finishTimer();
   }
+  // 0:00: done first (so stop()'s onMeterStop() sees no running timer), then the meter pauses through the Pause button's
+  // own path — mic and wake lock released, Resume shown, the settings panel as after a manual pause. No sound: the red
+  // pill with the empty bar is the signal (chime removed 2026-11-09; a sound with an on/off switch is in the GEO-PLAN backlog).
   function finishTimer() {
     timerRemaining = 0;
-    setTimerState('done');   // CSS: red pill, the time pulses twice (not under reduced motion)
-    chime();
+    setTimerState('done');   // CSS: red pill, ↻ ✕ back
     signal('timer-done', {});
+    if (running) stop();
   }
   // ↻: remaining back to the full length, the state stays (running keeps counting, set / paused keep waiting);
-  // after 0:00 it is a new run — counting if the meter runs, else waiting (timer-start again when it begins)
+  // after 0:00 it is a new run in the waiting state (the meter is paused then): Resume starts the count and sends
+  // timer-start again. If the meter was resumed before ↻, the new run counts at once.
   function restartTimer() {
     if (!timerLen || timerState === 'none') return;
     resetTimer();
@@ -1355,30 +1372,6 @@
     timerRemaining = 0;
     setTimerState('none');
     try { timerBtn.focus({ preventScroll: true }); } catch (e) {}
-  }
-  // soft chime: two sine tones 880 → 1175 Hz, 150 ms each, gain .15 with a short fade, on the meter's AudioContext
-  // (the meter is running when a timer reaches 0:00, so the context exists; none or a refused resume = silent)
-  function chime() {
-    if (!ctx) return;
-    function play() {
-      try {
-        var t0 = ctx.currentTime + 0.02;
-        [880, 1175].forEach(function (f, i) {
-          var o = ctx.createOscillator(), g = ctx.createGain(), t = t0 + i * 0.16;
-          o.type = 'sine'; o.frequency.value = f;
-          g.gain.setValueAtTime(0.0001, t);
-          g.gain.linearRampToValueAtTime(0.15, t + 0.015);
-          g.gain.setValueAtTime(0.15, t + 0.11);
-          g.gain.linearRampToValueAtTime(0.0001, t + 0.15);
-          o.connect(g); g.connect(ctx.destination);
-          o.start(t); o.stop(t + 0.16);
-        });
-      } catch (e) {}
-    }
-    try {
-      if (ctx.state === 'running') play();
-      else { var p = ctx.resume(); if (p && p.then) p.then(play, function () {}); else play(); }
-    } catch (e) {}
   }
   // background tabs throttle timers: re-read the clock as soon as the tab is visible again
   document.addEventListener('visibilitychange', function () { if (!document.hidden && timerState === 'running') renderTimer(); });

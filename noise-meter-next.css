@@ -61,14 +61,13 @@
 .nm-fs:hover{background:rgba(0,0,0,.4)}
 .nm.is-running .nm-fs{width:46px;height:46px;padding:0;justify-content:center}
 .nm.is-running .nm-fs-text{display:none}
-/* top-right row (2026-11-07): "⏱ Timer" (every state) then the "🎨 Style" pill (2026-11-02, welcome screen only) — same pill
-   look as Fullscreen, round while running; z 5 like Fullscreen. While a sheet is open (settings panel or timer sheet) the row is
+/* top-right row (2026-11-07): "⏱ Timer" then the "🎨 Style" pill (2026-11-02; every state since 2026-11-09, it used to be welcome
+   screen only) — same pill look as Fullscreen, round while running, icon only ≤ 560 px; z 5 like Fullscreen. While a sheet is open (settings panel or timer sheet) the row is
    hidden — it showed faintly through the translucent sheet header (fix 2026-11-09); the sheet's × (same corner) closes it */
 .nm-tr{position:absolute;top:18px;right:18px;z-index:5;display:flex;align-items:center;gap:8px}
 .nm-tr .nm-fs{position:static}
 .nm.is-timer-open .nm-tr,.nm.is-panel-open .nm-tr{visibility:hidden}
 .nm-style-ico{width:22px;font-size:1.15rem;line-height:1;text-align:center;flex:none}
-.nm:not(.is-fresh) .nm-style{display:none}   /* welcome screen only */
 /* quiet-time timer (2026-11-07). Sheet: looks like the settings panel (right side, phone = whole stage), z 7 above it — the
    script hides the panel while the sheet is open, so the two never show together. Pill: white, under the top row, same side
    margins as the pause bar (5 %), z 5 under the panel; while the panel is open (≥ 700 px) the pill ends before it. */
@@ -104,7 +103,8 @@
 /* while the timer counts there is nothing to press: ↻ ✕ are gone (no hit area), the pill keeps its width and centring */
 .nm.is-timer-running .nm-tbtn{display:none}
 .nm.is-timer-running .nm-tpill{padding-right:14px}
-/* states: waiting (set, meter not started yet) = lighter; paused (meter paused) = lighter + ⏸ glyph; done = red */
+/* states: waiting (set, meter not started yet) = lighter; paused (meter paused) = lighter + ⏸ glyph; done = red with the bar
+   empty (the meter pauses itself at 0:00; the colour is the whole signal — no pulse, no sound since 2026-11-09) */
 .nm-tpause{display:none;flex:none;font-size:1.1em;line-height:1}
 .nm-tpill.is-waiting{opacity:.85}
 .nm-tpill.is-paused{opacity:.75}
@@ -112,9 +112,6 @@
 .nm-tpill.is-done{background:rgba(255,225,215,.92);color:#B3261E}
 .nm-tpill.is-done .nm-tbar{background:rgba(179,38,30,.15)}
 .nm-tpill.is-done .nm-tfill{background:#B3261E}
-@media (prefers-reduced-motion:no-preference){.nm-tpill.is-done .nm-ttime{animation:nm-tpulse .5s ease-in-out 2}}
-@keyframes nm-tpulse{50%{transform:scale(1.12)}}
-.nm-reduced .nm-tpill.is-done .nm-ttime{animation:none}
 .nm-reduced .nm-tfill{transition:none}
 .nm.is-timer .nm-hint{top:136px}   /* the one-time Home-Screen hint moves under the pill */
 /* ring on the Timer button: green while the timer counts, amber while it waits (set) or is paused — visible when the pill is scrolled away in expanded mode */
@@ -429,6 +426,7 @@ html.kq-dialog-open,html.kq-dialog-open body{overflow:hidden}
   .nm-panel-body{padding:24px 16px 20px}
   .nm-unlock-sticky{margin-left:-16px;margin-right:-16px;padding-left:16px;padding-right:16px}
   .nm-sheet-resume{display:block;flex:none;background:#fff;padding:0 0 env(safe-area-inset-bottom,0)}
+  .nm.is-running .nm-sheet-resume{display:none}   /* panel opened by Style while running: nothing to resume */
   .nm-sheet-resume-btn{display:block;width:100%;min-height:60px;border:0;background:#fff;color:var(--nm-ink);font:700 1.15rem var(--nm-font);cursor:pointer}
   .nm-sheet-resume-btn:hover{background:#f3f3f3}
   .nm-grid{grid-template-columns:repeat(5,minmax(0,52px))}
@@ -460,7 +458,7 @@ html.kq-dialog-open,html.kq-dialog-open body{overflow:hidden}
   .nm-tr{top:14px;right:14px}
   .nm-style,.nm-timer{width:44px;padding:0;justify-content:center}   /* icon only */
   .nm-style .nm-fs-text,.nm-timer .nm-fs-text{display:none}
-  .nm.is-running .nm-fs{width:42px;height:42px}
+  .nm.is-running .nm-fs{width:44px;height:44px}   /* round buttons keep a 44 px hit area (was 42) */
 }
 /* reduced motion: no cross-fade, no marker glide; the needle steps per level (set by JS) */
 @media (prefers-reduced-motion:reduce){
