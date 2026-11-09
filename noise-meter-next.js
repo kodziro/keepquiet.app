@@ -16,18 +16,20 @@
   - Privacy: audio never leaves the device — sound is analysed in the
     browser, nothing is recorded, stored or sent. The only network calls are
     TelemetryDeck counts (tool-start, tool-session, visit, pro-view, pro-click,
-    setting-change, mic-error, mic-switch, fullscreen, timer-start, timer-done, timer-cancel) with no audio, no IDs and no free text —
+    setting-change, mic-error, mic-switch, fullscreen, timer-set, timer-start, timer-done, timer-cancel) with no audio, no IDs and no free text —
     every value is a bucketed string.
-  - AudioContext is created and resumed only inside a click handler — the first play click
-    or the timer's Start (iPad Safari); ensureAudioContext() is shared by both. AGC / noise
-    suppression / echo cancellation are off so the meter reflects the room, not the browser's voice processing.
-  - Quiet-time timer (2026-11-07, inspired by the app): a top-right button opens a sheet (presets
-    1–30 min or a custom 1–90 min, last length in localStorage kq-nm-timer-seconds); Start shows
-    a white pill under the top row (m:ss, shrinking bar, ↻ restart, ✕ close). Target timestamp +
-    250 ms interval, re-rendered on visibilitychange so background throttling cannot drift. At 0:00
-    the pill turns red, the time pulses twice (not under reduced motion) and a soft two-tone chime
-    plays on the shared AudioContext (skipped silently if none could be created). The meter runs
-    unchanged next to it; the timer sheet and the settings panel never show at the same time.
+  - AudioContext is created and resumed only inside the first play click (iPad Safari;
+    ensureAudioContext()). AGC / noise suppression / echo cancellation are off so the meter
+    reflects the room, not the browser's voice processing.
+  - Quiet-time timer (2026-11-07, bound to the meter since 2026-11-09, inspired by the app): a
+    top-right button opens a sheet (presets 1–30 min or a custom 1–90 min, last length in
+    localStorage kq-nm-timer-seconds); Save shows a white pill under the top row (m:ss, shrinking
+    bar, ↻ restart, ✕ close). The timer counts ONLY while the meter runs: none → set (waiting, full
+    length shown) → running → paused (meter paused: remaining frozen, ⏸ glyph) → done. Target
+    timestamp + 250 ms interval, re-rendered on visibilitychange so background throttling cannot
+    drift. At 0:00 the pill turns red, the time pulses twice (not under reduced motion) and a soft
+    two-tone chime plays on the meter's AudioContext. The timer sheet and the settings panel never
+    show at the same time.
 
   Markup contract (tool-test.html; index.html uses the same block):
     <div id="noise-meter" class="nm is-fresh" data-assets="assets/tool/">   ← is-fresh until the first successful start
@@ -66,20 +68,23 @@
       <button class="nm-fs nm-timer" aria-label="Quiet-time timer" aria-controls="nm-timer-sheet" aria-expanded="false">⏱ <span class="nm-fs-text">Timer</span></button>
       <button class="nm-fs nm-style" …>🎨 Style</button>   ← as before; hidden once started (CSS)
     </div>
-    <div class="nm-tsheet" id="nm-timer-sheet" role="dialog" aria-label="Set timer" hidden>   ← looks like the settings panel, z 7
-      <div class="nm-tsheet-head"><button class="nm-tcancel">Cancel</button><h3 class="nm-h nm-tsheet-title">Set timer</h3><button class="nm-tstart">Start · 5 min</button></div>   ← Start label follows the selection
+    <div class="nm-tsheet" id="nm-timer-sheet" role="dialog" aria-label="Timer" hidden>   ← looks like the settings sheet, z 7
+      <button class="nm-sheet-close" aria-label="Close timer settings">×</button>   ← same grey round × as the settings sheet, same corner
+      <h3 class="nm-h">Timer</h3>
       <div class="nm-tchips" role="radiogroup" aria-label="Minutes"><button class="nm-tchip" role="radio" aria-checked="true" data-min="5">5 min</button> …1, 2, 3, 5, 10, 15, 20, 30 (4-column grid; arrow keys move and select)</div>
       <label class="nm-tcustom">Custom <input class="nm-tinput" type="number" min="1" max="90" placeholder="45" aria-describedby="nm-timer-hint"> min</label>
       <p class="nm-thint" id="nm-timer-hint">1–90 minutes</p>
+      <button class="nm-pill nm-tsave">Save</button>   ← disabled while Custom is out of 1–90; Save = set the timer, close, focus back on the Timer button
     </div>
-    <div class="nm-tpill" role="group" aria-label="Quiet-time timer">   ← while a timer is set (root .is-timer; .is-timer-running while it counts = green ring on the Timer button); .is-done at 0:00
-      <span class="nm-ttime" aria-hidden="true">5:00</span><span class="sr-only" aria-live="polite">5 minutes left</span>   ← live text only at full minutes, in the last 10 s and at 0:00
+    <div class="nm-tpill" role="group" aria-label="Quiet-time timer">   ← while a timer exists (root .is-timer); .is-waiting (set), .is-paused (aria-label "Timer paused"), .is-done; root .is-timer-running = green ring, .is-timer-set (set/paused) = amber ring on the Timer button
+      <span class="nm-tpause" aria-hidden="true">⏸</span>   ← shown in .is-paused only
+      <span class="nm-ttime" aria-hidden="true">5:00</span><span class="sr-only" aria-live="polite">5 minutes left</span>   ← live text only while running: full minutes, last 10 s, 0:00
       <span class="nm-tbar"><span class="nm-tfill" style="width:100%"></span></span>
       <button class="nm-tbtn nm-trestart" aria-label="Restart timer">↻</button><button class="nm-tbtn nm-tclose" aria-label="Close timer">✕</button>
     </div>
-  Timer signals: timer-start {seconds: "<exact length>"} (Start in the sheet, and ↻ after 0:00 = a new run),
-  timer-done {}, timer-cancel {remaining: tool-session minute bucket} (✕ while running, or Start in the
-  sheet replacing a running timer). ↻ while running sends nothing.
+  Timer signals: timer-set {seconds: "<exact length>"} (Save), timer-start {seconds} (the first time this timer
+  begins counting; again after ↻ from 0:00), timer-done {}, timer-cancel {remaining: tool-session minute bucket}
+  (✕ unless done). ↻ while running / waiting and Save replacing a timer send no cancel.
 
   Stage height: --nm-above (px above the stage: the site header) is measured on
   load/resize and set on the root; CSS makes the stage max(480px, 100svh - that).
@@ -471,6 +476,7 @@
       preloadAfterStart();
       fillMicList();
       requestWakeLock();
+      onMeterStart();   // a set or paused quiet-time timer starts counting
       signal('tool-start', { character: current.character, scene: current.scene, indicator: indicatorKind });
       rafId = requestAnimationFrame(tick);
     }).catch(function (err) {
@@ -486,6 +492,7 @@
     reportSession();
     running = false;
     sheetClosed = false;
+    onMeterStop();   // a running quiet-time timer freezes (paused)
     cancelAnimationFrame(rafId);
     stopTracks();
     releaseWakeLock();
@@ -1128,29 +1135,32 @@
     stage.appendChild(fsHint);
   }
 
-  /* ---------- quiet-time timer: button (top-right row), sheet, pill, chime (2026-11-07) ---------- */
-  var timerBtn, timerSheet, timerStartBtn, timerChips = [], timerInput, timerOpen = false, timerSeconds = TIMER_DEFAULT;
+  /* ---------- quiet-time timer: button (top-right row), sheet, pill, chime (2026-11-07; bound to the meter 2026-11-09) ---------- */
+  // States: none → set (waiting, pill shows the full length) → running (counts only while the meter runs) → paused
+  // (meter paused: remaining ms frozen) → done (0:00). Meter Start/Resume → running, meter Pause → paused.
+  var timerBtn, timerSheet, timerSaveBtn, timerChips = [], timerInput, timerOpen = false, timerSeconds = TIMER_DEFAULT;
   var timerPill = null, timerTime = null, timerLive = null, timerFill = null, timerLastLive = '';
-  var timerTarget = 0, timerLen = 0, timerInterval = 0, timerRunning = false;
+  var timerState = 'none', timerLen = 0, timerRemaining = 0, timerTarget = 0, timerInterval = 0, timerStartSent = false;
 
   function savedTimerSeconds() {
     var v = parseInt(lsGet(LS_TIMER), 10);
     return (v >= 60 && v <= TIMER_MAX_MIN * 60 && v % 60 === 0) ? v : TIMER_DEFAULT;
   }
+  function customMinutes() {   // the Custom field: a valid 1–90 number, 0 = empty, -1 = out of range
+    if (!timerInput || timerInput.value === '') return 0;
+    var m = parseInt(timerInput.value, 10);
+    return (m >= 1 && m <= TIMER_MAX_MIN && String(m) === timerInput.value.trim()) ? m : -1;
+  }
+  // Same look as the settings sheet: grey round × top-right (same class and position), section heading, one white Save pill
   function buildTimerSheet() {
     timerSheet = el('div', 'nm-tsheet');
     timerSheet.id = 'nm-timer-sheet';
-    timerSheet.setAttribute('role', 'dialog'); timerSheet.setAttribute('aria-label', 'Set timer'); timerSheet.setAttribute('aria-modal', 'false');
+    timerSheet.setAttribute('role', 'dialog'); timerSheet.setAttribute('aria-label', 'Timer'); timerSheet.setAttribute('aria-modal', 'false');
     timerSheet.hidden = true;
-    var head = el('div', 'nm-tsheet-head');
-    var cancel = button('nm-tcancel', '', 'Cancel');
-    cancel.addEventListener('click', function () { closeTimerSheet(true); });
-    head.appendChild(cancel);
-    head.appendChild(el('h3', 'nm-h nm-tsheet-title', 'Set timer'));
-    timerStartBtn = button('nm-tstart', '', 'Start');   // label "Start · 5 min" follows the selection (setTimerSelection)
-    timerStartBtn.addEventListener('click', startTimer);
-    head.appendChild(timerStartBtn);
-    timerSheet.appendChild(head);
+    var x = button('nm-sheet-close', 'Close timer settings', ICON.close);
+    x.addEventListener('click', function () { closeTimerSheet(true); });
+    timerSheet.appendChild(x);
+    timerSheet.appendChild(el('h3', 'nm-h', 'Timer'));
     // presets: a radio group with a roving tabindex — arrow keys move AND select, like native radios
     var chips = el('div', 'nm-tchips'); chips.setAttribute('role', 'radiogroup'); chips.setAttribute('aria-label', 'Minutes');
     TIMER_PRESETS.forEach(function (m, i) {
@@ -1178,15 +1188,19 @@
     timerInput.setAttribute('aria-label', 'Custom length in minutes, 1 to ' + TIMER_MAX_MIN);
     timerInput.setAttribute('aria-describedby', 'nm-timer-hint');
     timerInput.addEventListener('input', function () {
-      var m = parseInt(timerInput.value, 10);
-      if (m >= 1 && m <= TIMER_MAX_MIN) setTimerSelection(m * 60, false);
+      var m = customMinutes();
+      if (m > 0) setTimerSelection(m * 60, false);
+      else updateTimerSave();   // empty or out of range: chips keep their state, Save follows the validity
     });
-    timerInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); startTimer(); } });
+    timerInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); if (!timerSaveBtn.disabled) saveTimer(); } });
     custom.appendChild(timerInput);
     custom.appendChild(el('span', '', 'min'));
     timerSheet.appendChild(custom);
     var hint = el('p', 'nm-thint', '1–90 minutes'); hint.id = 'nm-timer-hint';
     timerSheet.appendChild(hint);
+    timerSaveBtn = button('nm-pill nm-tsave', '', 'Save');
+    timerSaveBtn.addEventListener('click', saveTimer);
+    timerSheet.appendChild(timerSaveBtn);
     stage.appendChild(timerSheet);
   }
   // seconds → chips (the matching preset is checked, else none; the checked or first chip is the tab stop); fromChip clears Custom
@@ -1201,12 +1215,13 @@
     timerChips.forEach(function (c, i) { c.tabIndex = i === (checkedAt < 0 ? 0 : checkedAt) ? 0 : -1; });
     if (timerInput && fromChip) timerInput.value = '';
     else if (timerInput && checkedAt < 0 && timerInput.value !== String(seconds / 60)) timerInput.value = String(seconds / 60);
-    if (timerStartBtn) timerStartBtn.textContent = 'Start · ' + (seconds / 60) + ' min';
+    updateTimerSave();
   }
+  function updateTimerSave() { if (timerSaveBtn) timerSaveBtn.disabled = customMinutes() < 0; }   // disabled only while Custom is out of 1–90
   function openTimerSheet() {
     if (timerOpen) return;
     timerOpen = true;
-    setTimerSelection(savedTimerSeconds(), false);
+    setTimerSelection(timerState !== 'none' ? timerLen : savedTimerSeconds(), false);   // an existing timer: its length is preselected
     if (timerInput && timerChips.some(function (c) { return c.getAttribute('aria-checked') === 'true'; })) timerInput.value = '';
     timerSheet.hidden = false;
     root.classList.add('is-timer-open');
@@ -1215,7 +1230,7 @@
     var first = timerChips.filter(function (c) { return c.tabIndex === 0; })[0];
     if (first) { try { first.focus({ preventScroll: true }); } catch (e) {} }
   }
-  // Cancel, Escape, the button again, or after Start; focusBtn = the Timer button takes the focus back
+  // ×, Escape, the button again (no change), or after Save; focusBtn = the Timer button takes the focus back
   function closeTimerSheet(focusBtn) {
     if (!timerOpen) return;
     timerOpen = false;
@@ -1225,31 +1240,57 @@
     applyPanel();   // the panel comes back where it was (paused, or opened by Style)
     if (focusBtn) { try { timerBtn.focus({ preventScroll: true }); } catch (e) {} }
   }
-  function startTimer() {
-    var m = timerInput ? parseInt(timerInput.value, 10) : NaN;
-    var seconds = (m >= 1 && m <= TIMER_MAX_MIN) ? m * 60 : timerSeconds;
+  // Save: a new timer of the chosen length (replaces an existing one, no cancel signal). Meter running → counts at once,
+  // otherwise it waits ("set") until the meter starts.
+  function saveTimer() {
+    var m = customMinutes();
+    if (m < 0) return;
+    var seconds = m > 0 ? m * 60 : timerSeconds;
     if (!(seconds >= 60 && seconds <= TIMER_MAX_MIN * 60)) seconds = TIMER_DEFAULT;
     lsSet(LS_TIMER, String(seconds));
-    ensureAudioContext();   // inside the click: the chime can play later even if the meter never started (no microphone involved)
-    if (timerRunning) signal('timer-cancel', { remaining: minutesBucket(Math.max(0, timerTarget - Date.now())) });   // replaced
     closeTimerSheet(true);
-    runTimer(seconds);
-    signal('timer-start', { seconds: String(seconds) });
-  }
-  function runTimer(seconds) {
     if (!timerPill) buildTimerPill();
-    timerPill.classList.remove('is-done');
     timerLen = seconds;
-    timerTarget = Date.now() + seconds * 1000;
-    timerRunning = true;
+    timerStartSent = false;
+    signal('timer-set', { seconds: String(seconds) });
+    resetTimer();
+    setTimerState(running ? 'running' : 'set');
+  }
+  // ↻ and Save: remaining back to the full length; a running timer gets a fresh target
+  function resetTimer() {
+    timerRemaining = timerLen * 1000;
+    timerTarget = Date.now() + timerRemaining;
     timerLastLive = '';
-    root.classList.add('is-timer'); root.classList.add('is-timer-running');   // is-timer-running: green ring on the Timer button
-    clearInterval(timerInterval);
-    timerInterval = setInterval(renderTimer, 250);
+  }
+  function setTimerState(state) {
+    timerState = state;
+    clearInterval(timerInterval); timerInterval = 0;
+    if (state === 'running') {
+      timerTarget = Date.now() + timerRemaining;
+      timerInterval = setInterval(renderTimer, 250);
+      if (!timerStartSent) { timerStartSent = true; signal('timer-start', { seconds: String(timerLen) }); }
+    }
+    root.classList.toggle('is-timer', state !== 'none');
+    root.classList.toggle('is-timer-running', state === 'running');          // green ring on the Timer button
+    root.classList.toggle('is-timer-set', state === 'set' || state === 'paused');   // amber ring
+    if (timerPill) {
+      timerPill.classList.toggle('is-waiting', state === 'set');
+      timerPill.classList.toggle('is-paused', state === 'paused');
+      timerPill.classList.toggle('is-done', state === 'done');
+      timerPill.setAttribute('aria-label', state === 'paused' ? 'Timer paused' : 'Quiet-time timer');
+    }
     renderTimer();
+  }
+  // the meter's start() and stop() call these: the timer counts only while the meter runs
+  function onMeterStart() { if (timerState === 'set' || timerState === 'paused') setTimerState('running'); }
+  function onMeterStop() {
+    if (timerState !== 'running') return;
+    timerRemaining = Math.max(0, timerTarget - Date.now());
+    setTimerState('paused');
   }
   function buildTimerPill() {
     timerPill = el('div', 'nm-tpill'); timerPill.setAttribute('role', 'group'); timerPill.setAttribute('aria-label', 'Quiet-time timer');
+    var pauseGlyph = el('span', 'nm-tpause', '⏸'); pauseGlyph.setAttribute('aria-hidden', 'true');   // shown by CSS in .is-paused only
     timerTime = el('span', 'nm-ttime'); timerTime.setAttribute('aria-hidden', 'true');   // ticks every 250 ms: never read aloud itself
     timerLive = el('span', 'sr-only'); timerLive.setAttribute('aria-live', 'polite'); timerLive.setAttribute('aria-atomic', 'true');
     var bar = el('span', 'nm-tbar'); bar.setAttribute('aria-hidden', 'true');
@@ -1258,50 +1299,54 @@
     re.addEventListener('click', restartTimer);
     var x = button('nm-tbtn nm-tclose', 'Close timer', '✕');
     x.addEventListener('click', closeTimer);
-    timerPill.appendChild(timerTime); timerPill.appendChild(timerLive); timerPill.appendChild(bar); timerPill.appendChild(re); timerPill.appendChild(x);
+    timerPill.appendChild(pauseGlyph); timerPill.appendChild(timerTime); timerPill.appendChild(timerLive); timerPill.appendChild(bar); timerPill.appendChild(re); timerPill.appendChild(x);
     stage.appendChild(timerPill);
+  }
+  function timerLeftSeconds() {
+    var ms = timerState === 'running' ? timerTarget - Date.now() : timerRemaining;
+    return Math.max(0, Math.ceil(ms / 1000));
   }
   function renderTimer() {
     if (!timerPill) return;
-    var left = Math.max(0, Math.ceil((timerTarget - Date.now()) / 1000));
+    var left = timerLeftSeconds();
     var m = Math.floor(left / 60), s = left % 60;
     timerTime.textContent = m + ':' + (s < 10 ? '0' : '') + s;
     timerFill.style.width = (timerLen ? left / timerLen * 100 : 0).toFixed(1) + '%';
-    var live = '';   // the live region speaks only at full minutes, in the last 10 s and at the end
-    if (left === 0) live = 'Time is up';
-    else if (left <= 10) live = left + (left === 1 ? ' second left' : ' seconds left');
-    else if (s === 0) live = m + (m === 1 ? ' minute left' : ' minutes left');
-    if (live && live !== timerLastLive) { timerLastLive = live; timerLive.textContent = live; }
-    if (left === 0 && timerRunning) finishTimer();
+    if (timerState === 'running' || timerState === 'done') {
+      var live = '';   // the live region speaks only at full minutes, in the last 10 s and at the end
+      if (left === 0) live = 'Time is up';
+      else if (left <= 10) live = left + (left === 1 ? ' second left' : ' seconds left');
+      else if (s === 0) live = m + (m === 1 ? ' minute left' : ' minutes left');
+      if (live && live !== timerLastLive) { timerLastLive = live; timerLive.textContent = live; }
+    }
+    if (left === 0 && timerState === 'running') finishTimer();
   }
   function finishTimer() {
-    timerRunning = false;
-    root.classList.remove('is-timer-running');
-    clearInterval(timerInterval); timerInterval = 0;
-    timerPill.classList.add('is-done');   // CSS: red pill, the time pulses twice (not under reduced motion)
+    timerRemaining = 0;
+    setTimerState('done');   // CSS: red pill, the time pulses twice (not under reduced motion)
     chime();
     signal('timer-done', {});
   }
-  // ↻: back to the chosen length. While running it just resets (no signal); after 0:00 it is a new run (timer-start)
+  // ↻: remaining back to the full length, the state stays (running keeps counting, set / paused keep waiting);
+  // after 0:00 it is a new run — counting if the meter runs, else waiting (timer-start again when it begins)
   function restartTimer() {
-    if (!timerLen) return;
-    var wasDone = !timerRunning;
-    runTimer(timerLen);
-    if (wasDone) signal('timer-start', { seconds: String(timerLen) });
+    if (!timerLen || timerState === 'none') return;
+    resetTimer();
+    if (timerState === 'done') { timerStartSent = false; setTimerState(running ? 'running' : 'set'); }
+    else setTimerState(timerState);
   }
-  // ✕: stop and remove the pill (timer-cancel only if it was still running)
+  // ✕: remove the timer entirely (timer-cancel unless it was done)
   function closeTimer() {
     if (!timerPill) return;
-    if (timerRunning) signal('timer-cancel', { remaining: minutesBucket(Math.max(0, timerTarget - Date.now())) });
-    timerRunning = false;
-    clearInterval(timerInterval); timerInterval = 0;
+    if (timerState !== 'done') signal('timer-cancel', { remaining: minutesBucket(timerLeftSeconds() * 1000) });
     if (timerPill.parentNode) timerPill.parentNode.removeChild(timerPill);
     timerPill = timerTime = timerLive = timerFill = null;
-    root.classList.remove('is-timer'); root.classList.remove('is-timer-running');
+    timerRemaining = 0;
+    setTimerState('none');
     try { timerBtn.focus({ preventScroll: true }); } catch (e) {}
   }
-  // soft chime: two sine tones 880 → 1175 Hz, 150 ms each, gain .15 with a short fade, on the shared context;
-  // a suspended context (meter paused) is resumed first; no context or a refused resume = silent
+  // soft chime: two sine tones 880 → 1175 Hz, 150 ms each, gain .15 with a short fade, on the meter's AudioContext
+  // (the meter is running when a timer reaches 0:00, so the context exists; none or a refused resume = silent)
   function chime() {
     if (!ctx) return;
     function play() {
@@ -1317,8 +1362,6 @@
           o.connect(g); g.connect(ctx.destination);
           o.start(t); o.stop(t + 0.16);
         });
-        // the meter is not running: give the context back to its paused state once the chime is over
-        setTimeout(function () { if (ctx && !running && ctx.state === 'running') { var p = ctx.suspend(); if (p && p.catch) p.catch(function () {}); } }, 600);
       } catch (e) {}
     }
     try {
@@ -1327,7 +1370,7 @@
     } catch (e) {}
   }
   // background tabs throttle timers: re-read the clock as soon as the tab is visible again
-  document.addEventListener('visibilitychange', function () { if (!document.hidden && timerRunning) renderTimer(); });
+  document.addEventListener('visibilitychange', function () { if (!document.hidden && timerState === 'running') renderTimer(); });
 
   /* ---------- hash → open the targeted FAQ <details> (privacy link on the overlay) ---------- */
   function openHashDetails() {
