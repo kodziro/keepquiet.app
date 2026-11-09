@@ -7,7 +7,7 @@
 <title>Noise meter – test page (not public)</title>
 <link rel="icon" href="assets/icon-64.png" type="image/png" sizes="64x64">
 <link rel="stylesheet" href="styles.css?v=20261102e">
-<link rel="stylesheet" href="noise-meter-next.css?v=20261109b">
+<link rel="stylesheet" href="noise-meter-next.css?v=20261109c">
 <style>
   body{background:#fff}
   .t-wrap{max-width:1080px;margin:0 auto;padding:16px 20px 60px}
@@ -32,7 +32,7 @@ p.delete('unlock');p.delete('k');p.delete('src');var q=p.toString();history.repl
 </script>
 <!-- TelemetryDeck pageviews, same tag as every page; signals from the tool run in TEST MODE here (body data-td-test="1") -->
 <script defer src="https://cdn.telemetrydeck.com/websdk/telemetrydeck.min.js" data-app-id="43A2ECAF-E4DA-4440-B847-7A1FCE01600C"></script>
-<script type="module" src="noise-meter-next.js?v=20261109b"></script>
+<script type="module" src="noise-meter-next.js?v=20261109c"></script>
 </head>
 <body data-td-test="1" data-td-page="tool-test" data-kq-unlock-gate>
 
@@ -87,7 +87,7 @@ p.delete('unlock');p.delete('k');p.delete('src');var q=p.toString();history.repl
 
 <div class="t-wrap">
   <h2 style="font-size:1.6rem;margin:12px 0 4px">Noise meter – device test page</h2>
-  <p class="t-note">Internal test page for Step 2 (noindex). Press START, allow the microphone, make noise. Pause shows the settings panel (character, background, indicator, microphone, sensitivity) and the Resume pill; the fullscreen button sits top-left in every state (pill while fresh/paused, round while running; on iPhone Safari it toggles the "expanded" mode instead). The <strong>⏱ Timer</strong> button top-right (left of Style) opens the quiet-time timer sheet (presets 1–30 min or a custom 1–90 min, Save; × or Escape closes it); Save shows a white pill under the top row with m:ss, a shrinking bar, ↻ restart and ✕ close. The timer counts only while the meter runs: before Start it waits (lighter pill), Pause freezes it (⏸), Resume continues; at 0:00 the pill turns red, the time pulses twice and a soft chime plays (signals timer-set, timer-start, timer-done, timer-cancel). On phones the paused sheet covers the stage: × closes it, the white bar at its bottom resumes. After a pause that ends a session of 2 minutes or more, a "Was it useful today?" line appears at the top of the panel (once per 30 days). Signals go to TelemetryDeck <strong>test mode</strong> and are listed in the log below (tool-start, tool-session, visit, pro-view, pro-click, setting-change, feedback, mic-error, mic-switch, fullscreen, unlock-click, unlock-success, unlock-cancel, unlock-fail, unlock-restore-attempt). <strong>Unlock UI</strong> (mock mode): open this page once with <code>?dev=1</code>; without that flag the page shows today's interest card and no unlock UI. With the flag: the panel shows the Unlock button (straight to the mock checkout) and the Restore link; a locked thumb opens the short unlock dialog (centred modal; Escape or × closes it).</p>
+  <p class="t-note">Internal test page for Step 2 (noindex). Press START, allow the microphone, make noise. Pause shows the settings panel (character, background, indicator, microphone, sensitivity) and the Resume pill; the fullscreen button sits top-left in every state (pill while fresh/paused, round while running; on iPhone Safari it toggles the "expanded" mode instead). The <strong>⏱ Timer</strong> button top-right (left of Style) opens the quiet-time timer sheet (presets 1–30 min or a custom 1–90 min, Save; × or Escape closes it); Save shows a white pill under the top row with m:ss, a shrinking bar, ↻ restart and ✕ close (both only while the timer is not counting; the sheet also offers "Remove timer"). The timer counts only while the meter runs: before Start it waits (lighter pill), Pause freezes it (⏸), Resume continues; at 0:00 the pill turns red, the time pulses twice and a soft chime plays (signals timer-set, timer-start, timer-done, timer-cancel). On phones the paused sheet covers the stage: × closes it, the white bar at its bottom resumes. After a pause that ends a session of 2 minutes or more, a "Was it useful today?" line appears at the top of the panel (once per 30 days). Signals go to TelemetryDeck <strong>test mode</strong> and are listed in the log below (tool-start, tool-session, visit, pro-view, pro-click, setting-change, feedback, mic-error, mic-switch, fullscreen, unlock-click, unlock-success, unlock-cancel, unlock-fail, unlock-restore-attempt). <strong>Unlock UI</strong> (mock mode): open this page once with <code>?dev=1</code>; without that flag the page shows today's interest card and no unlock UI. With the flag: the panel shows the Unlock button (straight to the mock checkout) and the Restore link; a locked thumb opens the short unlock dialog (centred modal; Escape or × closes it).</p>
 
   <div class="t-pro" id="pro-card">
     <h2 style="font-size:1.25rem;margin-bottom:6px">Want more characters and backgrounds?</h2>

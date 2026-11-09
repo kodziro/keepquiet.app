@@ -62,10 +62,11 @@
 .nm.is-running .nm-fs{width:46px;height:46px;padding:0;justify-content:center}
 .nm.is-running .nm-fs-text{display:none}
 /* top-right row (2026-11-07): "⏱ Timer" (every state) then the "🎨 Style" pill (2026-11-02, welcome screen only) — same pill
-   look as Fullscreen, round while running; z 5 like Fullscreen, so the open panel / phone sheet covers the row and its × (same
-   corner) closes the panel */
+   look as Fullscreen, round while running; z 5 like Fullscreen. While a sheet is open (settings panel or timer sheet) the row is
+   hidden — it showed faintly through the translucent sheet header (fix 2026-11-09); the sheet's × (same corner) closes it */
 .nm-tr{position:absolute;top:18px;right:18px;z-index:5;display:flex;align-items:center;gap:8px}
 .nm-tr .nm-fs{position:static}
+.nm.is-timer-open .nm-tr,.nm.is-panel-open .nm-tr{visibility:hidden}
 .nm-style-ico{width:22px;font-size:1.15rem;line-height:1;text-align:center;flex:none}
 .nm:not(.is-fresh) .nm-style{display:none}   /* welcome screen only */
 /* quiet-time timer (2026-11-07). Sheet: looks like the settings panel (right side, phone = whole stage), z 7 above it — the
@@ -79,6 +80,11 @@
 .nm-tchips{display:grid;grid-template-columns:repeat(4,minmax(64px,1fr));gap:10px;margin:0 0 20px}
 .nm-tsave{margin:20px 0 0}   /* the one primary action: white pill (.nm-pill), full width, 48 px */
 .nm-tsave:disabled{opacity:.5;cursor:not-allowed}
+/* "Remove timer": centred text link under Save (only while a timer exists), 44 px hit area, underline on hover / focus */
+.nm-tremove{display:block;width:max-content;min-height:44px;margin:4px auto 0;padding:0 12px;border:0;background:none;color:rgba(255,255,255,.8);
+  font:600 14px var(--nm-font);cursor:pointer;text-decoration:none}
+.nm-tremove:hover,.nm-tremove:focus-visible{text-decoration:underline;text-underline-offset:3px}
+.nm-tremove[hidden]{display:none}
 .nm-tchip{height:44px;padding:0 6px;border:0;border-radius:22px;background:rgba(255,255,255,.18);color:#fff;font:600 15px var(--nm-font);cursor:pointer}
 .nm-tchip:hover{background:rgba(255,255,255,.3)}
 .nm-tchip[aria-checked="true"]{background:#fff;color:var(--nm-ink)}
@@ -95,6 +101,9 @@
 .nm-tfill{display:block;height:100%;width:100%;border-radius:5px;background:#4CAF7A;transition:width .25s linear}
 .nm-tbtn{width:36px;height:36px;flex:none;border:0;border-radius:50%;padding:0;background:rgba(0,0,0,.06);color:inherit;font:700 1.2rem/1 var(--nm-font);cursor:pointer;display:flex;align-items:center;justify-content:center}
 .nm-tbtn:hover{background:rgba(0,0,0,.12)}
+/* while the timer counts there is nothing to press: ↻ ✕ are gone (no hit area), the pill keeps its width and centring */
+.nm.is-timer-running .nm-tbtn{display:none}
+.nm.is-timer-running .nm-tpill{padding-right:14px}
 /* states: waiting (set, meter not started yet) = lighter; paused (meter paused) = lighter + ⏸ glyph; done = red */
 .nm-tpause{display:none;flex:none;font-size:1.1em;line-height:1}
 .nm-tpill.is-waiting{opacity:.85}
@@ -116,6 +125,7 @@
   .nm-ttime{font-size:clamp(36px,3.2vw,52px)}
   .nm-tbar{min-width:160px;height:10px}
   .nm-tbtn{width:40px;height:40px;font-size:1.3rem}
+  .nm.is-timer-running .nm-tpill{padding-right:18px}
   /* settings panel open (paused): a 560 px card overlaps the panel on stages under ~1240 px, so centre the pill in the space left of it */
   .nm.is-panel-open .nm-tpill{left:calc((100% - min(340px,85%)) / 2);width:min(560px,calc(100% - min(340px,85%) - 36px))}
   .nm-stage:fullscreen .nm-tpill,.nm-stage:-webkit-full-screen .nm-tpill,.nm.is-expanded .nm-tpill{width:min(720px,90%)}

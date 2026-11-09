@@ -75,16 +75,19 @@
       <label class="nm-tcustom">Custom <input class="nm-tinput" type="number" min="1" max="90" placeholder="45" aria-describedby="nm-timer-hint"> min</label>
       <p class="nm-thint" id="nm-timer-hint">1–90 minutes</p>
       <button class="nm-pill nm-tsave">Save</button>   ← disabled while Custom is out of 1–90; Save = set the timer, close, focus back on the Timer button
+      <button class="nm-tremove" hidden>Remove timer</button>   ← text link under Save, only while a timer exists: same as the pill's ✕, closes the sheet
     </div>
     <div class="nm-tpill" role="group" aria-label="Quiet-time timer">   ← while a timer exists (root .is-timer); .is-waiting (set), .is-paused (aria-label "Timer paused"), .is-done; root .is-timer-running = green ring, .is-timer-set (set/paused) = amber ring on the Timer button
       <span class="nm-tpause" aria-hidden="true">⏸</span>   ← shown in .is-paused only
       <span class="nm-ttime" aria-hidden="true">5:00</span><span class="sr-only" aria-live="polite">5 minutes left</span>   ← live text only while running: full minutes, last 10 s, 0:00
       <span class="nm-tbar"><span class="nm-tfill" style="width:100%"></span></span>
-      <button class="nm-tbtn nm-trestart" aria-label="Restart timer">↻</button><button class="nm-tbtn nm-tclose" aria-label="Close timer">✕</button>
+      <button class="nm-tbtn nm-trestart" aria-label="Restart timer">↻</button><button class="nm-tbtn nm-tclose" aria-label="Close timer">✕</button>   ← display:none while the timer counts (root .is-timer-running); shown in set / paused / done
     </div>
+    While either sheet is open (root .is-timer-open or .is-panel-open) the top-right row .nm-tr is visibility:hidden (it
+    showed through the sheet's translucent header); the sheets' × takes the focus when Style opens the panel.
   Timer signals: timer-set {seconds: "<exact length>"} (Save), timer-start {seconds} (the first time this timer
   begins counting; again after ↻ from 0:00), timer-done {}, timer-cancel {remaining: tool-session minute bucket}
-  (✕ unless done). ↻ while running / waiting and Save replacing a timer send no cancel.
+  (✕ or "Remove timer" in the sheet, unless done). ↻ while running / waiting and Save replacing a timer send no cancel.
 
   Stage height: --nm-above (px above the stage: the site header) is measured on
   load/resize and set on the root; CSS makes the stage max(480px, 100svh - that).
@@ -682,9 +685,9 @@
     styleBtn.setAttribute('aria-controls', 'nm-panel');
     styleBtn.setAttribute('aria-expanded', 'false');
     styleBtn.addEventListener('click', function () {
-      if (timerOpen) { closeTimerSheet(false); panelForced = true; sheetClosed = false; applyPanel(); return; }   // sheet → panel (never both)
+      if (timerOpen) { closeTimerSheet(false); panelForced = true; sheetClosed = false; applyPanel(); focusPanelClose(); return; }   // sheet → panel (never both)
       if (root.classList.contains('is-panel-open')) closePrestart(false);
-      else { panelForced = true; sheetClosed = false; applyPanel(); }
+      else { panelForced = true; sheetClosed = false; applyPanel(); focusPanelClose(); }   // the row hides while the panel is open: focus moves to its ×
     });
     // top-right row: "⏱ Timer" (every state; round while running like Fullscreen), then Style (welcome screen only)
     var topRight = el('div', 'nm-tr');
@@ -705,9 +708,9 @@
     panelBody = el('div', 'nm-panel-body');
     panel.appendChild(panelBody);
     // phone sheet only (CSS hides both ≥ 700 px): × closes the sheet, sticky bar resumes directly
-    var closeBtn = button('nm-sheet-close', 'Close settings', ICON.close);
-    closeBtn.addEventListener('click', function () { if (!everStarted) closePrestart(true); else { sheetClosed = true; applyPanel(); } });
-    panel.appendChild(closeBtn);
+    panelCloseBtn = button('nm-sheet-close', 'Close settings', ICON.close);
+    panelCloseBtn.addEventListener('click', function () { if (!everStarted) closePrestart(true); else { sheetClosed = true; applyPanel(); } });
+    panel.appendChild(panelCloseBtn);
     var resumeBar = el('div', 'nm-sheet-resume');
     sheetResumeBtn = button('nm-sheet-resume-btn', 'Resume the noise meter', '\u25B6 Resume');
     sheetResumeBtn.addEventListener('click', function () { if (!running) start(); });
@@ -728,6 +731,8 @@
   // Panel = paused state only (after the first start; CSS slides it out via .is-panel-open).
   // On phones the × closes it for the current pause (sheetClosed is reset by the next pause).
   var panelForced = false;   // the Style pill and unlock.js (return from Stripe, ?k= result) open the panel before the first start
+  var panelCloseBtn = null;
+  function focusPanelClose() { if (panelCloseBtn) { try { panelCloseBtn.focus({ preventScroll: true }); } catch (e) {} } }
   // close the panel before the first start → back to the welcome screen; focus returns to the Style pill
   function closePrestart(focusStyle) {
     sheetClosed = true; applyPanel();
@@ -1138,7 +1143,7 @@
   /* ---------- quiet-time timer: button (top-right row), sheet, pill, chime (2026-11-07; bound to the meter 2026-11-09) ---------- */
   // States: none → set (waiting, pill shows the full length) → running (counts only while the meter runs) → paused
   // (meter paused: remaining ms frozen) → done (0:00). Meter Start/Resume → running, meter Pause → paused.
-  var timerBtn, timerSheet, timerSaveBtn, timerChips = [], timerInput, timerOpen = false, timerSeconds = TIMER_DEFAULT;
+  var timerBtn, timerSheet, timerSaveBtn, timerRemoveBtn, timerChips = [], timerInput, timerOpen = false, timerSeconds = TIMER_DEFAULT;
   var timerPill = null, timerTime = null, timerLive = null, timerFill = null, timerLastLive = '';
   var timerState = 'none', timerLen = 0, timerRemaining = 0, timerTarget = 0, timerInterval = 0, timerStartSent = false;
 
@@ -1201,6 +1206,11 @@
     timerSaveBtn = button('nm-pill nm-tsave', '', 'Save');
     timerSaveBtn.addEventListener('click', saveTimer);
     timerSheet.appendChild(timerSaveBtn);
+    // "Remove timer": text link under Save, shown only while a timer exists — same as the pill's ✕, then the sheet closes
+    timerRemoveBtn = button('nm-tremove', '', 'Remove timer');
+    timerRemoveBtn.hidden = true;
+    timerRemoveBtn.addEventListener('click', function () { closeTimerSheet(false); closeTimer(); });   // closeTimer() focuses the Timer button
+    timerSheet.appendChild(timerRemoveBtn);
     stage.appendChild(timerSheet);
   }
   // seconds → chips (the matching preset is checked, else none; the checked or first chip is the tab stop); fromChip clears Custom
@@ -1223,6 +1233,7 @@
     timerOpen = true;
     setTimerSelection(timerState !== 'none' ? timerLen : savedTimerSeconds(), false);   // an existing timer: its length is preselected
     if (timerInput && timerChips.some(function (c) { return c.getAttribute('aria-checked') === 'true'; })) timerInput.value = '';
+    timerRemoveBtn.hidden = timerState === 'none';
     timerSheet.hidden = false;
     root.classList.add('is-timer-open');
     timerBtn.setAttribute('aria-expanded', 'true');
@@ -1271,7 +1282,7 @@
       if (!timerStartSent) { timerStartSent = true; signal('timer-start', { seconds: String(timerLen) }); }
     }
     root.classList.toggle('is-timer', state !== 'none');
-    root.classList.toggle('is-timer-running', state === 'running');          // green ring on the Timer button
+    root.classList.toggle('is-timer-running', state === 'running');          // green ring on the Timer button; CSS hides the pill's ↻ ✕
     root.classList.toggle('is-timer-set', state === 'set' || state === 'paused');   // amber ring
     if (timerPill) {
       timerPill.classList.toggle('is-waiting', state === 'set');
@@ -1335,7 +1346,7 @@
     if (timerState === 'done') { timerStartSent = false; setTimerState(running ? 'running' : 'set'); }
     else setTimerState(timerState);
   }
-  // ✕: remove the timer entirely (timer-cancel unless it was done)
+  // ✕ on the pill or "Remove timer" in the sheet: remove the timer entirely (timer-cancel unless it was done)
   function closeTimer() {
     if (!timerPill) return;
     if (timerState !== 'done') signal('timer-cancel', { remaining: minutesBucket(timerLeftSeconds() * 1000) });
