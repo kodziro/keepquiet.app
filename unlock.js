@@ -127,8 +127,8 @@ const STRINGS = {
 };
 
 // README § 8.3: tool-test.html sets window.__kqUnlockApi in its inline head script (ring 1: "mock",
-// ring 2/3: the test Worker URL); index.html never sets it and uses this constant ("mock" on the
-// branch, the live URL in the go-live patch). No trailing slash.
+// ring 2/3: the test Worker URL — it stays the staging page); index.html never sets it and uses this
+// constant (the live API since go-live 2026-11-10; "mock" before). No trailing slash.
 // Developer override (ring 2, Step 5b): localStorage "kq-api" = "mock" or an http(s) origin, read ONLY
 // on localhost / 127.0.0.1 or when localStorage kq-dev === "1" — never on the live host without kq-dev.
 function resolveApi(base, host, get) {
@@ -142,7 +142,7 @@ function resolveApi(base, host, get) {
     return o;
   } catch (e) { return base; }
 }
-const UNLOCK_API = resolveApi(window.__kqUnlockApi || 'mock', location.hostname,
+const UNLOCK_API = resolveApi(window.__kqUnlockApi || 'https://api.keepquiet.app', location.hostname,
   (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } });
 
 const LS_LICENSE = 'kq-license', LS_DEVICE = 'kq-device', LS_MOCK = 'kq-mock';

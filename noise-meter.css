@@ -8,6 +8,11 @@
    .is-fresh only caps their width (--nm-cap) so they never touch the text column (≥ 24 px gap).
    Critical for first paint: .nm-stage, .nm-scene, .nm-char, .nm-indicator/.nm-dial, .nm-bottom, .nm-play.
    Controls use system-ui (app look); the page around the tool keeps Fredoka/Nunito. */
+/* the unlock / purchase button colour (2026-11-03, CLAUDE.md tool-rule exception), used ONLY by the Unlock button — panel,
+   sticky copy, dialog, #pro-card; never on the scene, the character or the meter. Deep blue #2563EB / hover #1D4ED8 with white
+   text (5.17:1 / 6.7:1; chosen over violet the same day). On :root because the dialog (top layer, in <body>) and #pro-card sit
+   outside .nm */
+:root{--nm-unlock:#2563EB;--nm-unlock-hover:#1D4ED8;--nm-unlock-ink:#fff}
 .nm{--nm-g1:#3ABF5A;--nm-g2:#F2D22B;--nm-g3:#F58A2A;--nm-g4:#F0423B;--nm-accent:#4DA3FF;--nm-accent-hover:#3690F0;--nm-ink:#1E2A44;
   --nm-grad:linear-gradient(90deg,var(--nm-g1) 0%,var(--nm-g2) 45%,var(--nm-g3) 72%,var(--nm-g4) 100%);
   --nm-font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
@@ -56,6 +61,76 @@
 .nm-fs:hover{background:rgba(0,0,0,.4)}
 .nm.is-running .nm-fs{width:46px;height:46px;padding:0;justify-content:center}
 .nm.is-running .nm-fs-text{display:none}
+/* top-right row (2026-11-07): "⏱ Timer" then the "🎨 Style" pill (2026-11-02; every state since 2026-11-09, it used to be welcome
+   screen only) — same pill look as Fullscreen, round while running, icon only ≤ 560 px; z 5 like Fullscreen. While a sheet is open (settings panel or timer sheet) the row is
+   hidden — it showed faintly through the translucent sheet header (fix 2026-11-09); the sheet's × (same corner) closes it */
+.nm-tr{position:absolute;top:18px;right:18px;z-index:5;display:flex;align-items:center;gap:8px}
+.nm-tr .nm-fs{position:static}
+.nm.is-timer-open .nm-tr,.nm.is-panel-open .nm-tr{visibility:hidden}
+.nm-style-ico{width:22px;font-size:1.15rem;line-height:1;text-align:center;flex:none}
+/* quiet-time timer (2026-11-07). Sheet: looks like the settings panel (right side, phone = whole stage), z 7 above it — the
+   script hides the panel while the sheet is open, so the two never show together. Pill: white, under the top row, same side
+   margins as the pause bar (5 %), z 5 under the panel; while the panel is open (≥ 700 px) the pill ends before it. */
+.nm-tsheet{position:absolute;top:0;right:0;bottom:0;z-index:7;width:340px;max-width:85%;padding:24px 14px 20px;background:rgba(0,0,0,.45);color:#fff;
+  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);overflow:auto}   /* same padding as .nm-panel-body; × = .nm-sheet-close, same corner */
+.nm-tsheet[hidden]{display:none}
+.nm-tsheet .nm-h{margin:0 0 20px}
+/* presets: 4 equal columns → exactly 2 rows (1 2 3 5 / 10 15 20 30); selected = white chip with dark text */
+.nm-tchips{display:grid;grid-template-columns:repeat(4,minmax(64px,1fr));gap:10px;margin:0 0 20px}
+.nm-tsave{margin:20px 0 0}   /* the one primary action: white pill (.nm-pill), full width, 48 px */
+.nm-tsave:disabled{opacity:.5;cursor:not-allowed}
+/* "Remove timer": centred text link under Save (only while a timer exists), 44 px hit area, underline on hover / focus */
+.nm-tremove{display:block;width:max-content;min-height:44px;margin:4px auto 0;padding:0 12px;border:0;background:none;color:rgba(255,255,255,.8);
+  font:600 14px var(--nm-font);cursor:pointer;text-decoration:none}
+.nm-tremove:hover,.nm-tremove:focus-visible{text-decoration:underline;text-underline-offset:3px}
+.nm-tremove[hidden]{display:none}
+.nm-tchip{height:44px;padding:0 6px;border:0;border-radius:22px;background:rgba(255,255,255,.18);color:#fff;font:600 15px var(--nm-font);cursor:pointer}
+.nm-tchip:hover{background:rgba(255,255,255,.3)}
+.nm-tchip[aria-checked="true"]{background:#fff;color:var(--nm-ink)}
+.nm-tcustom{display:flex;align-items:center;gap:10px;margin:0;font:600 15px var(--nm-font)}
+.nm-tinput{width:88px;height:44px;box-sizing:border-box;text-align:center;font:600 17px var(--nm-font);color:#fff;background:rgba(255,255,255,.18);border:0;border-radius:12px;padding:0 .5rem;-moz-appearance:textfield}
+.nm-tinput::-webkit-outer-spin-button,.nm-tinput::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.nm-tinput::placeholder{color:rgba(255,255,255,.5)}
+.nm-thint{margin:8px 0 0;font:600 .8rem/1.4 var(--nm-font);opacity:.7}
+/* pill — mobile first: full width with the pause bar's 5 % margins; ≥ 700 px a compact centred card (below) */
+.nm-tpill{position:absolute;top:72px;left:5%;right:5%;z-index:5;display:flex;align-items:center;gap:10px;min-height:52px;padding:8px 8px 8px 14px;
+  border-radius:16px;background:rgba(255,255,255,.85);color:#1E5A45;font-family:var(--nm-font);box-shadow:0 4px 16px rgba(0,0,0,.12)}
+.nm-ttime{display:inline-block;flex:none;min-width:4.5ch;font-weight:700;font-size:clamp(28px,7vw,36px);line-height:1;font-variant-numeric:tabular-nums}
+.nm-tbar{flex:1;min-width:80px;height:8px;border-radius:5px;background:rgba(0,0,0,.08);overflow:hidden}
+.nm-tfill{display:block;height:100%;width:100%;border-radius:5px;background:#4CAF7A;transition:width .25s linear}
+.nm-tbtn{width:36px;height:36px;flex:none;border:0;border-radius:50%;padding:0;background:rgba(0,0,0,.06);color:inherit;font:700 1.2rem/1 var(--nm-font);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.nm-tbtn:hover{background:rgba(0,0,0,.12)}
+/* while the timer counts there is nothing to press: ↻ ✕ are gone (no hit area), the pill keeps its width and centring */
+.nm.is-timer-running .nm-tbtn{display:none}
+.nm.is-timer-running .nm-tpill{padding-right:14px}
+/* states: waiting (set, meter not started yet) = lighter; paused (meter paused) = lighter + ⏸ glyph; done = red with the bar
+   empty (the meter pauses itself at 0:00; the colour is the whole signal — no pulse, no sound since 2026-11-09) */
+.nm-tpause{display:none;flex:none;font-size:1.1em;line-height:1}
+.nm-tpill.is-waiting{opacity:.85}
+.nm-tpill.is-paused{opacity:.75}
+.nm-tpill.is-paused .nm-tpause{display:inline-block}
+.nm-tpill.is-done{background:rgba(255,225,215,.92);color:#B3261E}
+.nm-tpill.is-done .nm-tbar{background:rgba(179,38,30,.15)}
+.nm-tpill.is-done .nm-tfill{background:#B3261E}
+.nm-reduced .nm-tfill{transition:none}
+.nm.is-timer .nm-hint{top:136px}   /* the one-time Home-Screen hint moves under the pill */
+/* ring on the Timer button: green while the timer counts, amber while it waits (set) or is paused — visible when the pill is scrolled away in expanded mode */
+.nm.is-timer-running .nm-timer{box-shadow:0 0 0 2px rgba(76,175,122,.9)}
+.nm.is-timer-set .nm-timer{box-shadow:0 0 0 2px rgba(245,160,51,.9)}
+@media (min-width:700px){
+  .nm-tpill{left:50%;right:auto;width:min(560px,90%);transform:translateX(-50%);gap:12px;padding:12px 18px;border-radius:20px}
+  .nm-ttime{font-size:clamp(36px,3.2vw,52px)}
+  .nm-tbar{min-width:160px;height:10px}
+  .nm-tbtn{width:40px;height:40px;font-size:1.3rem}
+  .nm.is-timer-running .nm-tpill{padding-right:18px}
+  /* settings panel open (paused): a 560 px card overlaps the panel on stages under ~1240 px, so centre the pill in the space left of it */
+  .nm.is-panel-open .nm-tpill{left:calc((100% - min(340px,85%)) / 2);width:min(560px,calc(100% - min(340px,85%) - 36px))}
+  .nm-stage:fullscreen .nm-tpill,.nm-stage:-webkit-full-screen .nm-tpill,.nm.is-expanded .nm-tpill{width:min(720px,90%)}
+}
+.nm-stage:fullscreen .nm-ttime,.nm-stage:-webkit-full-screen .nm-ttime,.nm.is-expanded .nm-ttime{font-size:clamp(44px,3.6vw,64px)}
+.nm-stage:fullscreen .nm-tbar,.nm-stage:-webkit-full-screen .nm-tbar,.nm.is-expanded .nm-tbar{height:12px}
+@media (max-width:699px){.nm-tsheet{left:0;width:auto;max-width:none;padding:24px 16px 20px}}
+@media (max-height:600px) and (min-width:561px){.nm.is-timer .nm-char{height:56%}}   /* short stages: the pill must not touch the face */
 /* expanded mode (no Fullscreen API): the stage covers the viewport above the header, page scroll locked */
 .nm.is-expanded .nm-stage{position:fixed;inset:0;z-index:100;height:100vh;height:100dvh;min-height:0;background:#000}
 html.nm-lock,html.nm-lock body{overflow:hidden}
@@ -106,7 +181,17 @@ html.nm-lock,html.nm-lock body{overflow:hidden}
   display:flex;flex-direction:column;overflow:hidden;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
   transform:translateX(100%);visibility:hidden;transition:transform .3s ease,visibility .3s}
 .nm-panel-body{flex:1;min-height:0;overflow:auto;padding:24px 14px 20px}
-.nm-sheet-close,.nm-sheet-resume{display:none}   /* phone sheet only */
+.nm-sheet-resume{display:none}   /* phone sheet only (below) */
+/* the grey round × of both sheets (settings panel, timer sheet): always shown, same corner in every state (fix 2026-11-09 —
+   it used to exist only before the first start and on phones, so a paused desktop panel had no close button) */
+.nm-sheet-close{position:absolute;top:14px;right:14px;z-index:3;width:42px;height:42px;border:0;border-radius:50%;padding:0;
+  background:rgba(255,255,255,.18);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.nm-sheet-close:hover{background:rgba(255,255,255,.3)}
+.nm-sheet-close svg{width:22px;height:22px}
+/* Microphone / Sensitivity before the first start: muted note instead of the controls */
+.nm-prestart{display:none;margin:0;font:600 .85rem/1.4 var(--nm-font);opacity:.7}
+.nm.is-fresh .nm-prestart{display:block}
+.nm.is-fresh .nm-panel .nm-needs-stream{display:none}
 .nm.is-panel-open .nm-panel{transform:none;visibility:visible}
 .nm-h{display:block;color:#fff;font:700 .95rem var(--nm-font);margin:18px 0 8px}
 .nm-h:first-child{margin-top:0}
@@ -130,6 +215,7 @@ html.nm-lock,html.nm-lock body{overflow:hidden}
 /* one lock badge for every locked thumb: 18 px white circle, navy glyph, bottom-right */
 .nm-lock{position:absolute;right:2px;bottom:2px;width:18px;height:18px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.3)}
 .nm-lock svg{width:11px;height:11px;stroke:var(--nm-ink)}
+/* interest mode only (no unlock UI); the unlock UI has no legend since 2026-11-03 */
 .nm-legend{margin:8px 0 0;font:600 .8rem/1.4 var(--nm-font);opacity:.85}
 .nm-ind{grid-template-columns:repeat(2,142px)}
 .nm-ind .nm-thumb{width:142px;height:72px;padding:4px 8px}   /* dial / bar preview, no caption (aria-label only) */
@@ -139,8 +225,188 @@ html.nm-lock,html.nm-lock body{overflow:hidden}
 .nm-card p{margin:0 0 10px;font:600 .92rem/1.45 var(--nm-font)}
 .nm-card .nm-pill{min-height:44px}
 .nm-card-thanks{margin:0 !important}
+/* unlock entry in the panel (unlock.js; UNLOCK-PLAN § 3.4, decided 2026-11-02, conversion round 2026-11-03): locked → --nm-unlock
+   two-line pill "Unlock all characters + backgrounds / $19.99 one-time" (the one coloured element of the panel) + caption +
+   "Already unlocked? Restore"; unlocked → "✓ Unlocked · KQ-••••-••••-1234 Show · Manage" status row; free window →
+   "free until <date> · Restore" status row */
+.nm-unlock-line{margin:12px 0 0}
+.nm-unlock-line[hidden]{display:none}
+.nm-unlock-line .nm-pill{margin:0 0 6px}
+/* the Unlock button, every place (panel pill .nm-pill, dialog / price card .btn): --nm-unlock, white text, no border, two lines,
+   rounded brand font (Fredoka = --font-display, already loaded for the header and the stage title) at its real hosted weight
+   600 on both lines — no synthetic bold, no new request. Panel labels, captions, START and other controls keep system-ui. */
+.kq-unlock-btn,.kq-dialog .btn[data-kq-primary],.price-actions .btn[data-kq-primary]{flex-direction:column;gap:1px;min-height:56px;padding:.45rem 1.2em;
+  font-family:var(--font-display,"Fredoka",system-ui,sans-serif);font-weight:600;
+  border:0;background:var(--nm-unlock);color:var(--nm-unlock-ink,#fff) !important;text-align:center;line-height:1.2}
+.kq-unlock-btn:hover,.kq-dialog .btn[data-kq-primary]:hover,.price-actions .btn[data-kq-primary]:hover{background:var(--nm-unlock-hover)}
+.kq-u1{display:block;font-weight:600;font-size:1rem}
+.kq-u2{display:block;font-weight:600;font-size:.82rem;opacity:.85}
+/* panel button + sticky copy only: white 2 px stroke (the dialog and #pro-card have none), focus ring outside it; line 1 is the
+   short panel string at .95rem on one line (.is-tight = .88rem, .is-tighter = .8rem — set by unlock.js fitLine1 only if it still
+   wraps, e.g. classic scrollbars or the wider brand font) */
+.nm-unlock-line .kq-unlock-btn,.nm-unlock-sticky .kq-unlock-btn{border:2px solid rgba(255,255,255,.9);padding-left:.75em;padding-right:.75em}
+.nm-unlock-line .kq-unlock-btn:focus-visible,.nm-unlock-sticky .kq-unlock-btn:focus-visible{outline:3px solid var(--nm-accent);outline-offset:2px}
+.nm-unlock-line .kq-u1{font-size:.95rem}
+.nm-unlock-line .is-tight .kq-u1,.nm-unlock-sticky .is-tight .kq-u1{font-size:.88rem}
+.nm-unlock-line .is-tighter .kq-u1,.nm-unlock-sticky .is-tighter .kq-u1{font-size:.8rem}
+/* sticky copy at the bottom of the panel's scroll area: the slot always keeps its height while locked (no layout shift); the
+   button fades in only while the main one is out of view (.is-shown, set by unlock.js via IntersectionObserver) */
+/* .has-sticky (set by unlock.js while the slot is shown) moves the body's bottom padding into the slot, so bottom:0 means the
+   same edge in every browser */
+.nm-panel-body.has-sticky{padding-bottom:0}
+.nm-unlock-sticky{position:sticky;bottom:0;z-index:2;margin:16px -14px 0;padding:14px 14px 16px;
+  background:linear-gradient(to bottom,rgba(16,20,32,0),rgba(16,20,32,.82) 35%);visibility:hidden;opacity:0;pointer-events:none}
+.nm-unlock-sticky[hidden]{display:none}   /* unlocked / free window / before unlock.js: no reserved space */
+.nm-unlock-sticky.is-shown{visibility:visible;opacity:1;pointer-events:auto}
+@media (prefers-reduced-motion:no-preference){.nm-unlock-sticky{transition:opacity .15s,visibility .15s}}
+.nm-reduced .nm-unlock-sticky{transition:none}
+.nm-unlock-compact{min-height:48px;padding:.3rem 1em}
+.nm-unlock-compact .kq-u1{font-size:.9rem}
+.nm-unlock-compact .kq-u2{font-size:.75rem}
+.nm-unlock-caption{margin:0;font:600 .78rem/1.6 var(--nm-font);opacity:.9;text-align:center}
+.nm-unlock-caption .nm-unlock-sm{font-size:.8rem}
+.nm-unlock-status{margin:0;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.12);font:600 .88rem/1.5 var(--nm-font)}
+/* unlocked row at the bottom of the panel, after Sensitivity (2026-11-02): smaller, muted, no box */
+.nm-unlock-line.nm-unlock-foot{margin:22px 0 0}
+.nm-unlock-foot .nm-unlock-status{padding:0;background:none;font-size:.78rem;opacity:.75}
+.nm-unlock-foot .nm-unlock-sm,.nm-unlock-foot .nm-unlock-key{font-size:.78rem}
+/* unlock card in the panel: ONLY for browsers without <dialog>.showModal (same slot and look as the interest card) */
+.nm-unlock{margin:10px 0 0;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.12)}
+.nm-unlock[hidden]{display:none}
+.nm-unlock p{margin:0 0 8px;font:600 .88rem/1.45 var(--nm-font)}
+.nm-unlock p:last-child{margin-bottom:0}
+.nm-unlock-title{font-size:1rem;font-weight:700}
+.nm-unlock a{color:#fff;text-underline-offset:3px}
+.nm-unlock .nm-pill{min-height:44px;margin:4px 0 10px}
+.nm-unlock .kq-unlock-btn{min-height:56px}
+.nm-unlock-restore{margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.18)}
+.nm-unlock-restore label{display:block;margin:0 0 6px;font:600 .88rem/1.45 var(--nm-font)}
+.nm-unlock-row{display:flex;gap:6px;margin:0 0 6px}
+.nm-unlock-input{flex:1;min-width:0;font:600 .95rem var(--nm-font);color:#fff;background:rgba(255,255,255,.18);border:0;border-radius:12px;padding:.55rem .7rem}
+.nm-unlock-input::placeholder{color:rgba(255,255,255,.6)}
+.nm-unlock-row .nm-pill{width:auto;min-height:44px;margin:0;padding:0 1em;flex:none}
+.nm-unlock-key{font:700 .95rem/1.4 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.04em;word-break:break-all}
+.nm-unlock-link{font:600 .82rem/1.4 var(--nm-font);word-break:break-all}
+.nm-unlock-sm{border:0;background:none;color:#fff;padding:2px 6px;font:700 .85rem var(--nm-font);text-decoration:underline;text-underline-offset:3px;cursor:pointer;border-radius:6px}
+.nm-unlock-sm:hover{background:rgba(255,255,255,.18)}
+.nm-unlock-sm:disabled,.nm-unlock .nm-pill:disabled,.nm-unlock-input:disabled{opacity:.6;cursor:wait}
+.nm-unlock-msg{padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.14)}
+.nm-unlock-msg[hidden]{display:none}
+.nm-unlock-msg.is-error{background:rgba(240,66,59,.95)}
+.nm-unlock-msg.is-busy{opacity:.85}
+.nm-unlock-first{font-size:.8rem;opacity:.9}
+/* trust line under the Unlock button (dialog, #pro-card; .nm-unlock-trust = the panel fallback card): small, muted, inline icons */
+.kq-trust,.nm-unlock-trust{display:flex;flex-wrap:wrap;justify-content:center;gap:.2rem .7rem;font-size:.8rem;line-height:1.4}
+.kq-trust{color:var(--ink-soft,#51607F)}
+.nm-unlock-trust{opacity:.9}
+.kq-trust-item{display:inline-flex;align-items:center;gap:.3rem}
+.kq-trust-item svg{flex:none}
+.kq-dialog p.kq-trust{margin:-.25rem 0 .75rem}
+.price-actions .kq-trust{margin:10px 0 0}
+.kq-fine{font-size:.8rem;line-height:1.45;color:var(--ink-soft,#51607F)}
+/* the offer dialog's thumb strip: 8 characters, then 5 backgrounds, small, unlocked look; ≤ 480 px one scrollable row (below) */
+.kq-strip{display:grid;gap:6px}
+.kq-strip-row{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
+.kq-strip-thumb{display:flex;width:40px;height:40px;border-radius:10px;background:#eef1f5;overflow:hidden}
+.kq-strip-thumb picture{display:block;width:100%;height:100%}
+.kq-strip-thumb img{display:block;width:100%;height:100%;max-width:none;object-fit:cover;object-position:50% 60%}
+.kq-strip-row:first-child img{object-fit:contain}   /* characters: whole figure */
+.kq-dialog .kq-restore-toggle{text-align:center}
+/* the static unlock card below the fold (index.html #pro-card.kq-card: button → /checkout, Restore link → the dialog;
+   "✓ Unlocked · Manage" once a key is stored) and the dialog itself */
+.kq-caption,.kq-quiet{font-size:.9rem;color:var(--ink-soft,#51607F)}
+.kq-dialog .kq-quiet{font-size:.82rem}   /* "Questions? …" small and muted, below the restore band */
+.kq-dialog .kq-lead{color:var(--ink,#1E2A44)}   /* benefit line (2026-11-03: ink, it is the value line now) */
+.kq-card .kq-caption{margin:0 0 6px}
+.kq-status{margin:0;font-weight:700;text-align:center}
+.kq-card p,.kq-dialog p{text-align:left}
+.kq-card h2,.kq-dialog h2{margin:0 0 10px}
+.kq-card .btn{margin:6px 0 12px}
+.kq-restore{margin-top:16px;padding-top:14px;border-top:1px solid var(--line,#DDE7F0);text-align:left}
+.kq-restore label{display:block;font-weight:700;margin:0 0 8px}
+.kq-row{display:flex;gap:8px;max-width:32rem}
+.kq-input{flex:1;min-width:0;font:600 1rem var(--font-body,system-ui,sans-serif);color:var(--ink,#1E2A44);padding:.6rem .8rem;border:1px solid var(--line,#DDE7F0);border-radius:12px;background:#fff}
+.kq-row .btn,.kq-row .kq-ghost{margin:0;flex:none}
+.kq-key{font:700 1rem/1.4 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.04em;word-break:break-all}
+.kq-link{word-break:break-all}
+.kq-sm{border:0;background:none;color:var(--nm-ink,#1E2A44);padding:2px 6px;font:700 .9rem var(--font-body,system-ui,sans-serif);text-decoration:underline;text-underline-offset:3px;cursor:pointer;border-radius:6px}
+.kq-sm:hover{background:rgba(30,42,68,.07)}
+/* secondary pill (Restore, Show, Copy key, Copy link in the dialog): blue text, 1 px border, white */
+.kq-ghost{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:.4rem 1rem;border:1px solid var(--nm-ink,#1E2A44);border-radius:999px;background:#fff;color:var(--nm-ink,#1E2A44);font:700 .95rem var(--font-body,system-ui,sans-serif);cursor:pointer}
+.kq-ghost:hover{background:rgba(30,42,68,.06)}
+.kq-ghost[aria-pressed="true"]{background:rgba(30,42,68,.1)}
+/* status boxes (keep the wording; the box says error / success / neutral) */
+.kq-msg{padding:10px 12px;border-radius:12px;background:var(--paper,#F3F8FC);text-align:left}
+.kq-msg[hidden]{display:none}
+.kq-msg.is-error{background:#FDE7E7;color:#8A1F1F}
+.kq-msg.is-success{background:#E3F6E8;color:#1F5E2E}
+.kq-first{font-size:.9rem}
+.kq-card button:disabled,.kq-dialog button:disabled,.kq-input:disabled{opacity:.6;cursor:wait}
+/* the unlock dialog (unlock.js; native <dialog>, top layer — above the phone sheet and the expanded stage). The few
+   box rules are repeated in the critical block of index.html (it can open before this file loads, ?unlock= / ?k=). */
+.kq-dialog{border:0;border-radius:16px;padding:0;width:calc(100% - 2rem);max-width:28rem;max-height:calc(100vh - 2rem);max-height:calc(100dvh - 2rem);margin:auto;overflow:auto;
+  background:transparent;color:var(--ink,#1E2A44);font-family:var(--font-body,system-ui,sans-serif);font-size:1rem;line-height:1.5;text-align:left;box-shadow:0 12px 40px rgba(0,0,0,.22)}
+.kq-dialog::backdrop{background:rgba(10,20,40,.55)}
+/* the white surface is the box (2026-11-03), so the purchase confetti canvas (unlock.js, fixed, z-index 0, inside the dialog)
+   sits above the backdrop and below the box; the dialog still scrolls and clips the box to its rounded corners */
+.kq-dialog-box{position:relative;z-index:1;min-height:100%;box-sizing:border-box;padding:1.5rem;background:#fff}
+.kq-dialog-box:focus{outline:none}
+.kq-dialog-x{position:absolute;top:8px;right:8px;width:40px;height:40px;border:0;border-radius:50%;padding:0;background:none;color:var(--ink-soft,#51607F);font:400 1.6rem/1 var(--font-body,system-ui,sans-serif);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.kq-dialog-x:hover{background:rgba(30,42,68,.08)}
+.kq-dialog h2{padding-right:2.2rem;font-size:1.25rem;font-weight:700;line-height:1.3}
+.kq-dialog-body>*{margin:0 0 .75rem}
+.kq-dialog-body>:last-child{margin-bottom:0}
+.kq-dialog p{margin:0 0 .75rem}
+.kq-dialog .btn[data-kq-primary]{display:flex;width:100%;justify-content:center;margin:0 0 .75rem}   /* one primary action per dialog */
+/* purchase thank-you: "Choose a character →" (unlock.js .kq-choose; the only primary there) — --nm-unlock + Fredoka 600 via
+   .kq-unlock-btn, one line, full width; the fallback card in the panel gets the same pill */
+.kq-dialog .kq-choose,.nm-card .kq-choose{display:flex;width:100%;justify-content:center;min-height:48px;margin:0 0 .75rem;border-radius:999px;
+  box-shadow:none;transform:none;font-size:1rem}
+.kq-dialog .kq-choose:hover{transform:none}
+/* dialog primary + pricing-card primary (2026-11-02; colour since 2026-11-03 = --nm-unlock with white text, two lines,
+   56 px — rule with the panel pill above): full width, pill radius, no shadow / glow (the keyboard focus ring stays) */
+.kq-dialog .btn[data-kq-primary],.price-actions .btn[data-kq-primary]{width:100%;font-size:1rem;font-weight:600;
+  border-radius:999px;box-shadow:none;transform:none}
+.kq-dialog .btn[data-kq-primary]:hover,.price-actions .btn[data-kq-primary]:hover{transform:none}
+.kq-dialog a,.kq-dialog a:visited{color:var(--nm-ink,#1E2A44)}
+.kq-dialog .kq-see{text-align:center;margin:-.25rem 0 .75rem}   /* wins over .kq-dialog p{text-align:left} */
+.kq-dialog .kq-restore{margin-top:.25rem;padding:1rem;border-top:0;border-radius:12px;background:#f3f4f6}   /* "Already unlocked?" band */
+.kq-dialog .kq-row{max-width:none}
+/* thank-you: key box, two small pills, restore-link row */
+.kq-keybox{padding:.9rem 1rem;border-radius:12px;background:#f3f4f6;text-align:center}
+.kq-keybox .kq-key{font-size:1.25rem;letter-spacing:.06em;word-break:break-all}
+.kq-btnrow{display:flex;gap:.5rem;flex-wrap:wrap}
+.kq-linkrow .kq-label{margin:0 0 .25rem;font-weight:700}
+.kq-linkrow .kq-url{margin:0 0 .5rem;font-size:.85rem;color:var(--ink-soft,#51607F);word-break:break-all}
+.kq-linkrow .kq-url a{color:inherit}
+html.kq-dialog-open,html.kq-dialog-open body{overflow:hidden}
+@media (prefers-reduced-motion:no-preference){.kq-dialog[open]{animation:kq-fade .15s ease}@keyframes kq-fade{from{opacity:0}}}
+.kq-dialog.kq-reduced[open]{animation:none}
+@media (max-width:480px){
+  .kq-dialog-box{padding:1.25rem}
+  .kq-keybox .kq-key{font-size:1.1rem}
+  /* phones: one horizontally scrollable row (8 characters + 5 backgrounds) — keeps "Already unlocked? Restore" above the fold
+     and avoids a 7 + 1 wrap; the right edge fades to show there is more */
+  .kq-strip{display:flex;gap:6px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;padding-right:24px;
+    -webkit-mask-image:linear-gradient(to right,#000 85%,transparent);mask-image:linear-gradient(to right,#000 85%,transparent)}
+  .kq-strip::-webkit-scrollbar{display:none}
+  .kq-strip-row{display:contents}
+  .kq-strip-thumb{flex:none;width:40px;height:40px}
+  .kq-btnrow{flex-wrap:nowrap}   /* thank-you: Show + Copy key side by side, two half-width ghost pills (2026-11-03) */
+  .kq-btnrow .kq-ghost{flex:1 1 0;min-width:0}
+  .kq-linkrow .kq-ghost{width:100%}   /* Copy link stays full width */
+  .kq-dialog .kq-row{flex-direction:column}
+  .kq-dialog .kq-row .kq-ghost{width:100%}
+}
+/* the same thank-you blocks in the fallback card inside the panel (browsers without showModal) */
+.nm-unlock-keybox{padding:.7rem .8rem;border-radius:10px;background:rgba(255,255,255,.14);text-align:center}
+.nm-unlock-keybox .nm-unlock-key{font-size:1.1rem;letter-spacing:.06em}
+.nm-unlock-btnrow{display:flex;gap:6px;margin:6px 0 8px}
+.nm-unlock-label{font-weight:700}
+.nm-unlock-url{font-size:.82rem;opacity:.9}
+
 /* feedback line (top of the panel, after a pause that ends a ≥ 2 min session) */
-.nm-feedback{display:flex;align-items:center;gap:2px;margin:0 0 10px;padding:2px 2px 2px 12px;border-radius:14px;background:rgba(255,255,255,.12);font:700 .95rem var(--nm-font)}
+.nm-feedback{display:flex;align-items:center;gap:2px;margin:0 52px 10px 0;padding:2px 2px 2px 12px;border-radius:14px;background:rgba(255,255,255,.12);font:700 .95rem var(--nm-font)}
 .nm-fb-q{flex:1}
 .nm-fb-btn{width:44px;height:44px;border:0;border-radius:12px;background:none;color:#fff;font:400 1.35rem/1 var(--nm-font);cursor:pointer;display:flex;align-items:center;justify-content:center}
 .nm-fb-btn:hover{background:rgba(255,255,255,.18)}
@@ -158,10 +424,9 @@ html.nm-lock,html.nm-lock body{overflow:hidden}
   .nm-panel{left:0;right:0;width:auto;max-width:none;border-radius:0;transform:translateY(100%)}
   .nm.is-panel-open .nm-panel{transform:none}
   .nm-panel-body{padding:24px 16px 20px}
-  .nm-sheet-close{display:flex;position:absolute;top:14px;right:14px;z-index:1;width:42px;height:42px;border:0;border-radius:50%;padding:0;
-    background:rgba(255,255,255,.18);color:#fff;align-items:center;justify-content:center;cursor:pointer}
-  .nm-sheet-close svg{width:22px;height:22px}
+  .nm-unlock-sticky{margin-left:-16px;margin-right:-16px;padding-left:16px;padding-right:16px}
   .nm-sheet-resume{display:block;flex:none;background:#fff;padding:0 0 env(safe-area-inset-bottom,0)}
+  .nm.is-running .nm-sheet-resume{display:none}   /* panel opened by Style while running: nothing to resume */
   .nm-sheet-resume-btn{display:block;width:100%;min-height:60px;border:0;background:#fff;color:var(--nm-ink);font:700 1.15rem var(--nm-font);cursor:pointer}
   .nm-sheet-resume-btn:hover{background:#f3f3f3}
   .nm-grid{grid-template-columns:repeat(5,minmax(0,52px))}
@@ -190,12 +455,15 @@ html.nm-lock,html.nm-lock body{overflow:hidden}
   .nm-char{height:52%;bottom:19%}
   .nm-indicator{width:min(62vw,260px);bottom:15%}
   .nm-fs{top:14px;left:14px}
-  .nm.is-running .nm-fs{width:42px;height:42px}
+  .nm-tr{top:14px;right:14px}
+  .nm-style,.nm-timer{width:44px;padding:0;justify-content:center}   /* icon only */
+  .nm-style .nm-fs-text,.nm-timer .nm-fs-text{display:none}
+  .nm.is-running .nm-fs{width:44px;height:44px}   /* round buttons keep a 44 px hit area (was 42) */
 }
 /* reduced motion: no cross-fade, no marker glide; the needle steps per level (set by JS) */
 @media (prefers-reduced-motion:reduce){
-  .nm-scene,.nm-bar-marker,.nm-overlay,.nm-start,.nm-panel,.nm-char,.nm-chars,.nm-indicator,.nm-bottom{transition:none}
+  .nm-scene,.nm-bar-marker,.nm-overlay,.nm-start,.nm-panel,.nm-char,.nm-chars,.nm-indicator,.nm-bottom,.nm-tfill{transition:none}
 }
 .nm-reduced .nm-scene,.nm-reduced .nm-bar-marker,.nm-reduced .nm-overlay,.nm-reduced .nm-start,.nm-reduced .nm-panel,.nm-reduced .nm-char,.nm-reduced .nm-chars,.nm-reduced .nm-indicator,.nm-reduced .nm-bottom{transition:none}
 .nm :focus-visible{outline:3px solid var(--nm-accent);outline-offset:2px}
-.nm-start:focus-visible,.nm-pill:focus-visible,.nm-fs:focus-visible,.nm-sheet-resume-btn:focus-visible{outline:3px solid var(--nm-accent);outline-offset:3px}
+.nm-start:focus-visible,.nm-pill:focus-visible,.nm-fs:focus-visible,.nm-sheet-close:focus-visible,.nm-sheet-resume-btn:focus-visible{outline:3px solid var(--nm-accent);outline-offset:3px}

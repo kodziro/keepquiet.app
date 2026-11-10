@@ -9,8 +9,20 @@ The free online noise meter on the homepage works on Chromebook, Windows, Mac an
 - Free, no ads, no sign-up, no time limit.
 - Privacy: Audio never leaves your device — sound is analysed in the browser, nothing is recorded, stored or sent. Page views and clicks are counted anonymously (TelemetryDeck, no cookies), never sound.
 - Works in the browser on Chromebook, Windows, Mac and iPad (needs a microphone and a current browser: Chrome, Edge, Safari or Firefox).
-- Free set = 1 character (cat, 3 states) + 1 scene (city: park → street → airport). More characters and backgrounds will follow if enough teachers ask for them (the picker shows them locked; a tap counts the interest).
+- Free set = 1 character (cat, 3 states) + 1 scene (city: park → street → airport). An optional one-time unlock adds all 8 characters and 5 backgrounds (see below).
 - No decibel numbers: loudness is shown as character, scene colour and a green-to-red dial or bar.
+## One-time unlock for the online noise meter (https://keepquiet.app/#pricing)
+
+- What: all 8 characters and all 5 backgrounds of the online noise meter, each reacting to the noise level in 3 steps. Everything in the free meter stays free.
+- Price: $19.99 one-time, plus tax where applicable; prices in US dollars; no subscription, no renewal.
+- Web version only: the Noise Meter – Keep Quiet app for iPhone, iPad and Mac is sold separately in the App Store.
+- No account: Stripe asks for an email at checkout for the receipt; the license key is shown after payment and sent by email.
+- Restore: on every device you use yourself (no device limit) with the restore link, the license key, or the email you paid with. Sharing the key with others is not allowed.
+- Seller: sold and charged by Link (Stripe); the charge appears as LINK.COM* KEEPQUIET.
+- Refunds: write to support@keepquiet.app within 14 days for a full refund, no questions asked; the key then stops working.
+
+## More free tools
+
 - More free browser tools for classrooms are planned (scoreboard and tally counter, token board, classroom timer, random name picker).
 
 ## Noise Meter – Keep Quiet app (iPhone, iPad & Mac)
@@ -47,7 +59,10 @@ App Store: https://apps.apple.com/app/apple-store/id6744021866?pt=118868513&ct=w
 
 ## Support
 
-- Email: AppsForParents@gmail.com
-- Privacy Policy: https://sites.google.com/site/appsforparentsprivacy/
-- Terms & Conditions: https://sites.google.com/site/appsforparentsterms/
+- Email (website and browser unlock): support@keepquiet.app
+- Email (iOS app): AppsForParents@gmail.com
+- Privacy Policy (website and browser unlock): https://keepquiet.app/privacy.html
+- Terms of Use (website and browser unlock): https://keepquiet.app/terms.html
+- Privacy Policy (iOS app): https://sites.google.com/site/appsforparentsprivacy/
+- Terms & Conditions (iOS app): https://sites.google.com/site/appsforparentsterms/
 - Author: Natalia Jakubczyk-Gajewska

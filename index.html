@@ -70,6 +70,10 @@ section{padding:56px 0}
 .nm:not(.is-running) .nm-bottom{opacity:0;visibility:hidden;pointer-events:none}
 .nm-fs{position:absolute;top:18px;left:18px;z-index:5;display:flex;align-items:center;gap:8px;height:44px;padding:0 16px 0 12px;border:0;border-radius:999px;background:rgba(0,0,0,.28);color:#fff;font:700 .95rem var(--nm-font);cursor:pointer;text-shadow:none}
 .nm-fs svg{width:22px;height:22px;flex:none}
+.nm-tr{position:absolute;top:18px;right:18px;z-index:5;display:flex;align-items:center;gap:8px}
+.nm-tr .nm-fs{position:static}
+.nm.is-timer-open .nm-tr,.nm.is-panel-open .nm-tr{visibility:hidden}
+.nm-style-ico{width:22px;font-size:1.15rem;line-height:1;text-align:center;flex:none}
 .nm-overlay{position:absolute;inset:0;z-index:4;background:rgba(0,0,0,.2);transition:opacity .3s ease,visibility .3s,background .3s}
 .nm.is-fresh .nm-overlay{background:rgba(0,0,0,.3)}
 .nm-stack{position:absolute;left:0;right:0;top:87%;transform:translateY(-50%);text-align:center;padding:0 16px;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.5)}
@@ -88,18 +92,24 @@ section{padding:56px 0}
 .nm.is-fresh .nm-msg{bottom:12%}
 .nm-msg.is-error{background:rgba(240,66,59,.95)}
 .nm-panel{position:absolute;top:0;right:0;bottom:0;z-index:6;width:340px;max-width:85%;background:rgba(0,0,0,.45);color:#fff;display:flex;flex-direction:column;overflow:hidden;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);transform:translateX(100%);visibility:hidden;transition:transform .3s ease,visibility .3s}
-.nm-sheet-close,.nm-sheet-resume{display:none}
+.nm-sheet-resume{display:none}
+/* unlock dialog box (unlock.js) — it can open before noise-meter.css loads (?unlock= / ?k=); mirrors .kq-dialog there, change both together */
+.kq-dialog{border:0;border-radius:16px;padding:0;width:calc(100% - 2rem);max-width:28rem;max-height:calc(100dvh - 2rem);margin:auto;overflow:auto;background:transparent;color:#1E2A44;font-family:var(--font-body,system-ui,sans-serif);line-height:1.5;text-align:left;box-shadow:0 12px 40px rgba(0,0,0,.22)}
+.kq-dialog::backdrop{background:rgba(10,20,40,.55)}
+.kq-dialog-box{position:relative;z-index:1;min-height:100%;box-sizing:border-box;padding:1.5rem;background:#fff}
+.kq-dialog-x{position:absolute;top:8px;right:8px;width:40px;height:40px;border:0;border-radius:50%;padding:0;background:none;color:#51607F;font:400 1.6rem/1 var(--font-body,system-ui,sans-serif);cursor:pointer}
+html.kq-dialog-open,html.kq-dialog-open body{overflow:hidden}
 .nm-select{display:block;width:100%;max-width:26rem;font:600 1rem var(--nm-font);color:var(--nm-ink);background:#F2F2F2;border:0;border-radius:12px;padding:.6rem .8rem}
 .nm-microw{display:flex;align-items:center;gap:12px;padding:12px 16px;background:#fff;border-top:1px solid #DDE7F0}
 .nm-microw-label{display:flex;align-items:center;gap:12px;width:100%;max-width:34rem}
 .nm-microw-text{font:700 .95rem var(--nm-font);color:var(--nm-ink);white-space:nowrap}
 .nm-microw .nm-select{margin:0}
 @media (max-width:699px){.nm-panel{left:0;right:0;width:auto;max-width:none;border-radius:0;transform:translateY(100%)}.nm.is-fresh .nm-stack{right:0;width:auto;top:72px;transform:none;text-align:center;padding:0 16px}.nm.is-fresh .nm-char{bottom:12%;height:42%}.nm.is-fresh .nm-indicator{opacity:0;visibility:hidden}.nm-privacy{font-size:.82rem}}
-@media (max-width:560px){.nm-char{height:52%;bottom:19%}.nm-indicator{width:min(62vw,260px);bottom:15%}}
+@media (max-width:560px){.nm-char{height:52%;bottom:19%}.nm-indicator{width:min(62vw,260px);bottom:15%}.nm-fs{top:14px;left:14px}.nm-tr{top:14px;right:14px}.nm-style,.nm-timer{width:44px;padding:0;justify-content:center}.nm-style .nm-fs-text,.nm-timer .nm-fs-text{display:none}}
 </style>
-<link rel="stylesheet" href="styles.css?v=20261020b" media="print" onload="this.media='all'">
-<link rel="stylesheet" href="noise-meter.css?v=20261019l" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="styles.css?v=20261020b"><link rel="stylesheet" href="noise-meter.css?v=20261019l"></noscript>
+<link rel="stylesheet" href="styles.css?v=20261110a" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="noise-meter.css?v=20261110a" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="styles.css?v=20261110a"><link rel="stylesheet" href="noise-meter.css?v=20261110a"></noscript>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -113,14 +123,18 @@ section{padding:56px 0}
   "description": "A free online noise meter for classrooms. Friendly characters react as the room gets louder, so kids lower their own volume. No sign-up, no ads, no time limit. Audio never leaves your device — sound is analysed in the browser, nothing is recorded, stored or sent.",
   "image": "https://keepquiet.app/assets/icon.jpg",
   "author": {"@type": "Person", "name": "Natalia Jakubczyk-Gajewska"},
+  "dateModified": "2026-11-10",
   "isAccessibleForFree": true,
-  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+  "offers": [
+    {"@type": "Offer", "name": "Free online noise meter", "price": "0", "priceCurrency": "USD"},
+    {"@type": "Offer", "name": "One-time unlock: all 8 characters and 5 backgrounds", "price": "19.99", "priceCurrency": "USD", "description": "One-time payment, no subscription; plus tax where applicable. Web version only; the iOS app is sold separately. Charged by Link (Stripe).", "url": "https://keepquiet.app/#pricing"}
+  ],
   "featureList": [
     "Free online noise meter for classrooms: free, no ads, no sign-up, no time limit",
     "Privacy: audio never leaves your device — sound is analysed in the browser, nothing is recorded, stored or sent",
     "Works in the browser on Chromebook, Windows, Mac and iPad (needs a microphone and a current browser: Chrome, Edge, Safari or Firefox)",
     "Reacting character (cat with 3 states) and a scene that changes from park to street to airport as the room gets louder; speedometer dial or colour bar; sensitivity slider; microphone selector for smart boards; fullscreen",
-    "Free set: 1 character and 1 scene; more characters and backgrounds will follow if enough teachers ask for them",
+    "Free set: 1 character and 1 scene; an optional one-time unlock ($19.99 plus tax where applicable, no subscription) adds all 8 characters and 5 backgrounds, each reacting in 3 steps",
     "No decibel numbers: loudness is shown as character, scene colour and a green-to-red dial or bar"
   ]
 }
@@ -159,11 +173,19 @@ section{padding:56px 0}
   "@context": "https://schema.org",
   "@type": "FAQPage",
   "mainEntity": [
-    {"@type":"Question","name":"Is the online noise meter free?","acceptedAnswer":{"@type":"Answer","text":"Yes, the online noise meter at keepquiet.app is free: no sign-up, no ads and no time limit. The free set is one character and one scene; more characters and backgrounds will follow if enough teachers ask for them."}},
+    {"@type":"Question","name":"Is the online noise meter free?","acceptedAnswer":{"@type":"Answer","text":"Yes, the online noise meter at keepquiet.app is free: no sign-up, no ads and no time limit. The free set is one character (a cat) and one scene. An optional one-time unlock for $19.99 plus tax where applicable adds all 8 characters and 5 backgrounds; the free meter keeps working without it."}},
     {"@type":"Question","name":"Does it record audio?","acceptedAnswer":{"@type":"Answer","text":"No. Audio never leaves your device — sound is analysed in the browser, nothing is recorded, stored or sent. We count anonymous page views and clicks (TelemetryDeck, no cookies), never sound. Pressing pause switches the microphone off."}},
     {"@type":"Question","name":"Which browsers and devices does it work on?","acceptedAnswer":{"@type":"Answer","text":"It works on Chromebook, Windows, Mac and iPad in a current browser (Chrome, Edge, Safari or Firefox) and needs a microphone. The page must be opened over https (keepquiet.app is), and the browser will ask once for microphone permission. On a managed school Chromebook the microphone can be blocked by policy; the IT admin can allow it for keepquiet.app."}},
     {"@type":"Question","name":"Why does my smart board pick the wrong microphone?","acceptedAnswer":{"@type":"Answer","text":"Interactive boards often have several microphones (the board itself, a webcam, the connected laptop) and the browser starts with the default one. Choose the right one in the Microphone list under the meter; the choice is remembered on that device. If the meter does not react, try another entry in the list or check that the microphone is not muted in the system settings."}},
     {"@type":"Question","name":"Can I get it as an app?","acceptedAnswer":{"@type":"Answer","text":"Yes. Noise Meter – Keep Quiet is the same noise meter as an app for iPhone, iPad and Mac, free to download with no ads. The app adds a quiet-time timer, more characters and scenes, and works offline. There is no Android app; on Android, Chromebook and Windows use the free online noise meter."}},
+    {"@type":"Question","name":"What does the one-time unlock include?","acceptedAnswer":{"@type":"Answer","text":"All 8 characters and all 5 backgrounds of the online noise meter, each reacting to the noise level in 3 steps. Everything in the free meter stays free. The unlock is for the web version at keepquiet.app; the iPhone, iPad and Mac app is sold separately in the App Store."}},
+    {"@type":"Question","name":"Is the unlock a subscription?","acceptedAnswer":{"@type":"Answer","text":"No. It is a one-time payment of $19.99 plus tax where applicable — the exact total is shown before you pay. There is no renewal and no time limit."}},
+    {"@type":"Question","name":"Do I need an account?","acceptedAnswer":{"@type":"Answer","text":"No. There is no account at keepquiet.app. Stripe asks for your email address at checkout to send the receipt; we use the same address to send your license key and to restore your purchase later."}},
+    {"@type":"Question","name":"How do I unlock the other devices I use?","acceptedAnswer":{"@type":"Answer","text":"Open your restore link on that device, or type your license key — or the email address you paid with — into “Already unlocked? Restore”. The restore link and the key are shown after payment and sent by email. The unlock is for the devices you use yourself, with no device limit; sharing the key with others is not allowed. The unlock is saved in the browser: Safari may forget it after a week away, and shared or managed computers may clear it at sign-out — then open the restore link again."}},
+    {"@type":"Question","name":"I lost my license key — what can I do?","acceptedAnswer":{"@type":"Answer","text":"Type the email address you paid with into “Already unlocked? Restore”: if that email paid, we send the restore link and the key again — check your spam folder too. Use the exact address you entered at checkout. No email after 10 minutes? Write to support@keepquiet.app."}},
+    {"@type":"Question","name":"How does the charge appear on my statement?","acceptedAnswer":{"@type":"Answer","text":"The unlock is sold and charged by Link (Stripe), the seller of the purchase. It appears on your statement as LINK.COM* KEEPQUIET. The price is in US dollars; your bank may convert it."}},
+    {"@type":"Question","name":"Can I get a refund?","acceptedAnswer":{"@type":"Answer","text":"Yes. Write to support@keepquiet.app within 14 days of the purchase and we ask Stripe to refund you in full, no questions asked; the license key then stops working. This is our own promise on top of the buyer terms of Link (Stripe)."}},
+    {"@type":"Question","name":"Is the unlock the same as the App Store upgrade?","acceptedAnswer":{"@type":"Answer","text":"No. The unlock is for the web version at keepquiet.app only. The Noise Meter – Keep Quiet app for iPhone, iPad and Mac has its own optional upgrade, bought separately in the App Store."}},
     {"@type":"Question","name":"What is a visual noise meter for kids?","acceptedAnswer":{"@type":"Answer","text":"A visual noise meter turns sound into something children can see. Keep Quiet uses the device microphone to measure the room's volume in real time: a friendly character changes expression, the scene shifts colour, and a green-to-red dial or bar shows how loud things are — so kids can lower their own volume without being told. It is available as a free online noise meter in the browser and as the Noise Meter – Keep Quiet app for iPhone, iPad and Mac."}},
     {"@type":"Question","name":"How do I monitor noise levels in my classroom?","acceptedAnswer":{"@type":"Answer","text":"Open the free online noise meter on the classroom screen, or the app on an iPad mirrored to the whiteboard, pick a character, and let the class watch. As chatter rises the character reacts and the meter climbs toward red, prompting students to self-correct — no shushing needed."}},
     {"@type":"Question","name":"How can I get kids to be quiet without yelling?","acceptedAnswer":{"@type":"Answer","text":"Replace verbal reminders with a visual cue. When children can see the noise level and a character reacting to it, staying quiet becomes a game of keeping the character happy rather than obeying an instruction. In the app, pair it with the built-in quiet-time timer to set a clear, achievable goal."}},
@@ -176,9 +198,17 @@ section{padding:56px 0}
   ]
 }
 </script>
+<script>
+/* Unlock return / restore link (UNLOCK-PLAN § 3.4, worker/README § 8.1): ?unlock= and ?k= (+ ?src=) go into window.__kqUnlock,
+   then the URL is cleaned before the TelemetryDeck tag and the modules run. Created only when unlock or k is present. No eval, no fetch. */
+(function(){try{var s=location.search;if(!s||!/[?&](unlock|k)=/.test(s))return;var p=new URLSearchParams(s),u=p.get('unlock'),k=p.get('k'),src=p.get('src');
+var o={session:null,cancel:false,k:null,src:null};if(u==='cancel')o.cancel=true;else if(u&&u.length<=200)o.session=u;
+if(k&&k.length<=40)o.k=k;if(src==='mail')o.src='mail';window.__kqUnlock=o;
+p.delete('unlock');p.delete('k');p.delete('src');var q=p.toString();history.replaceState(null,'',location.pathname+(q?'?'+q:'')+location.hash);}catch(e){}})();
+</script>
 <script defer src="https://cdn.telemetrydeck.com/websdk/telemetrydeck.min.js" data-app-id="43A2ECAF-E4DA-4440-B847-7A1FCE01600C"></script>
 <script type="module" src="assets/appstore-click.js"></script>
-<script type="module" src="noise-meter.js?v=20261020a"></script>
+<script type="module" src="noise-meter.js?v=20261110a"></script>
 </head>
 <body>
 <div class="meter-strip" aria-hidden="true"></div>
@@ -192,7 +222,7 @@ section{padding:56px 0}
     <nav class="site-nav" aria-label="Main">
       <a href="#noise-meter">Noise meter</a>
       <a href="#guides">Guides</a>
-      <a href="#app">App</a>
+      <a href="#pricing">Pricing</a>
     </nav>
   </div>
 </header>
@@ -246,17 +276,39 @@ section{padding:56px 0}
       </div>
       <div class="nm-microw"></div>
     </div>
-    <p class="under-tool"><a data-td-position="tool" href="https://apps.apple.com/app/apple-store/id6744021866?pt=118868513&amp;ct=webnew&amp;mt=8">Prefer the app? iPhone, iPad &amp; Mac →</a></p>
   </section>
 
-  <!-- INTEREST CARD (counted click; ids kept for the pro-view signal and the styles) -->
-  <section class="pro" id="pro">
-    <div class="wrap">
-      <div class="pro-card" id="pro-card">
-        <h2>Want more characters and backgrounds?</h2>
-        <p>If enough teachers ask, we’ll build them.</p>
-        <button class="btn" type="button" data-kq-interest>I’m interested</button>
-        <p class="pro-thanks" data-kq-interest-thanks hidden>Thanks — counted!</p>
+  <!-- PRICING (UNLOCK-PLAN § 3.4 / § 3.4a). #pro-card = the price card (pro-view signal, ≥ 50 % visible, unchanged);
+       data-kq-unlock-card: once a key is stored unlock.js rewrites [data-kq-actions] to "✓ Unlocked · Manage". The button
+       calls /checkout (unlock-click {from:"card"}), the ghost link opens the unlock dialog in restore mode. The price literals
+       (big price, button line 2) mirror PRICE_LABEL in unlock.js; the button's two lines and the trust line mirror STRINGS
+       unlockLine1 / unlockLine2 / trust (2026-11-03) — edit both. Text rule: no "school", "classes", "teacher". -->
+  <section class="pricing" id="pricing" aria-labelledby="pricing-title">
+    <div class="wrap pricing-grid">
+      <div class="pricing-info">
+        <span class="eyebrow">Pricing</span>
+        <h2 id="pricing-title">One-time unlock, no subscription</h2>
+        <p class="pricing-sub">Everything in the free noise meter stays free. The unlock adds:</p>
+        <h3 class="pricing-h3">What’s included</h3>
+        <ul class="pricing-list">
+          <li>All 8 characters</li>
+          <li>All 5 backgrounds</li>
+          <li>Every character reacts to the noise level in 3 steps</li>
+          <li>Works on every device you use — no device limit</li>
+          <li>Restore by license key or email</li>
+          <li>Lifetime, one payment</li>
+        </ul>
+      </div>
+      <div class="price-card" id="pro-card" data-kq-unlock-card>
+        <p class="price-name">Unlock everything</p>
+        <p class="price-amount">$19.99</p>
+        <p class="price-term">one-time</p>
+        <div class="price-actions" data-kq-actions>
+          <button class="btn kq-unlock-btn" type="button" data-kq-unlock data-kq-primary><span class="kq-u1">Unlock all 8 characters + 5 backgrounds</span><span class="kq-u2">$19.99 one-time</span></button>
+          <p class="kq-trust"><span class="kq-trust-item"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3 3 7-7"/></svg>One-time payment</span><span class="kq-trust-item"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3 3 7-7"/></svg>no subscription</span><span class="kq-trust-item"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 015 0v2"/></svg>secure checkout by Link (Stripe)</span><span class="kq-trust-item"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 1.5L3.5 9H8l-1 5.5L12.5 7H8z"/></svg>unlocks instantly, key also emailed</span></p>
+          <button class="btn ghost" type="button" data-kq-restore>Already unlocked? Restore</button>
+          <p class="price-fine">Web version only — the iOS app is sold separately. Prices in USD, taxes may apply. Your license key is shown after payment and sent by email. Charged by Link (Stripe). <a href="terms.html" target="_blank" rel="noopener">Terms</a> · <a href="privacy.html" target="_blank" rel="noopener">Privacy</a></p>
+        </div>
       </div>
     </div>
   </section>
@@ -299,7 +351,7 @@ section{padding:56px 0}
       <h3 class="faq-group">About the free online noise meter</h3>
       <details open>
         <summary>Is the online noise meter free?</summary>
-        <p>Yes, the online noise meter at keepquiet.app is free: no sign-up, no ads and no time limit. The free set is one character and one scene; more characters and backgrounds will follow if enough teachers ask for them.</p>
+        <p>Yes, the online noise meter at keepquiet.app is free: no sign-up, no ads and no time limit. The free set is one character (a cat) and one scene. An optional one-time unlock for $19.99 plus tax where applicable adds all 8 characters and 5 backgrounds; the free meter keeps working without it.</p>
       </details>
       <details id="faq-record">
         <summary>Does it record audio?</summary>
@@ -316,6 +368,40 @@ section{padding:56px 0}
       <details>
         <summary>Can I get it as an app?</summary>
         <p>Yes. Noise Meter – Keep Quiet is the same noise meter as an app for iPhone, iPad and Mac, free to download with no ads. The app adds a quiet-time timer, more characters and scenes, and works offline. There is no Android app; on Android, Chromebook and Windows use the free online noise meter. <a data-td-position="faq" class="learn" href="https://apps.apple.com/app/apple-store/id6744021866?pt=118868513&amp;ct=webnew&amp;mt=8">Get it on the App Store →</a></p>
+      </details>
+
+      <h3 class="faq-group" id="faq-unlock">About the one-time unlock</h3>
+      <details>
+        <summary>What does the one-time unlock include?</summary>
+        <p>All 8 characters and all 5 backgrounds of the online noise meter, each reacting to the noise level in 3 steps. Everything in the free meter stays free. The unlock is for the web version at keepquiet.app; the iPhone, iPad and Mac app is sold separately in the App Store.</p>
+      </details>
+      <details>
+        <summary>Is the unlock a subscription?</summary>
+        <p>No. It is a one-time payment of $19.99 plus tax where applicable — the exact total is shown before you pay. There is no renewal and no time limit.</p>
+      </details>
+      <details>
+        <summary>Do I need an account?</summary>
+        <p>No. There is no account at keepquiet.app. Stripe asks for your email address at checkout to send the receipt; we use the same address to send your license key and to restore your purchase later.</p>
+      </details>
+      <details>
+        <summary>How do I unlock the other devices I use?</summary>
+        <p>Open your restore link on that device, or type your license key — or the email address you paid with — into “Already unlocked? Restore”. The restore link and the key are shown after payment and sent by email. The unlock is for the devices you use yourself, with no device limit; sharing the key with others is not allowed. The unlock is saved in the browser: Safari may forget it after a week away, and shared or managed computers may clear it at sign-out — then open the restore link again.</p>
+      </details>
+      <details>
+        <summary>I lost my license key — what can I do?</summary>
+        <p>Type the email address you paid with into “Already unlocked? Restore”: if that email paid, we send the restore link and the key again — check your spam folder too. Use the exact address you entered at checkout. No email after 10 minutes? Write to <a href="mailto:support@keepquiet.app">support@keepquiet.app</a>.</p>
+      </details>
+      <details>
+        <summary>How does the charge appear on my statement?</summary>
+        <p>The unlock is sold and charged by Link (Stripe), the seller of the purchase. It appears on your statement as LINK.COM* KEEPQUIET. The price is in US dollars; your bank may convert it.</p>
+      </details>
+      <details>
+        <summary>Can I get a refund?</summary>
+        <p>Yes. Write to <a href="mailto:support@keepquiet.app">support@keepquiet.app</a> within 14 days of the purchase and we ask Stripe to refund you in full, no questions asked; the license key then stops working. This is our own promise on top of the buyer terms of Link (Stripe).</p>
+      </details>
+      <details>
+        <summary>Is the unlock the same as the App Store upgrade?</summary>
+        <p>No. The unlock is for the web version at keepquiet.app only. The Noise Meter – Keep Quiet app for iPhone, iPad and Mac has its own optional upgrade, bought separately in the App Store.</p>
       </details>
 
       <h3 class="faq-group">About the app</h3>
@@ -488,6 +574,7 @@ section{padding:56px 0}
     <div>
       <a class="brand" href="index.html"><picture><source srcset="assets/icon-76.webp" type="image/webp"><img src="assets/icon-76.jpg" alt="" width="38" height="38" loading="lazy"></picture>Keep Quiet – free classroom tools</a>
       <p style="margin-top:12px">A free online classroom noise meter, and the Noise Meter – Keep Quiet app for iPhone, iPad and Mac. Friendly characters react to sound in real time, helping children stay calm and quiet at home, in classrooms and in sensory-friendly spaces.</p>
+      <p style="margin-top:12px"><a href="privacy.html">Privacy policy</a> · <a href="terms.html">Terms &amp; conditions</a></p>
     </div>
     <div>
       <h3>Guides</h3>
@@ -503,14 +590,12 @@ section{padding:56px 0}
       <h3>App</h3>
       <ul>
         <li><a data-td-position="footer" href="https://apps.apple.com/app/apple-store/id6744021866?pt=118868513&amp;ct=webnew&amp;mt=8">Download on the App Store</a></li>
-        <li><a href="https://sites.google.com/site/appsforparentsprivacy/">Privacy policy</a></li>
-        <li><a href="https://sites.google.com/site/appsforparentsterms/">Terms &amp; conditions</a></li>
         <li><a href="mailto:AppsForParents@gmail.com">Support: AppsForParents@gmail.com</a></li>
       </ul>
     </div>
   </div>
   <div class="wrap foot-note">
-    <p>© 2026 Natalia Jakubczyk-Gajewska. Apple, the Apple logo, iPhone, iPad and Mac are trademarks of Apple Inc. App Store is a service mark of Apple Inc. Last updated: <time datetime="2026-10-20">October 20, 2026</time>.</p>
+    <p>© 2026 Natalia Jakubczyk-Gajewska. Apple, the Apple logo, iPhone, iPad and Mac are trademarks of Apple Inc. App Store is a service mark of Apple Inc. Last updated: <time datetime="2026-11-10">November 10, 2026</time>.</p>
   </div>
 </footer>
 </body>

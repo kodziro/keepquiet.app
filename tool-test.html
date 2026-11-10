@@ -6,8 +6,8 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Noise meter – test page (not public)</title>
 <link rel="icon" href="assets/icon-64.png" type="image/png" sizes="64x64">
-<link rel="stylesheet" href="styles.css?v=20261102e">
-<link rel="stylesheet" href="noise-meter-next.css?v=20261109d">
+<link rel="stylesheet" href="styles.css?v=20261110a">
+<link rel="stylesheet" href="noise-meter.css?v=20261110a">
 <style>
   body{background:#fff}
   .t-wrap{max-width:1080px;margin:0 auto;padding:16px 20px 60px}
@@ -20,8 +20,8 @@
 <script>
 /* Ring-3 gate (UNLOCK-PLAN § 5.4): tool-test.html?dev=1 stores kq-dev = "1" once; without the flag this page behaves exactly as
    today (interest card, no unlock UI). The unlock API for this page: "mock" (ring 1) → the test Worker URL (ring 2/3), README § 8.3.
-   Ring 3: this page links noise-meter-next.js / -next.css — copies of the branch files made by `npm run ring3:copy`; index.html keeps
-   the real names (live files untouched). At go-live this page goes back to the real names and the -next copies are deleted (§ 5.3). */
+   Since go-live (2026-11-10) this page links the real noise-meter.js / noise-meter.css again (the -next copies are deleted from the
+   host) and stays the staging page: it keeps the test Worker below, never the live API (§ 5.3). */
 (function(){try{var p=new URLSearchParams(location.search);if(p.get('dev')==='1'){localStorage.setItem('kq-dev','1');p.delete('dev');var q=p.toString();history.replaceState(null,'',location.pathname+(q?'?'+q:'')+location.hash);}}catch(e){}})();
 window.__kqUnlockApi='https://keepquiet-unlock-test.keepquiet-unlock-worker.workers.dev';   /* ring 3 (Step 6): the test Worker; never the live API */
 /* Unlock return / restore link — same script as index.html (worker/README § 8.1) */
@@ -32,7 +32,7 @@ p.delete('unlock');p.delete('k');p.delete('src');var q=p.toString();history.repl
 </script>
 <!-- TelemetryDeck pageviews, same tag as every page; signals from the tool run in TEST MODE here (body data-td-test="1") -->
 <script defer src="https://cdn.telemetrydeck.com/websdk/telemetrydeck.min.js" data-app-id="43A2ECAF-E4DA-4440-B847-7A1FCE01600C"></script>
-<script type="module" src="noise-meter-next.js?v=20261109e"></script>
+<script type="module" src="noise-meter.js?v=20261110a"></script>
 </head>
 <body data-td-test="1" data-td-page="tool-test" data-kq-unlock-gate>
 
