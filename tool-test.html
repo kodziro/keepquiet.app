@@ -33,13 +33,11 @@ var o={session:null,cancel:false,k:null,src:null};if(u==='cancel')o.cancel=true;
 if(k&&k.length<=40)o.k=k;if(src==='mail')o.src='mail';window.__kqUnlock=o;
 p.delete('unlock');p.delete('k');p.delete('src');var q=p.toString();history.replaceState(null,'',location.pathname+(q?'?'+q:'')+location.hash);}catch(e){}})();
 </script>
-<!-- TelemetryDeck pageviews, same tag as every page; signals from the tool run in TEST MODE here (body data-td-test="1") -->
 <script defer src="https://cdn.telemetrydeck.com/websdk/telemetrydeck.min.js" data-app-id="43A2ECAF-E4DA-4440-B847-7A1FCE01600C"></script>
 <script type="module" src="noise-meter-next.js?v=20261113c"></script>
 </head>
 <body data-td-test="1" data-td-page="tool-test" data-kq-unlock-gate>
 
-<!-- The tool: scene edge to edge, full viewport height (same block goes into index.html in step 3) -->
 <div id="noise-meter" class="nm is-fresh" data-assets="assets/tool/">
   <div class="nm-stage">
     <div class="nm-scenes">
@@ -55,7 +53,6 @@ p.delete('unlock');p.delete('k');p.delete('src');var q=p.toString();history.repl
       </picture>
     </div>
     <div class="nm-indicator">
-      <!-- speedometer dial: arc green→red, white needle, no text (≈0.7 KB) -->
       <svg class="nm-dial" viewBox="0 0 200 130" aria-hidden="true" focusable="false">
         <defs>
           <linearGradient id="nm-g" x1="0" y1="0" x2="1" y2="0">

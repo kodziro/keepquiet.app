@@ -8,6 +8,7 @@
 <link rel="canonical" href="https://keepquiet.app/">
 <link rel="icon" href="assets/icon-64.png" type="image/png" sizes="64x64">
 <meta property="og:type" content="website">
+<meta property="og:site_name" content="Keep Quiet">
 <meta property="og:title" content="Free Online Classroom Noise Meter for Kids | Keep Quiet">
 <meta property="og:description" content="Free online noise meter for classrooms. Friendly characters react as the room gets louder. Works on Chromebook, Windows and iPad. No sign-up, no ads, audio stays on your device.">
 <meta property="og:url" content="https://keepquiet.app/">
@@ -20,7 +21,6 @@
 <link rel="preload" as="image" href="assets/tool/scene/city-1.webp" type="image/webp" fetchpriority="high">
 <link rel="preload" href="assets/fonts/fredoka-600.woff2" as="font" type="font/woff2" crossorigin>
 <style>
-/* Critical CSS for the page frame above the fold (fonts, header, nav, tool section) — mirrors the same rules in styles.css; change both together. */
 @font-face{font-family:"Fredoka";font-style:normal;font-weight:600;font-display:swap;src:url(assets/fonts/fredoka-600.woff2) format("woff2")}
 @font-face{font-family:"Nunito";font-style:normal;font-weight:400 800;font-display:swap;src:url(assets/fonts/nunito-400-800.woff2) format("woff2")}
 :root{--paper:#F3F8FC;--card:#FFFFFF;--ink:#1E2A44;--ink-soft:#51607F;--quiet:#2FA46E;--medium:#FFB13D;--loud:#EF5D60;--cta:#3556E0;--cta-dark:#2843BC;--line:#DDE7F0;--radius:20px;--meter:linear-gradient(90deg,var(--quiet) 0%,var(--medium) 55%,var(--loud) 100%);--shadow:0 10px 30px rgba(30,42,68,.10);--font-display:"Fredoka",system-ui,sans-serif;--font-body:"Nunito",system-ui,sans-serif;}
@@ -48,7 +48,6 @@ section{padding:56px 0}
 @media(max-width:560px){.site-nav a:not(.btn){display:none}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 :focus-visible{outline:3px solid var(--cta);outline-offset:2px;border-radius:6px}
-/* Critical CSS for the noise meter's first paint — mirrors the same rules in noise-meter.css; change both together. */
 .nm{--nm-g1:#3ABF5A;--nm-g2:#F2D22B;--nm-g3:#F58A2A;--nm-g4:#F0423B;--nm-accent:#4DA3FF;--nm-accent-hover:#3690F0;--nm-ink:#1E2A44;--nm-grad:linear-gradient(90deg,var(--nm-g1) 0%,var(--nm-g2) 45%,var(--nm-g3) 72%,var(--nm-g4) 100%);--nm-font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--nm-bar-h:clamp(88px,12vh,124px);--nm-icon:clamp(68px,9.2vh,96px);--nm-start-h:64px;--nm-start-f:1.25rem;--nm-cap:90%;position:relative;width:100%;font-family:var(--nm-font)}
 .nm-stage{position:relative;width:100%;height:calc(100vh - var(--nm-above,0px));height:max(480px,calc(100svh - var(--nm-above,0px)));min-height:480px;overflow:hidden;background:#9bd0ee;isolation:isolate}
 .nm-scenes,.nm-chars{position:absolute;inset:0;pointer-events:none}
@@ -103,7 +102,6 @@ section{padding:56px 0}
 .nm-msg.is-error{background:rgba(240,66,59,.95)}
 .nm-panel{position:absolute;top:0;right:0;bottom:0;z-index:6;width:340px;max-width:85%;background:rgba(0,0,0,.45);color:#fff;display:flex;flex-direction:column;overflow:hidden;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);transform:translateX(100%);visibility:hidden;transition:transform .3s ease,visibility .3s}
 .nm-sheet-resume{display:none}
-/* unlock dialog box (unlock.js) — it can open before noise-meter.css loads (?unlock= / ?k=); mirrors .kq-dialog there, change both together */
 .kq-dialog{border:0;border-radius:16px;padding:0;width:calc(100% - 2rem);max-width:28rem;max-height:calc(100dvh - 2rem);margin:auto;overflow:auto;background:transparent;color:#1E2A44;font-family:var(--font-body,system-ui,sans-serif);line-height:1.5;text-align:left;box-shadow:0 12px 40px rgba(0,0,0,.22)}
 .kq-dialog::backdrop{background:rgba(10,20,40,.55)}
 .kq-dialog-box{position:relative;z-index:1;min-height:100%;box-sizing:border-box;padding:1.5rem;background:#fff}
@@ -123,6 +121,39 @@ html.kq-dialog-open,html.kq-dialog-open body{overflow:hidden}
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://keepquiet.app/#organization",
+      "name": "Keep Quiet",
+      "url": "https://keepquiet.app/",
+      "logo": "https://keepquiet.app/assets/icon.jpg",
+      "email": "support@keepquiet.app",
+      "founder": {"@id": "https://keepquiet.app/#natalia-jakubczyk-gajewska"}
+    },
+    {
+      "@type": "Person",
+      "@id": "https://keepquiet.app/#natalia-jakubczyk-gajewska",
+      "name": "Natalia Jakubczyk-Gajewska",
+      "sameAs": "https://apps.apple.com/us/developer/natalia-jakubczyk-gajewska/id1307515292"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": "https://keepquiet.app/#website",
+  "name": "Keep Quiet",
+  "url": "https://keepquiet.app/",
+  "inLanguage": "en",
+  "publisher": {"@id": "https://keepquiet.app/#organization"}
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
   "@type": "WebApplication",
   "name": "Keep Quiet – Free Online Classroom Noise Meter",
   "alternateName": ["Keep Quiet noise meter", "keepquiet.app online noise meter", "free online classroom noise meter"],
@@ -132,8 +163,9 @@ html.kq-dialog-open,html.kq-dialog-open body{overflow:hidden}
   "browserRequirements": "Requires a microphone and a current browser (Chrome, Edge, Safari or Firefox); works on Chromebook, Windows, Mac and iPad",
   "description": "A free online noise meter for classrooms. Friendly characters react as the room gets louder, so kids lower their own volume. No sign-up, no ads, no time limit. Audio never leaves your device — sound is analysed in the browser, nothing is recorded, stored or sent.",
   "image": "https://keepquiet.app/assets/icon.jpg",
-  "author": {"@type": "Person", "name": "Natalia Jakubczyk-Gajewska"},
-  "dateModified": "2026-11-10",
+  "author": {"@id": "https://keepquiet.app/#natalia-jakubczyk-gajewska"},
+  "publisher": {"@id": "https://keepquiet.app/#organization"},
+  "dateModified": "2026-11-13",
   "isAccessibleForFree": true,
   "offers": [
     {"@type": "Offer", "name": "Free online noise meter", "price": "0", "priceCurrency": "USD"},
@@ -144,6 +176,7 @@ html.kq-dialog-open,html.kq-dialog-open body{overflow:hidden}
     "Privacy: audio never leaves your device — sound is analysed in the browser, nothing is recorded, stored or sent",
     "Works in the browser on Chromebook, Windows, Mac and iPad (needs a microphone and a current browser: Chrome, Edge, Safari or Firefox)",
     "Reacting character (cat with 3 states) and a scene that changes from park to street to airport as the room gets louder; speedometer dial or colour bar; sensitivity slider; microphone selector for smart boards; fullscreen",
+    "Quiet-time timer: presets from 1 to 30 minutes or a custom length from 1 to 90 minutes; counts only while the meter runs; at 0:00 the meter pauses itself, no sound",
     "Free set: 1 character and 1 scene; an optional one-time unlock ($19.99 plus tax where applicable, no subscription) adds all 8 characters and 5 backgrounds, each reacting in 3 steps",
     "No decibel numbers: loudness is shown as character, scene colour and a green-to-red dial or bar"
   ]
@@ -153,16 +186,16 @@ html.kq-dialog-open,html.kq-dialog-open body{overflow:hidden}
 {
   "@context": "https://schema.org",
   "@type": "MobileApplication",
-  "name": "Noise Meter - Keep Quiet",
-  "alternateName": ["Noise Meter - Keep Quiet", "Keep Quiet noise meter", "Noise Meter – Keep Quiet (keepquiet.app)"],
-  "sameAs": "https://apps.apple.com/app/apple-store/id6744021866?pt=118868513&ct=webnew&mt=8",
+  "name": "Noise Meter – Keep Quiet",
+  "alternateName": ["Noise Meter - Keep Quiet", "Noise Meter – Keep Quiet (keepquiet.app)"],
+  "sameAs": "https://apps.apple.com/us/app/noise-meter-keep-quiet/id6744021866",
   "operatingSystem": "iOS 17.6 or later, iPadOS, macOS, visionOS",
   "applicationCategory": "EducationalApplication",
   "description": "A visual noise meter for kids. Friendly characters react to sound levels in real time, helping children recognise when it's too loud and learn to self-regulate at home, in the classroom, or in sensory-friendly spaces.",
   "image": "https://keepquiet.app/assets/icon.jpg",
   "url": "https://keepquiet.app/#app",
   "installUrl": "https://apps.apple.com/app/apple-store/id6744021866?pt=118868513&ct=webnew&mt=8",
-  "author": {"@type": "Person", "name": "Natalia Jakubczyk-Gajewska"},
+  "author": {"@id": "https://keepquiet.app/#natalia-jakubczyk-gajewska"},
   "isAccessibleForFree": true,
   "featureList": [
     "Platform: the app runs on iPhone, iPad and Mac; there is no Android version. The free online noise meter at keepquiet.app works in any current browser, including on Chromebook and Windows",
@@ -187,7 +220,7 @@ html.kq-dialog-open,html.kq-dialog-open body{overflow:hidden}
     {"@type":"Question","name":"Does it record audio?","acceptedAnswer":{"@type":"Answer","text":"No. Audio never leaves your device — sound is analysed in the browser, nothing is recorded, stored or sent. We count anonymous page views and clicks (TelemetryDeck, no cookies), never sound. Pressing pause switches the microphone off."}},
     {"@type":"Question","name":"Which browsers and devices does it work on?","acceptedAnswer":{"@type":"Answer","text":"It works on Chromebook, Windows, Mac and iPad in a current browser (Chrome, Edge, Safari or Firefox) and needs a microphone. The page must be opened over https (keepquiet.app is), and the browser will ask once for microphone permission. On a managed school Chromebook the microphone can be blocked by policy; the IT admin can allow it for keepquiet.app."}},
     {"@type":"Question","name":"Why does my smart board pick the wrong microphone?","acceptedAnswer":{"@type":"Answer","text":"Interactive boards often have several microphones (the board itself, a webcam, the connected laptop) and the browser starts with the default one. Choose the right one in the Microphone list under the meter; the choice is remembered on that device. If the meter does not react, try another entry in the list or check that the microphone is not muted in the system settings."}},
-    {"@type":"Question","name":"Can I get it as an app?","acceptedAnswer":{"@type":"Answer","text":"Yes. Noise Meter – Keep Quiet is the same noise meter as an app for iPhone, iPad and Mac, free to download with no ads. The app adds a quiet-time timer, more characters and scenes, and works offline. There is no Android app; on Android, Chromebook and Windows use the free online noise meter."}},
+    {"@type":"Question","name":"Can I get it as an app?","acceptedAnswer":{"@type":"Answer","text":"Yes. Noise Meter – Keep Quiet is the same noise meter as an app for iPhone, iPad and Mac, free to download with no ads. The app is installed on your device and works offline, with optional premium characters and themes via in-app purchase. There is no Android app; on Android, Chromebook and Windows use the free online noise meter."}},
     {"@type":"Question","name":"What does the one-time unlock include?","acceptedAnswer":{"@type":"Answer","text":"All 8 characters and all 5 backgrounds of the online noise meter, each reacting to the noise level in 3 steps. Everything in the free meter stays free. The unlock is for the web version at keepquiet.app; the iPhone, iPad and Mac app is sold separately in the App Store."}},
     {"@type":"Question","name":"Is the unlock a subscription?","acceptedAnswer":{"@type":"Answer","text":"No. It is a one-time payment of $19.99 plus tax where applicable — the exact total is shown before you pay. There is no renewal and no time limit."}},
     {"@type":"Question","name":"Do I need an account?","acceptedAnswer":{"@type":"Answer","text":"No. There is no account at keepquiet.app. Stripe asks for your email address at checkout to send the receipt; we use the same address to send your license key and to restore your purchase later."}},
@@ -198,19 +231,17 @@ html.kq-dialog-open,html.kq-dialog-open body{overflow:hidden}
     {"@type":"Question","name":"Is the unlock the same as the App Store upgrade?","acceptedAnswer":{"@type":"Answer","text":"No. The unlock is for the web version at keepquiet.app only. The Noise Meter – Keep Quiet app for iPhone, iPad and Mac has its own optional upgrade, bought separately in the App Store."}},
     {"@type":"Question","name":"What is a visual noise meter for kids?","acceptedAnswer":{"@type":"Answer","text":"A visual noise meter turns sound into something children can see. Keep Quiet uses the device microphone to measure the room's volume in real time: a friendly character changes expression, the scene shifts colour, and a green-to-red dial or bar shows how loud things are — so kids can lower their own volume without being told. It is available as a free online noise meter in the browser and as the Noise Meter – Keep Quiet app for iPhone, iPad and Mac."}},
     {"@type":"Question","name":"How do I monitor noise levels in my classroom?","acceptedAnswer":{"@type":"Answer","text":"Open the free online noise meter on the classroom screen, or the app on an iPad mirrored to the whiteboard, pick a character, and let the class watch. As chatter rises the character reacts and the meter climbs toward red, prompting students to self-correct — no shushing needed."}},
-    {"@type":"Question","name":"How can I get kids to be quiet without yelling?","acceptedAnswer":{"@type":"Answer","text":"Replace verbal reminders with a visual cue. When children can see the noise level and a character reacting to it, staying quiet becomes a game of keeping the character happy rather than obeying an instruction. In the app, pair it with the built-in quiet-time timer to set a clear, achievable goal."}},
-    {"@type":"Question","name":"Does the app have a quiet time timer?","acceptedAnswer":{"@type":"Answer","text":"Yes, the app has a quiet-time timer. Set a quiet-time goal — for example ten minutes of reading — and the timer runs while the meter shows the live noise level, turning quiet time into a challenge kids can win. The online noise meter has no timer yet; a classroom timer is planned as a separate free browser tool."}},
-    {"@type":"Question","name":"Is it suitable for autistic children and sensory-friendly spaces?","acceptedAnswer":{"@type":"Answer","text":"Yes. The app was designed with sensory-friendly spaces in mind: gentle visuals, colour feedback that never punishes, support for reduced motion, dark interface and differentiate-without-colour accessibility options, and no ads or interruptions. The online noise meter respects the reduced-motion setting of the device too."}},
-    {"@type":"Question","name":"How loud is too loud for a classroom?","acceptedAnswer":{"@type":"Answer","text":"Focused independent work is comfortable around normal-conversation levels or lower, while sustained loud noise makes concentration and reading harder. Because every room and activity differs, the meter lets you see the level at a glance and set the sensitivity so that 'too loud' matches each activity."}},
-    {"@type":"Question","name":"Is Noise Meter – Keep Quiet free?","acceptedAnswer":{"@type":"Answer","text":"The app is free to download on iPhone, iPad and Mac with no ads. Optional premium upgrades unlock extras such as additional characters and themes."}},
-    {"@type":"Question","name":"Does the app record audio? Is it safe for kids?","acceptedAnswer":{"@type":"Answer","text":"The microphone is used only to measure the volume level in real time so the meter and characters can react. The app contains no ads and is rated 4+ on the App Store."}},
+    {"@type":"Question","name":"How can I get kids to be quiet without yelling?","acceptedAnswer":{"@type":"Answer","text":"Replace verbal reminders with a visual cue. When children can see the noise level — and a character reacting to it — staying quiet becomes a game of keeping the character happy rather than obeying an instruction."}},
+    {"@type":"Question","name":"Does the app have a quiet time timer?","acceptedAnswer":{"@type":"Answer","text":"Yes, the app has a quiet-time timer. Set a quiet-time goal — say, ten minutes of reading — and the timer runs while the meter shows the live noise level, turning quiet time into a challenge kids can win. The free online noise meter has a quiet-time timer too: choose a preset from 1 to 30 minutes or type your own length from 1 to 90 minutes. It counts only while the meter runs; at 0:00 the meter pauses itself and the timer turns red, with no sound."}},
+    {"@type":"Question","name":"Is it suitable for autistic children and sensory-friendly spaces?","acceptedAnswer":{"@type":"Answer","text":"Yes. Gentle visuals, colour feedback that never punishes, reduced-motion and high-contrast accessibility support, dark interface, and no ads or interruptions make it a good fit for sensory-friendly rooms. The online noise meter respects the reduced-motion setting of the device too."}},
+    {"@type":"Question","name":"How loud is too loud for a classroom?","acceptedAnswer":{"@type":"Answer","text":"Focused work is comfortable around normal-conversation levels or lower; sustained loud noise makes concentration and reading harder. Every room differs, so the meter shows the level at a glance and lets you set the sensitivity so that \"too loud\" matches each activity."}},
+    {"@type":"Question","name":"Is Noise Meter – Keep Quiet free?","acceptedAnswer":{"@type":"Answer","text":"Yes — free to download on iPhone, iPad and Mac, with no ads. Optional premium upgrades unlock extras like additional characters and themes."}},
+    {"@type":"Question","name":"Does the app record audio? Is it safe for kids?","acceptedAnswer":{"@type":"Answer","text":"The microphone is used only to measure the volume level in real time so the meter and characters can react. The app is ad-free and rated 4+ on the App Store."}},
     {"@type":"Question","name":"Is Noise Meter – Keep Quiet the same app as Too Noisy?","acceptedAnswer":{"@type":"Answer","text":"No. Noise Meter – Keep Quiet is made by Natalia Jakubczyk-Gajewska, has App Store ID 6744021866 and its website is keepquiet.app. Some storefronts showed the title \"Too Noisy - Keep Quiet\" until September 2026; since version 1.0.12 every storefront uses the Noise Meter name. Too Noisy is a different app from another developer."}}
   ]
 }
 </script>
 <script>
-/* Unlock return / restore link (UNLOCK-PLAN § 3.4, worker/README § 8.1): ?unlock= and ?k= (+ ?src=) go into window.__kqUnlock,
-   then the URL is cleaned before the TelemetryDeck tag and the modules run. Created only when unlock or k is present. No eval, no fetch. */
 (function(){try{var s=location.search;if(!s||!/[?&](unlock|k)=/.test(s))return;var p=new URLSearchParams(s),u=p.get('unlock'),k=p.get('k'),src=p.get('src');
 var o={session:null,cancel:false,k:null,src:null};if(u==='cancel')o.cancel=true;else if(u&&u.length<=200)o.session=u;
 if(k&&k.length<=40)o.k=k;if(src==='mail')o.src='mail';window.__kqUnlock=o;
@@ -238,7 +269,6 @@ p.delete('unlock');p.delete('k');p.delete('src');var q=p.toString();history.repl
 </header>
 
 <main>
-  <!-- THE TOOL: the free online noise meter — the pre-start overlay carries the page's H1 (bouncyballs-style) -->
   <section class="tool-section" id="top" aria-label="Noise meter">
     <div id="noise-meter" class="nm is-fresh" data-assets="assets/tool/" style="--nm-above:65px">
       <div class="nm-stage">
@@ -288,11 +318,6 @@ p.delete('unlock');p.delete('k');p.delete('src');var q=p.toString();history.repl
     </div>
   </section>
 
-  <!-- PRICING (UNLOCK-PLAN § 3.4 / § 3.4a). #pro-card = the price card (pro-view signal, ≥ 50 % visible, unchanged);
-       data-kq-unlock-card: once a key is stored unlock.js rewrites [data-kq-actions] to "✓ Unlocked · Manage". The button
-       calls /checkout (unlock-click {from:"card"}), the ghost link opens the unlock dialog in restore mode. The price literals
-       (big price, button line 2) mirror PRICE_LABEL in unlock.js; the button's two lines and the trust line mirror STRINGS
-       unlockLine1 / unlockLine2 / trust (2026-11-03) — edit both. Text rule: no "school", "classes", "teacher". -->
   <section class="pricing" id="pricing" aria-labelledby="pricing-title">
     <div class="wrap pricing-grid">
       <div class="pricing-info">
@@ -323,7 +348,6 @@ p.delete('unlock');p.delete('k');p.delete('src');var q=p.toString();history.repl
     </div>
   </section>
 
-  <!-- HOW TO USE -->
   <section id="how-to-use">
     <div class="wrap">
       <div class="section-head">
@@ -350,7 +374,6 @@ p.delete('unlock');p.delete('k');p.delete('src');var q=p.toString();history.repl
     </div>
   </section>
 
-  <!-- FAQ -->
   <section id="faq" class="faq">
     <div class="wrap">
       <div class="section-head">
@@ -377,7 +400,7 @@ p.delete('unlock');p.delete('k');p.delete('src');var q=p.toString();history.repl
       </details>
       <details>
         <summary>Can I get it as an app?</summary>
-        <p>Yes. Noise Meter – Keep Quiet is the same noise meter as an app for iPhone, iPad and Mac, free to download with no ads. The app adds a quiet-time timer, more characters and scenes, and works offline. There is no Android app; on Android, Chromebook and Windows use the free online noise meter. <a data-td-position="faq" class="learn" href="https://apps.apple.com/app/apple-store/id6744021866?pt=118868513&amp;ct=webnew&amp;mt=8">Get it on the App Store →</a></p>
+        <p>Yes. Noise Meter – Keep Quiet is the same noise meter as an app for iPhone, iPad and Mac, free to download with no ads. The app is installed on your device and works offline, with optional premium characters and themes via in-app purchase. There is no Android app; on Android, Chromebook and Windows use the free online noise meter. <a data-td-position="faq" class="learn" href="https://apps.apple.com/app/apple-store/id6744021866?pt=118868513&amp;ct=webnew&amp;mt=8">Get it on the App Store →</a></p>
       </details>
 
       <h3 class="faq-group" id="faq-unlock">About the one-time unlock</h3>
@@ -429,7 +452,7 @@ p.delete('unlock');p.delete('k');p.delete('src');var q=p.toString();history.repl
       </details>
       <details>
         <summary>Does the app have a quiet time timer?</summary>
-        <p>Yes, the app has a quiet-time timer. Set a quiet-time goal — say, ten minutes of reading — and the timer runs while the meter shows the live noise level, turning quiet time into a challenge kids can win. The online noise meter has no timer yet; a classroom timer is planned as a separate free browser tool. <a class="learn" href="guides/quiet-time-timer.html">Learn more →</a></p>
+        <p>Yes, the app has a quiet-time timer. Set a quiet-time goal — say, ten minutes of reading — and the timer runs while the meter shows the live noise level, turning quiet time into a challenge kids can win. The free online noise meter has a quiet-time timer too: choose a preset from 1 to 30 minutes or type your own length from 1 to 90 minutes. It counts only while the meter runs; at 0:00 the meter pauses itself and the timer turns red, with no sound. <a class="learn" href="guides/quiet-time-timer.html">Learn more →</a></p>
       </details>
       <details>
         <summary>Is it suitable for autistic children and sensory-friendly spaces?</summary>
@@ -454,13 +477,12 @@ p.delete('unlock');p.delete('k');p.delete('src');var q=p.toString();history.repl
     </div>
   </section>
 
-  <!-- APP -->
   <section id="app" class="app-section">
     <div class="wrap">
       <div class="section-head">
         <span class="eyebrow">The app</span>
         <h2>Also on iPhone, iPad &amp; Mac</h2>
-        <p>Noise Meter – Keep Quiet is the same noise meter as an installed app: more characters and scenes, a quiet-time timer, and it works offline.</p>
+        <p>Noise Meter – Keep Quiet is the same noise meter as an installed app for iPhone, iPad and Mac. It works offline and has optional premium characters and themes via in-app purchase.</p>
         <p class="hero-proof"><a data-td-position="app" href="https://apps.apple.com/app/apple-store/id6744021866?pt=118868513&amp;ct=webnew&amp;mt=8">Also available as an app for iPhone, iPad &amp; Mac →</a></p>
       </div>
       <div class="app-ctas">
@@ -471,7 +493,6 @@ p.delete('unlock');p.delete('k');p.delete('src');var q=p.toString();history.repl
         <p class="hero-proof">★ <strong>4.8 rating</strong> · No ads · Ages 4+ · iPhone, iPad &amp; Mac · 11 languages</p>
       </div>
 
-      <!-- AT A GLANCE (fact box for quick readers and AI assistants) -->
       <div class="glance-box" id="at-a-glance">
         <h2>Noise Meter – Keep Quiet (keepquiet.app) at a glance</h2>
         <p class="best-for"><strong>Best for:</strong> classrooms up to upper primary, families with children from about 3 to 12, and sensory spaces of any age, where a reacting character on an iPad, iPhone or Mac gets kids to lower their own volume.</p>
@@ -517,7 +538,6 @@ p.delete('unlock');p.delete('k');p.delete('src');var q=p.toString();history.repl
     </div>
   </section>
 
-  <!-- GUIDES -->
   <section id="guides">
     <div class="wrap">
       <div class="section-head">
@@ -584,7 +604,7 @@ p.delete('unlock');p.delete('k');p.delete('src');var q=p.toString();history.repl
     <div>
       <a class="brand" href="index.html"><picture><source srcset="assets/icon-76.webp" type="image/webp"><img src="assets/icon-76.jpg" alt="" width="38" height="38" loading="lazy"></picture>Keep Quiet – free classroom tools</a>
       <p style="margin-top:12px">A free online classroom noise meter, and the Noise Meter – Keep Quiet app for iPhone, iPad and Mac. Friendly characters react to sound in real time, helping children stay calm and quiet at home, in classrooms and in sensory-friendly spaces.</p>
-      <p style="margin-top:12px"><a href="privacy.html">Privacy policy</a> · <a href="terms.html">Terms &amp; conditions</a></p>
+      <p style="margin-top:12px"><a href="about.html">About</a> · <a href="privacy.html">Privacy policy</a> · <a href="terms.html">Terms &amp; conditions</a></p>
     </div>
     <div>
       <h3>Guides</h3>
@@ -605,7 +625,7 @@ p.delete('unlock');p.delete('k');p.delete('src');var q=p.toString();history.repl
     </div>
   </div>
   <div class="wrap foot-note">
-    <p>© 2026 Natalia Jakubczyk-Gajewska. Apple, the Apple logo, iPhone, iPad and Mac are trademarks of Apple Inc. App Store is a service mark of Apple Inc. Last updated: <time datetime="2026-11-10">November 10, 2026</time>.</p>
+    <p>© 2026 Natalia Jakubczyk-Gajewska. Apple, the Apple logo, iPhone, iPad and Mac are trademarks of Apple Inc. App Store is a service mark of Apple Inc. Last updated: <time datetime="2026-11-13">November 13, 2026</time>.</p>
   </div>
 </footer>
 </body>

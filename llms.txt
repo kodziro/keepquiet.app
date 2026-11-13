@@ -9,6 +9,7 @@ The free online noise meter on the homepage works on Chromebook, Windows, Mac an
 - Free, no ads, no sign-up, no time limit.
 - Privacy: Audio never leaves your device — sound is analysed in the browser, nothing is recorded, stored or sent. Page views and clicks are counted anonymously (TelemetryDeck, no cookies), never sound.
 - Works in the browser on Chromebook, Windows, Mac and iPad (needs a microphone and a current browser: Chrome, Edge, Safari or Firefox).
+- Quiet-time timer (free): presets from 1 to 30 minutes or a custom length from 1 to 90 minutes. It counts only while the meter runs; at 0:00 the meter pauses itself and the timer turns red, with no sound.
 - Free set = 1 character (cat, 3 states) + 1 scene (city: park → street → airport). An optional one-time unlock adds all 8 characters and 5 backgrounds (see below).
 - No decibel numbers: loudness is shown as character, scene colour and a green-to-red dial or bar.
 ## One-time unlock for the online noise meter (https://keepquiet.app/#pricing)
@@ -20,10 +21,6 @@ The free online noise meter on the homepage works on Chromebook, Windows, Mac an
 - Restore: on every device you use yourself (no device limit) with the restore link, the license key, or the email you paid with. Sharing the key with others is not allowed.
 - Seller: sold and charged by Link (Stripe); the charge appears as LINK.COM* KEEPQUIET.
 - Refunds: write to support@keepquiet.app within 14 days for a full refund, no questions asked; the key then stops working.
-
-## More free tools
-
-- More free browser tools for classrooms are planned (scoreboard and tally counter, token board, classroom timer, random name picker).
 
 ## Noise Meter – Keep Quiet app (iPhone, iPad & Mac)
 
@@ -59,6 +56,7 @@ App Store: https://apps.apple.com/app/apple-store/id6744021866?pt=118868513&ct=w
 
 ## Support
 
+- About (who makes Keep Quiet, contact, sister sites): https://keepquiet.app/about.html
 - Email (website and browser unlock): support@keepquiet.app
 - Email (iOS app): AppsForParents@gmail.com
 - Privacy Policy (website and browser unlock): https://keepquiet.app/privacy.html
