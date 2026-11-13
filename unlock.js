@@ -37,8 +37,13 @@
   Contract: worker/README.md § 2 (endpoints, error codes), § 7 (key format), § 8 (browser side),
   § 9 (mock mode — implemented literally below). UI states: UNLOCK-PLAN.md § 3.4 / § 3.4a.
   Signals (§ 3.5): unlock-click {from: panel|card|thumb — where the pressed Unlock button sits, or
-  the opener of the dialog it sits in}, unlock-success {via}, unlock-cancel, unlock-fail {reason},
-  unlock-restore-attempt {via}. Never the key, the email, the device id or the session id.
+  the opener of the dialog it sits in}, unlock-success {via; + from when via is checkout}, unlock-cancel {from},
+  unlock-fail {reason}, unlock-restore-attempt {via}, dialog-open {from: thumb|restore|manage — the visitor
+  opened the dialog (or its fallback card); never sent when it opens by itself: Stripe return, ?k= result, checkout
+  error}. Never the key, the email, the device id or the session id.
+  Across the Stripe redirect (sessionStorage, try/catch, front end only): kq-unlock-from = the from of the pressed
+  Unlock button, read and deleted on the return (missing or not in the list → "unknown"; unlock-click follows the same rule); kq-test-return = "1" when
+  the page was in TelemetryDeck test mode, read and deleted by noise-meter.js on the next page load.
 
   Every user-facing string lives in STRINGS (Step 6 edits only this object + the static card in
   index.html #pro-card, which repeats the offer for readers without JavaScript). The facts "not
@@ -146,6 +151,10 @@ const UNLOCK_API = resolveApi(window.__kqUnlockApi || 'https://api.keepquiet.app
   (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } });
 
 const LS_LICENSE = 'kq-license', LS_DEVICE = 'kq-device', LS_MOCK = 'kq-mock';
+const SS_FROM = 'kq-unlock-from', SS_TEST_RETURN = 'kq-test-return';   // sessionStorage, across the Stripe redirect only
+const FROM_VALUES = ['panel', 'card', 'thumb'];   // unlock-click {from}; anything else is sent as "unknown"
+function ssSet(k, v) { try { sessionStorage.setItem(k, v); } catch (e) {} }
+function ssTake(k) { let v = null; try { v = sessionStorage.getItem(k); sessionStorage.removeItem(k); } catch (e) {} return v; }
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const KEY_RE = /^KQ-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}$/;
 
@@ -292,6 +301,7 @@ export default function init(api) {
     pendingSession: null, // ?unlock=<session> kept for Retry (→ the "Payment received" view)
     busy: false,
     openedFrom: 'panel',  // opener of the dialog → unlock-click {from} for the dialog's own button
+    returnFrom: 'unknown', // Stripe return only: the from of the Unlock press before the redirect (handleUrl)
     justBought: false,    // thank-you after a real purchase (verify → unlockedNow 'checkout'); cleared when the dialog closes
     preview: null,        // dev hook only (?dev-thanks=1): example key shown in the dialog, never stored
     restoreOpen: false,   // dialog offer view: restore field expanded (restore mode, or the link was pressed)
@@ -403,6 +413,12 @@ export default function init(api) {
     dlg.addEventListener('close', onDialogClosed);
     document.body.appendChild(dlg);
     views.push({ host: dlgBody, variant: 'dialog' });
+  }
+  // the visitor opens the dialog (locked thumb, a Restore link, Manage): dialog-open {from: how}, then the dialog.
+  // Everything that opens it without a tap (Stripe return, ?k= result, checkout error, dev hook) calls openDialog directly.
+  function userOpen(how, from, focusRestore) {
+    signal('dialog-open', { from: how });
+    openDialog(from, focusRestore);
   }
   // from: 'thumb' | 'panel' | 'card' (→ unlock-click {from} of the dialog's button); focusRestore: put the caret in the key field
   function openDialog(from, focusRestore, expandRestore) {
@@ -647,7 +663,7 @@ export default function init(api) {
       line.appendChild(document.createTextNode(S.sep));
     }
     const m = smallBtn(variant, S.manage);
-    m.addEventListener('click', () => openDialog(from));
+    m.addEventListener('click', () => userOpen('manage', from));
     line.appendChild(m);
     return line;
   }
@@ -661,7 +677,7 @@ export default function init(api) {
       const line = p('nm-unlock-status');
       line.appendChild(document.createTextNode(fill(S.freeUntil, { date: api.freeUntil }) + S.sep));
       const r = smallBtn('line', S.restore);
-      r.addEventListener('click', () => openDialog('panel', true));
+      r.addEventListener('click', () => userOpen('restore', 'panel', true));
       line.appendChild(r);
       host.appendChild(line);
       return;
@@ -673,7 +689,7 @@ export default function init(api) {
     host.appendChild(p('nm-unlock-caption', S.caption));
     const r = p('nm-unlock-caption');
     const b = smallBtn('line', S.restoreEntry);
-    b.addEventListener('click', () => openDialog('panel', true));
+    b.addEventListener('click', () => userOpen('restore', 'panel', true));
     r.appendChild(b);
     host.appendChild(r);
   }
@@ -772,7 +788,7 @@ export default function init(api) {
     state.justBought = via === 'checkout';   // the purchase view (bought line, Choose a character, confetti) — never for restores
     state.msgs = { main: null, restore: null };
     lsSet(LS_LICENSE, key);
-    signal('unlock-success', { via });
+    signal('unlock-success', via === 'checkout' ? { via, from: state.returnFrom } : { via });
     api.setUnlocked();
     render();
     if (dlg && dlg.open) dlg.scrollTop = 0;
@@ -782,11 +798,14 @@ export default function init(api) {
   // from: 'panel' (panel button), 'card' (static card button), or the dialog opener (thumb|panel|card)
   async function checkout(from) {
     if (state.busy) return;
+    if (FROM_VALUES.indexOf(from) < 0) from = 'unknown';   // same rule as unlock-cancel / unlock-success
     signal('unlock-click', { from });
     setBusy(true, null);
     try {
       const r = await call('POST', '/checkout', {});
       if (r.status === 200 && r.json && typeof r.json.url === 'string') {
+        ssSet(SS_FROM, from);                                  // → unlock-cancel / unlock-success {from} after the return
+        if (api.isTestMode && api.isTestMode()) ssSet(SS_TEST_RETURN, '1');   // the return page load stays in test mode
         api.pauseForRedirect();   // exit expanded fullscreen (iPhone Safari), pause the meter
         location.assign(r.json.url);
         return;
@@ -878,8 +897,12 @@ export default function init(api) {
     const u = window.__kqUnlock;
     if (!u) return;
     window.__kqUnlock = undefined;   // handled once (Safari bfcache may bring the page back)
+    if (u.session || u.cancel) {     // Stripe return: which Unlock button started it (read once, deleted; else "unknown")
+      const f = ssTake(SS_FROM);
+      state.returnFrom = FROM_VALUES.indexOf(f) >= 0 ? f : 'unknown';
+    }
     if (u.session) { state.pendingSession = u.session; openDialog('panel'); verify(u.session); return; }
-    if (u.cancel) { signal('unlock-cancel', {}); setMsg('main', S.cancelled, 'info'); openDialog('panel'); return; }
+    if (u.cancel) { signal('unlock-cancel', { from: state.returnFrom }); setMsg('main', S.cancelled, 'info'); openDialog('panel'); return; }
     if (u.k) {
       const key = normaliseKey(u.k);
       if (state.key && state.key === key) return;   // same key already stored: nothing to do
@@ -923,7 +946,7 @@ export default function init(api) {
   } catch (e) {}
 
   return {
-    show(from) { openDialog(from || 'thumb'); },                       // locked thumb tapped
+    show(from) { userOpen('thumb', from || 'thumb'); },                // locked thumb tapped
     panelClosed() {
       const thanks = !DIALOG_OK && state.justBought;   // fallback card: the purchase view ends with the panel
       if (thanks) state.justBought = false;
@@ -932,7 +955,7 @@ export default function init(api) {
     cardAction(target) {                                               // Unlock / Restore on the static card below the fold
       if (!target) return;
       if (target.hasAttribute('data-kq-unlock')) checkout('card');
-      else if (target.hasAttribute('data-kq-restore')) openDialog('card', true);
+      else if (target.hasAttribute('data-kq-restore')) userOpen('restore', 'card', true);
     },
     isUnlocked() { return !!state.key; }
   };

@@ -68,6 +68,20 @@
 .nm-tr .nm-fs{position:static}
 .nm.is-timer-open .nm-tr,.nm.is-panel-open .nm-tr{visibility:hidden}
 .nm-style-ico{width:22px;font-size:1.15rem;line-height:1;text-align:center;flex:none}
+/* faces in the Style pill (2026-11-13; noise-meter.js STYLE_FACES): visitors without a key see three 28 px round faces of locked
+   characters (thin white ring, overlapping; emoji until the thumbs have loaded, then the thumb zoomed to the head) in place of the 🎨
+   — before the first Start and while paused. While running the round button is unchanged. Decorative: the pill keeps its style,
+   height, place and action; it only gets wider (the row is anchored on the right, so Timer sits further left by the same amount). */
+.nm-sfaces{display:none;flex:none}
+.nm-sface{box-sizing:border-box;width:28px;height:28px;border:1.5px solid #fff;border-radius:50%;overflow:hidden;background:#E3ECF7;font-size:14px;line-height:25px;text-align:center}
+.nm-sface+.nm-sface{margin-left:-8px}
+.nm-sface picture{display:none}
+.nm-sface.is-img .nm-semoji{display:none}
+.nm-sface.is-img picture{display:block;width:100%;height:100%}
+.nm-sface img{display:block;max-width:none;width:210%;height:210%;margin:-7% 0 0 -51.5%;object-fit:contain}   /* the head: a 76 px window of the 160 px thumb */
+.nm.has-style-faces:not(.is-running) .nm-sfaces{display:flex}
+.nm.has-style-faces:not(.is-running) .nm-style-ico{display:none}
+.nm.has-style-faces:not(.is-running) .nm-style{padding-left:9px}
 /* quiet-time timer (2026-11-07). Sheet: looks like the settings panel (right side, phone = whole stage), z 7 above it — the
    script hides the panel while the sheet is open, so the two never show together. Pill: white, under the top row, same side
    margins as the pause bar (5 %), z 5 under the panel; while the panel is open (≥ 700 px) the pill ends before it. */
@@ -458,6 +472,7 @@ html.kq-dialog-open,html.kq-dialog-open body{overflow:hidden}
   .nm-tr{top:14px;right:14px}
   .nm-style,.nm-timer{width:44px;padding:0;justify-content:center}   /* icon only */
   .nm-style .nm-fs-text,.nm-timer .nm-fs-text{display:none}
+  .nm.has-style-faces:not(.is-running) .nm-style{width:auto;padding:0 7px}   /* icon only: the three faces, 82 px wide */
   .nm.is-running .nm-fs{width:44px;height:44px}   /* round buttons keep a 44 px hit area (was 42) */
 }
 /* reduced motion: no cross-fade, no marker glide; the needle steps per level (set by JS) */

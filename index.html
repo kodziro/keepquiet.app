@@ -74,6 +74,16 @@ section{padding:56px 0}
 .nm-tr .nm-fs{position:static}
 .nm.is-timer-open .nm-tr,.nm.is-panel-open .nm-tr{visibility:hidden}
 .nm-style-ico{width:22px;font-size:1.15rem;line-height:1;text-align:center;flex:none}
+.nm-sfaces{display:none;flex:none}
+.nm-sface{box-sizing:border-box;width:28px;height:28px;border:1.5px solid #fff;border-radius:50%;overflow:hidden;background:#E3ECF7;font-size:14px;line-height:25px;text-align:center}
+.nm-sface+.nm-sface{margin-left:-8px}
+.nm-sface picture{display:none}
+.nm-sface.is-img .nm-semoji{display:none}
+.nm-sface.is-img picture{display:block;width:100%;height:100%}
+.nm-sface img{display:block;max-width:none;width:210%;height:210%;margin:-7% 0 0 -51.5%;object-fit:contain}
+.nm.has-style-faces:not(.is-running) .nm-sfaces{display:flex}
+.nm.has-style-faces:not(.is-running) .nm-style-ico{display:none}
+.nm.has-style-faces:not(.is-running) .nm-style{padding-left:9px}
 .nm-overlay{position:absolute;inset:0;z-index:4;background:rgba(0,0,0,.2);transition:opacity .3s ease,visibility .3s,background .3s}
 .nm.is-fresh .nm-overlay{background:rgba(0,0,0,.3)}
 .nm-stack{position:absolute;left:0;right:0;top:87%;transform:translateY(-50%);text-align:center;padding:0 16px;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.5)}
@@ -105,11 +115,11 @@ html.kq-dialog-open,html.kq-dialog-open body{overflow:hidden}
 .nm-microw-text{font:700 .95rem var(--nm-font);color:var(--nm-ink);white-space:nowrap}
 .nm-microw .nm-select{margin:0}
 @media (max-width:699px){.nm-panel{left:0;right:0;width:auto;max-width:none;border-radius:0;transform:translateY(100%)}.nm.is-fresh .nm-stack{right:0;width:auto;top:72px;transform:none;text-align:center;padding:0 16px}.nm.is-fresh .nm-char{bottom:12%;height:42%}.nm.is-fresh .nm-indicator{opacity:0;visibility:hidden}.nm-privacy{font-size:.82rem}}
-@media (max-width:560px){.nm-char{height:52%;bottom:19%}.nm-indicator{width:min(62vw,260px);bottom:15%}.nm-fs{top:14px;left:14px}.nm-tr{top:14px;right:14px}.nm-style,.nm-timer{width:44px;padding:0;justify-content:center}.nm-style .nm-fs-text,.nm-timer .nm-fs-text{display:none}}
+@media (max-width:560px){.nm-char{height:52%;bottom:19%}.nm-indicator{width:min(62vw,260px);bottom:15%}.nm-fs{top:14px;left:14px}.nm-tr{top:14px;right:14px}.nm-style,.nm-timer{width:44px;padding:0;justify-content:center}.nm-style .nm-fs-text,.nm-timer .nm-fs-text{display:none}.nm.has-style-faces:not(.is-running) .nm-style{width:auto;padding:0 7px}}
 </style>
 <link rel="stylesheet" href="styles.css?v=20261110a" media="print" onload="this.media='all'">
-<link rel="stylesheet" href="noise-meter.css?v=20261110a" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="styles.css?v=20261110a"><link rel="stylesheet" href="noise-meter.css?v=20261110a"></noscript>
+<link rel="stylesheet" href="noise-meter.css?v=20261113b" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="styles.css?v=20261110a"><link rel="stylesheet" href="noise-meter.css?v=20261113b"></noscript>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -208,7 +218,7 @@ p.delete('unlock');p.delete('k');p.delete('src');var q=p.toString();history.repl
 </script>
 <script defer src="https://cdn.telemetrydeck.com/websdk/telemetrydeck.min.js" data-app-id="43A2ECAF-E4DA-4440-B847-7A1FCE01600C"></script>
 <script type="module" src="assets/appstore-click.js"></script>
-<script type="module" src="noise-meter.js?v=20261110a"></script>
+<script type="module" src="noise-meter.js?v=20261113c"></script>
 </head>
 <body>
 <div class="meter-strip" aria-hidden="true"></div>

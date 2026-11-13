@@ -154,7 +154,8 @@
   var LS_TIMER = 'kq-nm-timer-seconds';
   var TIMER_PRESETS = [1, 2, 3, 5, 10, 15, 20, 30], TIMER_MAX_MIN = 90, TIMER_DEFAULT = 300;   // minutes / seconds
   var FREE_UNTIL = '';               // e.g. '2026-12-31': all characters and backgrounds free until then (UNLOCK-PLAN § 2.11); '' = off
-  var UNLOCK_V = '20261110a';        // ?v= of unlock.js — bump with every change to unlock.js
+  var UNLOCK_V = '20261113b';
+  var STYLE_FACES = true;            // three faces of locked characters in the Style pill for visitors without a key; false = the 🎨 for everyone (one deploy switches it off)        // ?v= of unlock.js — bump with every change to unlock.js
 
   // Names are used ONLY in alt / aria-label text, never as visible labels.
   var CHARACTERS = [
@@ -243,7 +244,19 @@
     try { if (crypto && crypto.randomUUID) return crypto.randomUUID(); } catch (e) {}
     return String(Date.now()) + '-' + Math.random().toString(36).slice(2);
   }
+  // Test mode across the Stripe return (2026-11-13): the Worker's return URL carries no ?test=1, so unlock.js stores
+  // sessionStorage kq-test-return = "1" just before the redirect when the page was in test mode. Read once here, deleted
+  // at once, and honoured only on a page load that IS a Stripe return (window.__kqUnlock: session or cancel) — so it
+  // lasts for that one page load. Storage blocked = no flag = today's behaviour.
+  var SS_TEST_RETURN = 'kq-test-return';
+  var testReturn = (function () {
+    var v = null;
+    try { v = sessionStorage.getItem(SS_TEST_RETURN); sessionStorage.removeItem(SS_TEST_RETURN); } catch (e) {}
+    var u = window.__kqUnlock;
+    return v === '1' && !!u && (!!u.session || u.cancel === true);
+  })();
   function isTestMode() {
+    if (testReturn) return true;
     if (document.body && document.body.getAttribute('data-td-test') === '1') return true;
     try { if (new URLSearchParams(location.search).get('test') === '1') return true; } catch (e) {}
     return /^localhost$|^127(\.\d+){0,2}\.\d+$|^\[::1?]$/.test(location.hostname) || location.protocol === 'file:';
@@ -499,6 +512,7 @@
     reportSession();
     running = false;
     sheetClosed = false; panelWhileRunning = false;
+    panelBy = 'pause';   // panel-open {by}: the panel shows itself after a pause
     onMeterStop();   // a running quiet-time timer freezes (paused)
     cancelAnimationFrame(rafId);
     stopTracks();
@@ -558,6 +572,46 @@
     }, { threshold: [0.5] });
     io.observe(card);
   }
+
+  /* ---------- faces in the Style pill (2026-11-13; switch: STYLE_FACES) ---------- */
+  // Visitors without a key (unlock UI active, no free window): the Style pill shows three small round faces of locked
+  // characters (dog, crocodile, robot) in place of the 🎨 — before the first Start and while paused; the round button
+  // while running stays as it is (CSS: .has-style-faces:not(.is-running)). Decorative only (aria-hidden): same button,
+  // same aria-label, same action, no new signal (panel-open {by:"style"} covers it). No request at first paint: emoji
+  // first, the three 160 px thumbs load after the page is idle. A key stored on this page load → back to the 🎨.
+  var STYLE_FACE_LIST = [['dog', '🐶'], ['crocodile', '🐊'], ['robot', '🤖']];   // character id, emoji until its thumb has loaded
+  var styleFaces = null, styleFacesAsked = false;
+  function styleFacesWanted() { return STYLE_FACES && unlockActive() && !freeWindow() && !lsGet(LS_LICENSE); }
+  function addStyleFaces(btn, before) {
+    if (!styleFacesWanted()) return;
+    styleFaces = el('span', 'nm-sfaces'); styleFaces.setAttribute('aria-hidden', 'true');
+    STYLE_FACE_LIST.forEach(function (f) {
+      var cell = el('span', 'nm-sface');
+      cell.appendChild(el('span', 'nm-semoji', f[1]));
+      styleFaces.appendChild(cell);
+    });
+    btn.insertBefore(styleFaces, before);
+    root.classList.add('has-style-faces');
+    var idle = function () {
+      if (window.requestIdleCallback) window.requestIdleCallback(loadStyleFaces, { timeout: 3000 });
+      else setTimeout(loadStyleFaces, 1500);
+    };
+    if (document.readyState === 'complete') idle(); else window.addEventListener('load', idle);
+  }
+  function loadStyleFaces() {   // after the page is idle: the thumbs replace the emoji (a failed image keeps its emoji)
+    if (styleFacesAsked || !styleFaces || !root.classList.contains('has-style-faces')) return;
+    styleFacesAsked = true;
+    var cells = styleFaces.querySelectorAll('.nm-sface');
+    STYLE_FACE_LIST.forEach(function (f, i) {
+      var item = CHARACTERS.filter(function (x) { return x.id === f[0]; })[0];
+      if (!item || !cells[i]) return;
+      var pic = thumbPicture('char', item), img = pic.querySelector('img');
+      img.loading = 'eager';   // hidden until loaded (CSS), so lazy loading would never start it
+      img.addEventListener('load', function () { cells[i].classList.add('is-img'); });
+      cells[i].appendChild(pic);
+    });
+  }
+  function dropStyleFaces() { root.classList.remove('has-style-faces'); }   // unlocked on this page load: the 🎨 again
 
   /* ---------- stage height: viewport minus everything above the stage ---------- */
   var aboveTimer = 0;
@@ -686,7 +740,9 @@
     // settings panel — before the first start without starting the meter, while running over the running meter (closed again by the ×
     // or Style; Start / Resume / Pause reset it). Round icon while running, icon only ≤ 560 px (CSS, same rules as Timer).
     styleBtn = button('nm-fs nm-style', 'Style: customize characters and backgrounds', '<span class="nm-style-ico" aria-hidden="true">\uD83C\uDFA8</span>');
-    styleBtn.appendChild(el('span', 'nm-fs-text', 'Style'));
+    var styleText = el('span', 'nm-fs-text', 'Style');
+    styleBtn.appendChild(styleText);
+    addStyleFaces(styleBtn, styleText);   // visitors without a key: three faces in place of the 🎨 (STYLE_FACES)
     styleBtn.setAttribute('aria-controls', 'nm-panel');
     styleBtn.setAttribute('aria-expanded', 'false');
     styleBtn.addEventListener('click', function () {
@@ -738,10 +794,14 @@
   var panelForced = false;   // the Style pill and unlock.js (return from Stripe, ?k= result) open the panel before the first start
   var panelWhileRunning = false;   // Style pressed while the meter runs: the panel shows over the running meter until closed, paused or resumed
   var panelCloseBtn = null;
+  // panel-open {by: style|pause|other}: once per page load, the first time the panel / phone sheet becomes visible.
+  // by = who asked for this applyPanel(): the Style pill, a pause (stop()), anything else (unlock.js, a closed timer sheet)
+  var panelOpenSent = false, panelBy = 'other';
   function focusPanelClose() { if (panelCloseBtn) { try { panelCloseBtn.focus({ preventScroll: true }); } catch (e) {} } }
   // Style: open the panel in the current state; the top-right row hides while it is open, so the focus moves to its ×
   function openPanelByStyle() {
     panelForced = true; panelWhileRunning = running; sheetClosed = false;
+    panelBy = 'style';
     applyPanel(); focusPanelClose();
   }
   // × / Style / Escape (before the first start): close the panel for now — fresh: back to the welcome screen; paused: until the
@@ -754,6 +814,8 @@
     // paused (after the first start) or requested by Style / unlock.js; while running only when Style asked for it; never with the timer sheet
     var vis = (running ? panelWhileRunning : (everStarted || panelForced)) && !sheetClosed && !timerOpen;
     root.classList.toggle('is-panel-open', vis);
+    if (vis && !panelOpenSent) { panelOpenSent = true; signal('panel-open', { by: panelBy }); }
+    panelBy = 'other';
     if (panel) { panel.setAttribute('aria-hidden', vis ? 'false' : 'true'); try { panel.inert = !vis; } catch (e) {} }
     if (sheetResumeBtn) sheetResumeBtn.textContent = everStarted ? '\u25B6 Resume' : '\u25B6 Start';
     if (styleBtn) styleBtn.setAttribute('aria-expanded', vis ? 'true' : 'false');
@@ -963,6 +1025,7 @@
     if (charGrid) { charGrid.innerHTML = ''; fillGrid(charGrid, 'char', CHARACTERS); }
     if (sceneGrid) { sceneGrid.innerHTML = ''; fillGrid(sceneGrid, 'scene', SCENES); }
     if (legend) legend.hidden = isUnlocked();
+    if (isUnlocked()) dropStyleFaces();   // the faces go with the lock badges
   }
 
   /* ---------- locked tap → counted + the unlock dialog (or, without the unlock UI, the inline interest card) ---------- */
