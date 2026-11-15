@@ -1,0 +1,425 @@
+/* === Critical tool CSS — change both together: this block is inlined in the <head> of index.html
+   and tool-test.html AND lives at the top of tool.css. Keep the three copies byte-identical. === */
+:root{--tb-accent:#4DA3FF;--tb-accent-hover:#3690F0;--tb-navy:#1E2A44;--tb-green:#7ED957;--tb-slot:#F2F2F4;--tb-ring:#E6E6EA;--tb-header:59px}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy);background:#fff;line-height:1.55;font-size:1.0625rem}
+.tb-header{position:sticky;top:0;z-index:50;height:var(--tb-header);display:flex;align-items:center;gap:14px;padding:0 16px;background:rgba(255,255,255,.94);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--tb-ring)}
+.tb-brand{display:flex;align-items:center;gap:10px;min-width:0;text-decoration:none;color:var(--tb-navy);font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.05rem;line-height:1.2;white-space:nowrap}
+.tb-brand img{width:36px;height:36px;border-radius:9px;flex:0 0 36px}
+.tb-brand-sub{font-weight:500;opacity:.8}
+.tb-nav{margin-left:auto;display:flex;gap:18px;font-weight:700;font-size:.95rem}
+.tb-nav a{color:var(--tb-navy);text-decoration:none;padding:8px 2px;line-height:1}
+.tb-stage{position:relative;min-height:max(480px,calc(100svh - var(--tb-header)));display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 12px 64px;background:#FFFFFF;overflow:hidden}
+.tb-heading{text-align:center;margin:0 0 48px;max-width:100%}
+.tb-title{display:block;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:clamp(2.2rem,min(4.2vw,6vh),3.8rem);line-height:1.1;min-height:1.1em;color:var(--tb-navy);text-shadow:0 2px 14px rgba(0,0,0,.14)}
+.tb-stage.is-dark .tb-title{color:#fff}
+.tb-board-wrap{position:relative;width:100%;max-width:560px}
+.tb-board{width:100%;background:#fff;border-radius:28px;box-shadow:0 10px 36px rgba(30,42,68,.16);padding:20px 20px 24px}
+.tb-board-top{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:18px;min-height:72px}
+.tb-board-title{margin:0;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.6rem;line-height:1.2;min-width:0;overflow-wrap:anywhere}
+.tb-reward{flex:0 0 72px;width:72px;height:72px;border-radius:50%;background:var(--tb-slot);display:flex;align-items:center;justify-content:center;font-size:2.3rem;line-height:1}
+.tb-slots{display:grid;grid-template-columns:repeat(5,minmax(56px,1fr));justify-content:center;gap:12px;margin:0;padding:0;list-style:none}
+.tb-slot{aspect-ratio:1/1;width:100%;min-width:0;border-radius:50%;border:2px solid transparent;background:var(--tb-slot);font:inherit;font-size:2rem;line-height:1;color:inherit;cursor:pointer;padding:0;margin:0;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.tb-slot.is-filled{background:#FFFFFF;border-color:var(--tb-ring)}
+/* token goal > 10: tool.js sets --cols / --s / --gap and the classes is-many (stage) + is-fit (slots) */
+.tb-stage.is-many .tb-board-wrap{max-width:760px}
+.tb-slots.is-fit{grid-template-columns:repeat(var(--cols,5),var(--s,48px));gap:var(--gap,8px)}
+.tb-slots.is-fit .tb-slot{width:var(--s,48px);font-size:calc(var(--s,48px) * .55)}
+@media(max-width:479px){.tb-board{padding:14px 12px 18px}.tb-slots{gap:8px}.tb-board-top{margin-bottom:14px}}
+.tb-skip{position:absolute;left:12px;top:-200px;z-index:100;padding:10px 18px;border-radius:999px;background:var(--tb-navy);color:#fff;font-weight:800;text-decoration:none}
+.tb-skip:focus{top:12px}
+.tb-sr{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.tb-stage[data-bg="white"]{background:#FFFFFF}
+.tb-stage[data-bg="blue"]{background:#D9ECFF}
+.tb-stage-btn{position:absolute;top:14px;z-index:5;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;cursor:pointer;color:#fff;background:rgba(0,0,0,.55);font-family:system-ui,-apple-system,sans-serif;font-weight:700;font-size:.95rem;line-height:1;transition:background .15s ease}
+.tb-stage-btn:hover{background:rgba(0,0,0,.65)}
+.tb-stage-btn svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;flex:0 0 22px}
+.tb-btn-fs{left:14px;height:44px;border-radius:999px;padding:0 16px 0 13px}
+.tb-btn-fs[hidden]{display:none}
+/* buttons under the board (2026-10-23, replace the ⚙ corner button): 🎨 Style = main action, ✨ Unlock all extras = light */
+.tb-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin:16px 0 0;max-width:100%}
+.tb-act{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;max-width:100%;padding:0 18px;border:2px solid var(--tb-accent);border-radius:999px;cursor:pointer;color:var(--tb-navy);font-family:system-ui,-apple-system,sans-serif;font-weight:700;font-size:.95rem;line-height:1;white-space:nowrap;transition:background .15s ease}
+.tb-act-style{min-width:140px;background:#1F6FD1;border-color:#1F6FD1;color:#fff}
+.tb-act-style:hover{background:#1A5FB4;border-color:#1A5FB4}
+.tb-act-style>span{font-size:1.15em}
+.tb-act-extras{background:#fff;border-width:1.5px;font-weight:400}
+.tb-act-extras:hover{background:#EEF5FF}
+.tbu-has-key .tb-act-extras{display:none}
+.tb-act[disabled]{cursor:default;opacity:.75;background:#fff}
+.tb-empty-hint{margin:12px 0 0;text-align:center;font-size:.9rem;font-weight:600;line-height:1.3;color:#5B6478}
+.tb-empty-hint[hidden]{display:none}
+.tb-status{position:absolute;left:50%;top:-48px;transform:translateX(-50%);width:max-content;max-width:90vw;pointer-events:none;background:rgba(30,42,68,.85);color:#fff;font-family:system-ui,-apple-system,sans-serif;font-weight:700;font-size:.9rem;line-height:1.2;padding:9px 16px;border-radius:999px;box-shadow:0 6px 18px rgba(0,0,0,.18);opacity:0;transition:opacity .2s ease}
+.tb-status.is-visible{opacity:1}
+.tb-privacy{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);width:max-content;max-width:calc(100% - 24px);text-align:center;font-size:.85rem;font-weight:700;line-height:1.3;color:var(--tb-navy);text-decoration:none;opacity:.85;padding:6px 10px;border-radius:999px}
+.tb-privacy:hover{opacity:1;text-decoration:underline}
+.tb-stage.is-dark .tb-privacy{color:#fff}
+.tb-panel{position:absolute;top:0;right:0;bottom:0;z-index:20;width:360px;max-width:100%;visibility:hidden;transform:translateX(100%)}
+.tb-complete{display:none}
+@media(max-width:699px){.tb-btn-fs{width:46px;height:46px;border-radius:50%;padding:0}.tb-btn-fs .tb-btn-fs-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}}
+@media(max-width:599px){.tb-brand-sub{display:none}}
+
+/* ============================================================================
+   Non-critical tool CSS (only here, not inlined — tool.css loads non-blocking since T7c, so
+   everything visible above the fold is in the critical block): focus, settings panel,
+   celebration overlay, confetti, fullscreen, below-the-fold, footer.
+   ========================================================================== */
+
+/* ---- focus + motion ---- */
+a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--tb-accent);outline-offset:3px}
+.tb-slot:focus-visible{outline-offset:2px}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}
+}
+html{scroll-behavior:smooth}
+
+/* ---- settings panel (light surface; header outside the scroll area = always visible; ONE scrollbar = .tb-panel-body) ---- */
+.tb-panel{position:absolute;top:0;right:0;bottom:0;z-index:20;width:360px;max-width:100%;background:#fff;color:var(--tb-navy);border-left:1px solid var(--tb-ring);box-shadow:-10px 0 32px rgba(30,42,68,.14);font-family:system-ui,-apple-system,sans-serif;display:flex;flex-direction:column;visibility:hidden;transform:translateX(100%);transition:transform .25s ease,visibility 0s linear .25s}
+.tb-stage.is-settings .tb-panel{visibility:visible;transform:none;transition:transform .25s ease,visibility 0s}
+.tb-panel-head{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px;border-bottom:1px solid var(--tb-ring);background:#fff}
+.tb-panel-title{margin:0;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.3rem;line-height:1.2;color:var(--tb-navy)}
+.tb-panel-close{width:40px;height:40px;border-radius:50%;border:0;background:var(--tb-slot);color:var(--tb-navy);font-size:1.6rem;line-height:1;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex:0 0 40px}
+.tb-panel-close:hover{background:var(--tb-ring)}
+.tb-panel-body{position:relative;flex:1 1 auto;min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;padding:18px 20px 28px;display:flex;flex-direction:column;gap:24px}
+.tb-set{margin:0}
+.tb-set-label{display:block;margin:0 0 10px;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.02rem;line-height:1.2;color:var(--tb-navy)}
+.tb-input{width:100%;height:44px;border:1px solid #C9CFDB;border-radius:12px;padding:0 12px;font:inherit;font-size:1rem;color:var(--tb-navy);background:#fff}
+.tb-input:focus{border-color:var(--tb-accent)}
+.tb-hint{margin:-2px 0 10px;font-size:.85rem;font-weight:600;line-height:1.3;color:#4a5480}
+/* tiles: token icons, backgrounds and rewards share one size (5 equal columns) */
+.tb-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;padding:3px;margin:-3px}
+.tb-thumb{position:relative;width:100%;aspect-ratio:1/1;border-radius:14px;border:1px solid var(--tb-ring);background:var(--tb-slot);font:inherit;font-size:1.7rem;line-height:1;color:inherit;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;transition:background .15s ease,border-color .15s ease,box-shadow .15s ease}
+.tb-thumb:hover{border-color:var(--tb-accent);background:#EEF5FF}
+.tb-thumb[aria-pressed="true"]{border-color:var(--tb-accent);background:#E3F0FF;box-shadow:0 0 0 3px var(--tb-accent)}
+.tb-thumb-img{display:flex;align-items:center;justify-content:center}
+.tb-thumb-bg .tb-thumb-img{position:absolute;inset:5px;border-radius:9px;background:var(--c,#fff);box-shadow:inset 0 0 0 1px rgba(30,42,68,.12)}
+/* locked (2026-10-23): full colour like a free tile, only the small lock badge shows it (was: white tile, content at .45) */
+.tb-thumb.is-nudge{box-shadow:0 0 0 3px #1F6FD1}
+.tb-lock{position:absolute;right:3px;bottom:3px;width:18px;height:18px;border-radius:50%;background:var(--tb-navy);color:#fff;display:flex;align-items:center;justify-content:center}
+.tb-lock svg{width:10px;height:10px;fill:currentColor}
+/* lock badge only while the item is locked */
+/* own photo tiles (first in Reward + Background): thumbnail once set, small × to delete it from this browser */
+.tb-photo-cell{position:relative;min-width:0}
+.tb-thumb-photo:not(.has-photo){border:2px dashed var(--tb-accent);background:#EEF5FF}
+.tb-thumb-photo:not(.has-photo):hover{background:#E3F0FF}
+.tb-photo-plus{display:none;position:absolute;right:3px;bottom:3px;width:18px;height:18px;border-radius:50%;background:#1F6FD1;color:#fff;font-size:14px;font-weight:800;line-height:18px;text-align:center}
+.tb-thumb-photo:not(.has-photo):not(.is-locked) .tb-photo-plus{display:block}
+.tb-thumb-photo.has-photo .tb-thumb-img{position:absolute;inset:5px;border-radius:9px;background-position:center;background-size:cover;background-repeat:no-repeat}
+.tb-photo-edit{display:none;position:absolute;right:3px;bottom:3px;width:20px;height:20px;border-radius:50%;background:#fff;color:var(--tb-navy);box-shadow:0 1px 3px rgba(30,42,68,.3);align-items:center;justify-content:center}
+.tb-photo-edit svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linejoin:round}
+.tb-thumb-photo.has-photo:not(.is-locked) .tb-photo-edit{display:flex}
+.tb-photo-remove{position:absolute;top:-6px;right:-6px;z-index:2;width:26px;height:26px;padding:0;border:2px solid #fff;border-radius:50%;background:var(--tb-navy);color:#fff;font:inherit;font-size:1rem;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.tb-photo-remove::before{content:"";position:absolute;inset:-9px} /* 44 px tap area */
+.tb-photo-remove[hidden]{display:none}
+.tb-photo-msg{margin:10px 0 0;font-size:.85rem;font-weight:700;line-height:1.35;color:var(--tb-navy)}
+.tb-photo-msg:empty{display:none}
+.tb-photo-msg.is-error{color:#B3261E}
+.tb-photo-note{margin:8px 0 0;font-size:.8rem;line-height:1.3;color:#5B6478}
+/* own photo on the board: reward circle, celebration, and the stage background with a soft white veil */
+.tb-reward.has-photo,.tb-complete-reward.has-photo{background-color:#fff;background-position:center;background-size:cover;background-repeat:no-repeat}
+.tb-stage[data-bg="photo"]{background:linear-gradient(rgba(255,255,255,.5),rgba(255,255,255,.5)),var(--tb-photo,none) center/cover no-repeat;background-color:#fff}
+.tb-stage[data-bg="photo"] .tb-title{text-shadow:0 0 2px #fff,0 0 16px rgba(255,255,255,.95)}
+.tb-stage[data-bg="photo"] .tb-privacy{background:rgba(255,255,255,.85)}
+.tb-thumb:not(.is-locked) .tb-lock{display:none}
+/* the page becomes unlocked: lock badges pop off one after another (--d = stagger) with a sparkle */
+.tb-thumb.is-unlocking .tb-lock{display:flex;animation:tb-lock-off .35s ease-in var(--d,0ms) forwards}
+.tb-thumb.is-unlocking::after{content:"✨";position:absolute;top:2px;right:2px;font-size:.85rem;line-height:1;opacity:0;pointer-events:none;animation:tb-sparkle .45s ease-out var(--d,0ms)}
+@keyframes tb-lock-off{0%{transform:none;opacity:1}40%{transform:translateY(-4px) scale(1.3);opacity:1}100%{transform:translateY(-10px) scale(0);opacity:0}}
+@keyframes tb-sparkle{0%{opacity:0;transform:scale(.4)}50%{opacity:1;transform:scale(1.2)}100%{opacity:0;transform:scale(.8)}}
+/* reduced motion: no pops (tool.js adds is-fading instead of is-unlocking), only a calm fade of the lock badges */
+@keyframes tbu-fade-out{from{opacity:1}to{opacity:0}}
+@media (prefers-reduced-motion:reduce){
+  .tb-thumb.is-fading .tb-lock{display:flex;animation:tbu-fade-out .4s ease forwards!important}
+}
+/* locked backgrounds: shown when unlocked, or kept by a board in use */
+.tb-stage[data-bg="green"]{background:#DFF5E3}
+.tb-stage[data-bg="yellow"]{background:#FFF3C4}
+.tb-stage[data-bg="pink"]{background:#FFE0EC}
+.tb-stage[data-bg="purple"]{background:#EADDFF}
+.tb-stage[data-bg="grey"]{background:#E9EAEE}
+.tb-stage[data-bg="navy"]{background:#1E2A44}
+/* token goal: quick picks + stepper (− / number / +) */
+.tb-seg{display:flex;background:var(--tb-slot);border-radius:999px;padding:3px}
+.tb-seg-item{position:relative;flex:1 1 0}
+.tb-seg-item input{position:absolute;inset:0;width:100%;height:100%;opacity:0;margin:0;cursor:pointer}
+.tb-seg-item span{display:flex;align-items:center;justify-content:center;height:38px;border-radius:999px;font-weight:700;font-size:1rem;color:var(--tb-navy);pointer-events:none}
+.tb-seg-item input:hover+span{background:var(--tb-ring)}
+.tb-seg-item input:checked+span{background:var(--tb-accent);color:var(--tb-navy)}
+.tb-seg-item input:focus-visible+span{outline:3px solid var(--tb-accent);outline-offset:2px}
+.tb-stepper{display:flex;align-items:center;gap:8px;margin-top:10px}
+.tb-step-btn{width:44px;height:44px;flex:0 0 44px;border:1px solid var(--tb-ring);border-radius:50%;background:var(--tb-slot);color:var(--tb-navy);font:inherit;font-size:1.5rem;font-weight:700;line-height:1;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.tb-step-btn:hover{border-color:var(--tb-accent);background:#EEF5FF}
+.tb-step-btn[disabled]{opacity:.4;cursor:default;border-color:var(--tb-ring);background:var(--tb-slot)}
+.tb-goal-input{width:76px;height:44px;border:1px solid #C9CFDB;border-radius:12px;padding:0 6px;text-align:center;font:inherit;font-size:1.15rem;font-weight:700;color:var(--tb-navy);background:#fff;-moz-appearance:textfield;appearance:textfield}
+.tb-goal-input::-webkit-outer-spin-button,.tb-goal-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.tb-goal-input:focus{border-color:var(--tb-accent)}
+.tb-goal-range{margin-left:auto;font-size:.85rem;font-weight:600;color:#4a5480}
+.tb-hint.tb-hint-below{margin:10px 0 0} /* T15b: the Token goal hint sits under the stepper row */
+/* T15: stepper + number input are an extra; locked = the navy lock badge on the number input only (T15b), controls in full colour */
+.tb-goal-box{position:relative;display:inline-flex}
+.tb-stepper .tb-lock{display:none;right:-4px;bottom:-4px}
+.tb-stepper.is-locked .tb-lock{display:flex}
+.tb-stepper.is-locked .tb-goal-input{cursor:pointer}
+/* sound: label + toggle on one row */
+.tb-switch{display:flex;align-items:center;justify-content:space-between;width:100%;cursor:pointer}
+.tb-switch .tb-set-label{margin:0}
+.tb-switch input{position:absolute;opacity:0;width:1px;height:1px}
+.tb-switch-track{position:relative;width:48px;height:28px;border-radius:999px;background:#C9CFDB;transition:background .15s ease;flex:0 0 48px}
+.tb-switch-track::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(30,42,68,.25);transition:transform .15s ease}
+.tb-switch input:checked~.tb-switch-track{background:var(--tb-accent)}
+.tb-switch input:checked~.tb-switch-track::after{transform:translateX(20px)}
+.tb-switch input:focus-visible~.tb-switch-track{outline:3px solid var(--tb-accent);outline-offset:3px}
+.tb-feedback{display:flex;align-items:center;gap:2px;flex-wrap:nowrap;background:var(--tb-slot);border-radius:12px;padding:0 4px 0 12px} /* one line, at the bottom of the panel body */
+.tb-feedback[hidden]{display:none}
+.tb-feedback-q{flex:1 1 auto;min-width:0;font-weight:700;font-size:.9rem;line-height:1.2}
+.tb-feedback-btn{flex:0 0 44px;width:44px;height:44px;border:0;border-radius:10px;background:transparent;color:var(--tb-navy);font-size:1.3rem;line-height:1;cursor:pointer}
+.tb-feedback-btn:hover{background:var(--tb-ring)}
+/* desktop: while the panel is open, the hero, board and privacy line move into the free space left of it
+   (tool.js refits the slot grid to that width, so changes stay visible live) */
+@media(min-width:700px){
+  .tb-stage{transition:padding-right .25s ease}
+  .tb-stage.is-settings{padding-right:372px}
+  .tb-stage.is-settings .tb-privacy{left:calc(50% - 180px);max-width:calc(100% - 384px)}
+}
+.tb-panel-done{display:none}
+/* phone: full-width bottom sheet (header + Done stay visible, body scrolls) */
+@media(max-width:699px){
+  .tb-panel{top:auto;left:0;right:0;width:100%;height:60vh;height:60svh;max-height:calc(100% - 140px);border-left:0;border-radius:20px 20px 0 0;box-shadow:0 -10px 32px rgba(30,42,68,.2);transform:translateY(100%)}
+  .tb-panel-head{border-radius:20px 20px 0 0;padding:12px 16px}
+  .tb-panel-body{padding:16px 16px 20px}
+  .tb-panel-done{display:block;flex:0 0 60px;height:60px;background:#fff;padding:8px 16px;border-top:1px solid var(--tb-ring)}
+  .tb-grid{grid-template-columns:repeat(6,minmax(0,56px));justify-content:start}
+  /* the sheet takes ~60 % of the screen; the board moves up into the space above it (tool.js refits the slots) */
+  .tb-stage.is-settings{justify-content:flex-start;padding-top:70px;padding-bottom:calc(60vh + 10px);padding-bottom:calc(60svh + 10px)}
+  .tb-stage.is-settings .tb-heading,.tb-stage.is-settings .tb-privacy{display:none}
+  .tb-done{width:100%;height:44px;border:0;border-radius:999px;background:#1F6FD1;color:#fff;font:inherit;font-weight:700;font-size:1.05rem;cursor:pointer}
+  .tb-done:hover{background:#1A5FB4}
+}
+
+/* ---- board name: editable in place on the board too ---- */
+.tb-board-title[contenteditable]{cursor:text;border-radius:8px;outline-offset:4px;min-width:3ch}
+.tb-board-title[contenteditable]:hover{text-decoration:underline dotted rgba(30,42,68,.35);text-underline-offset:6px}
+.tb-board-title[contenteditable]:focus{outline:3px solid var(--tb-accent);text-decoration:none}
+.tb-board-title[contenteditable]:empty::before{content:"Board name";opacity:.35}
+
+/* ---- reward circle: a button that opens the panel at Reward ---- */
+.tb-reward[role="button"]{cursor:pointer;transition:box-shadow .15s ease}
+.tb-reward[role="button"]:hover{box-shadow:0 0 0 3px var(--tb-accent)}
+
+/* ---- buttons under the board: hidden in fullscreen, and on phones while the sheet is open ---- */
+.tb-stage:fullscreen .tb-actions{display:none}
+.tb-stage:-webkit-full-screen .tb-actions{display:none}
+.tb-stage.is-expanded .tb-actions{display:none}
+.tb-stage:fullscreen .tb-empty-hint{display:none}
+.tb-stage:-webkit-full-screen .tb-empty-hint{display:none}
+.tb-stage.is-expanded .tb-empty-hint{display:none}
+/* fullscreen (native + iPhone expanded, 2026-10-23): only the board card and the exit button. The header is outside
+   the stage (native) or covered (expanded); the H1 stays in the HTML, only hidden. The board may grow (tool.js
+   fitSlots fits the circles to the freed height). */
+.tb-stage:fullscreen .tb-heading,.tb-stage:fullscreen .tb-privacy{display:none}
+.tb-stage:-webkit-full-screen .tb-heading,.tb-stage:-webkit-full-screen .tb-privacy{display:none}
+.tb-stage.is-expanded .tb-heading,.tb-stage.is-expanded .tb-privacy{display:none}
+.tb-stage:fullscreen{padding-bottom:20px}
+.tb-stage:-webkit-full-screen{padding-bottom:20px}
+.tb-stage.is-expanded{padding-bottom:20px}
+.tb-stage:fullscreen .tb-board-wrap{max-width:960px}
+.tb-stage:-webkit-full-screen .tb-board-wrap{max-width:960px}
+.tb-stage.is-expanded .tb-board-wrap{max-width:960px}
+/* focus ring on the pills + reward circle: keyboard only (tool.js sets html.tb-pointer after a mouse / touch press),
+   one dark ring outside the pill so it never reads as a second accent border */
+.tb-act:focus-visible,.tb-reward:focus-visible{outline:3px solid #1F6FD1;outline-offset:3px}
+.tb-act-style:focus-visible{outline:0;box-shadow:0 0 0 2px #fff,0 0 0 5px var(--tb-navy)} /* dark pill: white inner + navy outer ring */
+.tb-pointer .tb-act:focus,.tb-pointer .tb-reward:focus{outline:none;box-shadow:none}
+.tb-pointer .tb-panel button:focus{outline:none} /* × and every panel button: ring only after a key press (Enter on 🎨 Style still shows it on ×) */
+.tb-pointer .tb-complete button:focus{outline:none} /* celebration: Hooray (focused by script after a tap) + the extras button */
+.tb-act:focus:not(:focus-visible),.tb-reward:focus:not(:focus-visible){outline:none}
+.tb-act-style:focus:not(:focus-visible){box-shadow:none}
+@media(max-width:699px){.tb-stage.is-settings .tb-actions{display:none}}
+
+/* ---- celebration overlay (shown by .is-complete; role=dialog, focus stays on Hooray, Escape = Hooray) ---- */
+.tb-complete{position:absolute;inset:0;z-index:30;display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:24px;background:rgba(30,42,68,.94);color:#fff} /* .94 (was .85): the board no longer shows through the overlay content */
+.tb-stage.is-complete .tb-complete{display:flex}
+.tb-complete-title{margin:0;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:2.4rem;line-height:1.1}
+.tb-complete-reward{width:120px;height:120px;margin:0 0 8px;border-radius:50%;background:#fff;color:var(--tb-navy);display:flex;align-items:center;justify-content:center;font-size:4.2rem;line-height:1;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.tb-complete-sub{margin:0 0 14px;font-size:1.2rem;font-weight:700;opacity:.9}
+.tb-hooray{min-height:64px;min-width:200px;padding:0 36px;border:0;border-radius:999px;background:var(--tb-green);color:var(--tb-navy);font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.4rem;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.tb-hooray:hover{filter:brightness(1.05)}
+/* small secondary button under Hooray (only while locked): opens the offer dialog; never over the reward */
+.tb-complete-extras{margin-top:4px;min-height:44px;max-width:100%;padding:8px 18px;border:0;border-radius:999px;background:#fff;color:var(--tb-navy);white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.25);font-family:system-ui,-apple-system,sans-serif;font-weight:600;font-size:.9rem;line-height:1.3;cursor:pointer}
+.tb-complete-extras:hover{background:#EEF5FF}
+.tb-complete-extras[hidden]{display:none}
+.tb-confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+
+/* ---- token pop (.3 s) — no layout change, transform only ---- */
+@keyframes tb-pop{0%{transform:scale(.55)}60%{transform:scale(1.14)}100%{transform:scale(1)}}
+.tb-slot.is-pop{animation:tb-pop .3s cubic-bezier(.2,.8,.3,1.2)}
+.tb-slot:active{transform:scale(.96)}
+
+/* ---- confetti (60 <i> pieces added by JS on completion; none under prefers-reduced-motion) ---- */
+.tb-confetti i{position:absolute;top:-16px;left:var(--x,50%);width:10px;height:14px;border-radius:2px;background:var(--c,#4DA3FF);transform:rotate(var(--r,0deg));opacity:.95;animation:tb-fall var(--d,3s) linear var(--delay,0s) forwards}
+@keyframes tb-fall{to{transform:translateY(110vh) rotate(720deg);opacity:.8}}
+
+/* ---- native fullscreen: the stage element fills the screen ---- */
+.tb-stage:fullscreen{min-height:100%;height:100%;width:100%}
+.tb-stage:-webkit-full-screen{min-height:100%;height:100%;width:100%}
+
+/* ---- expanded (iPhone) fullscreen mode ---- */
+.tb-stage.is-expanded{position:fixed;inset:0;z-index:1000;min-height:0;height:100%}
+body.tb-scroll-lock{overflow:hidden;position:fixed;width:100%}
+
+/* ---- below the fold ---- */
+.tb-wrap{max-width:1120px;margin:0 auto;padding:0 22px}
+.tb-section{padding:48px 0 8px}
+.tb-section h2{font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:clamp(1.7rem,3vw,2.3rem);line-height:1.15;margin:0 0 16px}
+.tb-section p{margin:0 0 12px}
+.tb-section h2.tb-section-sub{margin-top:40px}
+.tb-faq details{border:1px solid var(--tb-ring);border-radius:14px;padding:12px 18px;margin:0 0 10px;background:#fff}
+.tb-faq summary{cursor:pointer;font-weight:800;font-family:"Fredoka",system-ui,sans-serif;font-size:1.1rem;line-height:1.3;padding:4px 0}
+.tb-faq details p{margin:10px 0 4px}
+
+/* ---- below-the-fold content ---- */
+.tb-note{color:#4a5480;max-width:60ch}
+.tb-steps{list-style:none;margin:0 0 18px;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px}
+.tb-step{position:relative;background:#F7FAFF;border:1px solid var(--tb-ring);border-radius:18px;padding:22px 20px 18px 20px}
+.tb-step-n{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:var(--tb-accent);color:var(--tb-navy);font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.1rem;margin-bottom:10px}
+.tb-step h3{margin:0 0 6px;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.2rem;line-height:1.2}
+.tb-step p{margin:0;font-size:.98rem}
+/* link text uses #1F6FD1 (≥ 4.5:1 on white); --tb-accent-hover stays for button hover backgrounds */
+.tb-faq details p a,.tb-note a,.tb-app a{color:#1F6FD1}
+.tb-app-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:start}
+@media(max-width:800px){.tb-app-grid{grid-template-columns:1fr}}
+.tb-app-icon{border-radius:18px;box-shadow:0 6px 18px rgba(30,42,68,.18);margin-bottom:12px}
+.tb-app-ctas{display:flex;flex-wrap:wrap;align-items:center;gap:14px}
+.tb-btn-store{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 22px;border-radius:999px;background:var(--tb-navy);color:#fff!important;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.05rem;text-decoration:none}
+.tb-btn-store:hover{background:#2b3a5c}
+.tb-app-more{font-weight:700}
+.tb-facts{margin:0;display:grid;gap:8px}
+.tb-facts div{display:grid;grid-template-columns:120px 1fr;gap:10px;padding:10px 12px;background:#F7FAFF;border:1px solid var(--tb-ring);border-radius:12px;font-size:.95rem}
+.tb-facts dt{font-weight:800}
+.tb-facts dd{margin:0}
+@media(max-width:420px){.tb-facts div{grid-template-columns:1fr}}
+.guides{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:18px;margin-top:18px}
+.guide-card{background:#fff;border:1px solid var(--tb-ring);border-radius:18px;padding:22px;text-decoration:none;color:var(--tb-navy);display:flex;flex-direction:column;gap:8px;transition:transform .15s ease,border-color .15s ease}
+.guide-card:hover{transform:translateY(-3px);border-color:var(--tb-accent)}
+.guide-card .gc-tag{font-size:.75rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#1F6FD1}
+.guide-card h3{margin:0;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.12rem;line-height:1.25}
+.guide-card p{margin:0;color:#4a5480;font-size:.93rem;flex:1}
+.guide-card .gc-link{font-weight:800;color:#1F6FD1;font-size:.93rem}
+
+/* ---- footer (same markup + class names as app.html / guides) ---- */
+.site-footer{background:var(--tb-navy);color:#c9d2f2;padding:56px 0 40px;margin-top:64px;font-size:1rem}
+.site-footer .wrap{max-width:1120px;margin:0 auto;padding:0 22px}
+.site-footer a{color:#fff;text-decoration:none}
+.site-footer a:hover{text-decoration:underline}
+.site-footer p{margin:0 0 12px}
+.foot-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;gap:36px;margin-bottom:36px}
+@media(max-width:960px){.foot-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:760px){.foot-grid{grid-template-columns:1fr}}
+.foot-grid h3,.foot-grid h4{color:#fff;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1rem;margin:0 0 14px}
+.foot-grid ul{list-style:none;margin:0;padding:0}
+/* grid items may shrink below their longest word; long words (the support e-mail) wrap instead of widening the page */
+.foot-grid>*,.tb-app-grid>*,.tb-facts dd{min-width:0}
+.site-footer a,.tb-facts dd{overflow-wrap:anywhere}
+.foot-grid li{margin-bottom:9px;font-size:.95rem}
+.foot-brand{display:flex;align-items:center;gap:11px;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;color:#fff;font-size:1.15rem;margin-bottom:14px}
+.foot-brand img{width:40px;height:40px;border-radius:10px;display:block}
+.foot-note{border-top:1px solid rgba(255,255,255,.15);padding-top:22px;font-size:.85rem;color:#9aa7d6}
+
+/* ============================================================================
+   Paid unlock UI (prefix tbu-; worker/README.md § 8.4): offer dialog, pricing section + price card,
+   panel line, fallback card. Look: navy #1E2A44, button #1F6FD1 with white text, Fredoka headings,
+   44 px targets, focus ring only for keyboard use (html.tb-pointer, see above).
+   ========================================================================== */
+.tb-act[hidden]{display:none} /* the ✨ button under the board is hidden when unlocked (before tool.js runs: html.tbu-has-key, critical CSS) */
+/* the status pill must show over the celebration overlay (z-index 30) too: "Could not load the unlock — …" */
+.tb-stage.is-complete .tb-status{z-index:31;background:#fff;color:var(--tb-navy)}
+/* header nav with 4 links (Pricing added 2026-11-14): below 440 px the brand text and the nav would collide
+   (and at 320 px the page would scroll sideways), so the "Board" link is hidden there — the brand links to it */
+@media(max-width:439px){.tb-nav{gap:14px}.tb-nav a[href="#board"]{display:none}}
+
+/* ---- dialog (native <dialog>, top layer) ---- */
+.tbu-dialog{border:0;border-radius:20px;padding:0;width:calc(100% - 2rem);max-width:28rem;max-height:calc(100vh - 2rem);max-height:calc(100dvh - 2rem);margin:auto;overflow:auto;background:transparent;color:var(--tb-navy);font-family:system-ui,-apple-system,sans-serif;font-size:1rem;line-height:1.5;text-align:left;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.tbu-dialog::backdrop{background:rgba(30,42,68,.55)}
+.tbu-dialog-box{position:relative;z-index:1;min-height:100%;padding:22px 20px 18px;background:#fff;outline:0}
+.tbu-dialog-x{position:absolute;top:6px;right:6px;width:44px;height:44px;border:0;border-radius:50%;padding:0;background:none;color:#5B6478;font:400 1.6rem/1 system-ui,-apple-system,sans-serif;cursor:pointer}
+.tbu-dialog-x:hover{background:var(--tb-slot);color:var(--tb-navy)}
+html.tbu-dialog-open,html.tbu-dialog-open body{overflow:hidden}
+.tbu-title{max-width:10.5em;margin:0 40px 8px 0;text-wrap:balance;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.35rem;line-height:1.2;color:var(--tb-navy)}
+.tbu-lead{margin:0 0 12px;font-size:.98rem;line-height:1.45}
+.tbu-preview{display:flex;justify-content:center;gap:6px;margin:0 0 12px;font-size:28px;line-height:1.2}
+/* the Unlock button (dialog + price card): two lines; "Style your board →" uses the same look */
+.tbu-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:100%;min-height:56px;padding:8px 20px;border:0;border-radius:16px;background:#1F6FD1;color:#fff;font-family:system-ui,-apple-system,sans-serif;font-weight:800;font-size:1.08rem;line-height:1.2;text-align:center;cursor:pointer;box-shadow:0 8px 20px rgba(31,111,209,.32);transition:background .15s ease,transform .1s ease}
+.tbu-btn:hover{background:#1A5FB4}
+.tbu-btn:active{transform:scale(.98)}
+.tbu-btn[disabled]{cursor:default;opacity:.8}
+.tbu-u1,.tbu-u2{display:block}
+.tbu-u2{font-weight:600;font-size:.88rem}
+.tbu-style{margin:0 0 14px}
+.tbu-ghost{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 18px;border:1px solid var(--tb-navy);border-radius:999px;background:#fff;color:var(--tb-navy);font-family:system-ui,-apple-system,sans-serif;font-weight:700;font-size:.95rem;line-height:1.2;cursor:pointer}
+.tbu-ghost:hover{background:#EEF5FF}
+.tbu-sm{display:inline-flex;align-items:center;min-height:44px;padding:0 6px;border:0;border-radius:8px;background:none;color:#1F6FD1;font-family:inherit;font-size:inherit;font-weight:700;line-height:1.2;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.tbu-sm:hover{color:#1A5FB4;background:#EEF5FF}
+.tbu-ghost[disabled],.tbu-sm[disabled]{cursor:default;opacity:.6}
+.tbu-trust{display:flex;flex-wrap:wrap;justify-content:flex-start;gap:4px 14px;margin:12px 0;font-size:.82rem;line-height:1.3;color:#3D4763}
+.tbu-trust-item{display:inline-flex;align-items:center;gap:6px}
+.tbu-trust-item:nth-child(n+3){flex:0 0 100%} /* rows: [one-time payment, no subscription] / secure checkout / unlocks instantly */
+.tbu-trust-item svg{flex:0 0 14px;color:#1F6FD1}
+.tbu-fine{margin:0 0 8px;font-size:.8rem;line-height:1.4;color:#5B6478}
+.tbu-fine a,.tbu-quiet a,.tbu-msg a,.tbu-link{color:#1F6FD1}
+/* the three bottom lines of the offer: left-aligned, small even gaps; 44 px tap targets on touch screens */
+.tbu-see,.tbu-restore-toggle{margin:4px 0 0;text-align:left;font-size:.9rem}
+.tbu-fine+.tbu-see{margin-top:0}
+.tbu-see .tbu-sm,.tbu-restore-toggle .tbu-sm{min-height:24px;margin-left:-6px}
+@media (pointer:coarse){.tbu-see .tbu-sm,.tbu-restore-toggle .tbu-sm{min-height:44px}.tbu-quiet a{display:inline-flex;align-items:center;min-height:44px}}
+.tbu-quiet{margin:8px 0 0;text-align:left;font-size:.85rem;color:#5B6478}
+.tbu-restore{margin:8px 0 12px;padding:12px;border-radius:14px;background:#F7FAFF;border:1px solid var(--tb-ring)}
+.tbu-restore label{display:block;margin:0 0 8px;font-weight:700;font-size:.9rem;line-height:1.3}
+.tbu-row{display:flex;gap:8px}
+.tbu-input{flex:1 1 auto;min-width:0;height:44px;border:1px solid #C9CFDB;border-radius:12px;padding:0 12px;font:inherit;font-size:1rem;color:var(--tb-navy);background:#fff}
+.tbu-input:focus{border-color:#1F6FD1}
+.tbu-msg{margin:10px 0 0;padding:10px 12px;border-radius:12px;background:#EEF5FF;font-size:.9rem;font-weight:600;line-height:1.4;overflow-wrap:anywhere}
+.tbu-msg[hidden]{display:none}
+.tbu-msg.is-error{background:#FDECEA;color:#8C1D18}
+.tbu-msg.is-success{background:#E8F7E4;color:#1E4D14}
+.tbu-msg .tbu-sm{min-height:32px}
+.tbu-keybox{margin:0 0 10px;padding:14px 12px;border-radius:14px;background:#F7FAFF;border:1px solid var(--tb-ring);text-align:left}
+.tbu-label{margin:0 0 4px;font-size:.8rem;font-weight:700;line-height:1.3;color:#5B6478}
+.tbu-key{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:1.25rem;font-weight:700;letter-spacing:.04em;color:var(--tb-navy);overflow-wrap:anywhere}
+.tbu-btnrow{display:flex;flex-wrap:wrap;justify-content:flex-start;gap:8px;margin:0 0 14px}
+.tbu-linkrow{margin:0 0 12px;padding:12px;border-radius:14px;border:1px solid var(--tb-ring);text-align:left}
+.tbu-url{margin:0 0 8px;font-size:.85rem;line-height:1.35;overflow-wrap:anywhere}
+.tbu-sent{margin:0 0 8px;font-size:.9rem;line-height:1.4}
+/* focus: one ring in the button blue, keyboard only */
+.tbu-dialog :focus-visible,.tbu-pricing button:focus-visible,.tbu-line button:focus-visible,.tbu-card :focus-visible{outline:3px solid #1F6FD1;outline-offset:3px}
+.tbu-dialog-box:focus,.tbu-dialog-box:focus-visible{outline:0}
+.tb-pointer .tbu-dialog button:focus,.tb-pointer .tbu-dialog a:focus,.tb-pointer .tbu-dialog input:focus,.tb-pointer .tbu-pricing button:focus{outline:none}
+
+/* ---- panel: the unlocked line (bottom of the panel body) and the fallback card (browsers without showModal) ---- */
+.tbu-line{font-size:.85rem;line-height:1.4;color:#5B6478}
+.tbu-line[hidden],.tbu-card[hidden]{display:none}
+.tbu-status{margin:0}
+.tbu-status .tbu-key{font-size:.85rem;letter-spacing:0;white-space:nowrap}
+.tbu-status .tbu-sm{padding:0 4px}
+.tbu-card{padding:14px;border-radius:14px;background:#F7FAFF;border:1px solid var(--tb-ring)}
+
+/* ---- pricing section (#pricing) + price card (#pro-card) ---- */
+.tbu-pricing[hidden]{display:none}
+.tbu-pricing-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:start}
+.tbu-pricing-grid>*{min-width:0}
+@media(max-width:800px){.tbu-pricing-grid{grid-template-columns:1fr}}
+.tbu-pricing .tbu-eyebrow{margin:0 0 6px;font-size:.75rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#1F6FD1}
+.tbu-pricing-h3{margin:18px 0 10px;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.2rem;line-height:1.2}
+.tbu-pricing-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.tbu-pricing-list li{position:relative;padding-left:28px}
+.tbu-pricing-list li::before{content:"✓";position:absolute;left:2px;top:0;font-weight:800;color:#1F6FD1}
+.tbu-price-card{max-width:440px;background:#F7FAFF;border:1px solid var(--tb-ring);border-radius:18px;padding:22px 20px;text-align:center}
+.tbu-pricing .tbu-price-name{margin:0 0 4px;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.2rem;line-height:1.2}
+.tbu-pricing .tbu-price-amount{margin:0;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:2.6rem;line-height:1.1}
+.tbu-pricing .tbu-price-term{margin:0 0 16px;font-weight:700;color:#5B6478}
+.tbu-price-actions{display:flex;flex-direction:column;align-items:stretch}
+.tbu-price-actions .tbu-ghost{align-self:center;margin:0 0 12px}
+.tbu-pricing .tbu-trust{margin:12px 0}
+.tbu-pricing .tbu-load-fail{margin:0 0 12px;text-align:left} /* unlock.js could not be loaded after a tap on a card button */
+.tbu-pricing .tbu-fine{margin:0;text-align:left}
+.tbu-pricing .tbu-status{margin:0;font-weight:700}
