@@ -2,314 +2,137 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#1E2A44">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<title>Token Board – tool test page (internal)</title>
-<link rel="icon" type="image/jpeg" href="assets/icon.jpg">
-<link rel="preload" as="font" type="font/woff2" href="assets/fonts/fredoka-latin.woff2" crossorigin>
-<link rel="preload" as="style" href="assets/fonts/fonts.css?v=20261114a">
-<link rel="stylesheet" href="assets/fonts/fonts.css?v=20261114a" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="assets/fonts/fonts.css?v=20261114a"></noscript>
+<title>Noise meter – test page (not public)</title>
+<link rel="icon" href="assets/icon-64.png" type="image/png" sizes="64x64">
+<link rel="stylesheet" href="styles.css?v=20261110a">
+<link rel="stylesheet" href="noise-meter-next.css?v=20261113b">
 <style>
-/* === Critical tool CSS — change both together: this block is inlined in the <head> of index.html
-   and tool-test.html AND lives at the top of tool.css. Keep the three copies byte-identical. === */
-:root{--tb-accent:#4DA3FF;--tb-accent-hover:#3690F0;--tb-navy:#1E2A44;--tb-green:#7ED957;--tb-slot:#F2F2F4;--tb-ring:#E6E6EA;--tb-header:59px}
-*,*::before,*::after{box-sizing:border-box}
-html,body{margin:0;padding:0}
-html{-webkit-text-size-adjust:100%}
-body{font-family:"Nunito",system-ui,-apple-system,sans-serif;color:var(--tb-navy);background:#fff;line-height:1.55;font-size:1.0625rem}
-.tb-header{position:sticky;top:0;z-index:50;height:var(--tb-header);display:flex;align-items:center;gap:14px;padding:0 16px;background:rgba(255,255,255,.94);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--tb-ring)}
-.tb-brand{display:flex;align-items:center;gap:10px;min-width:0;text-decoration:none;color:var(--tb-navy);font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.05rem;line-height:1.2;white-space:nowrap}
-.tb-brand img{width:36px;height:36px;border-radius:9px;flex:0 0 36px}
-.tb-brand-sub{font-weight:500;opacity:.8}
-.tb-nav{margin-left:auto;display:flex;gap:18px;font-weight:700;font-size:.95rem}
-.tb-nav a{color:var(--tb-navy);text-decoration:none;padding:8px 2px;line-height:1}
-.tb-stage{position:relative;min-height:max(480px,calc(100svh - var(--tb-header)));display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 12px 64px;background:#FFFFFF;overflow:hidden}
-.tb-heading{text-align:center;margin:0 0 48px;max-width:100%}
-.tb-title{display:block;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:clamp(2.2rem,min(4.2vw,6vh),3.8rem);line-height:1.1;min-height:1.1em;color:var(--tb-navy);text-shadow:0 2px 14px rgba(0,0,0,.14)}
-.tb-stage.is-dark .tb-title{color:#fff}
-.tb-board-wrap{position:relative;width:100%;max-width:560px}
-.tb-board{width:100%;background:#fff;border-radius:28px;box-shadow:0 10px 36px rgba(30,42,68,.16);padding:20px 20px 24px}
-.tb-board-top{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:18px;min-height:72px}
-.tb-board-title{margin:0;font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.6rem;line-height:1.2;min-width:0;overflow-wrap:anywhere}
-.tb-reward{flex:0 0 72px;width:72px;height:72px;border-radius:50%;background:var(--tb-slot);display:flex;align-items:center;justify-content:center;font-size:2.3rem;line-height:1}
-.tb-slots{display:grid;grid-template-columns:repeat(5,minmax(56px,1fr));justify-content:center;gap:12px;margin:0;padding:0;list-style:none}
-.tb-slot{aspect-ratio:1/1;width:100%;min-width:0;border-radius:50%;border:2px solid transparent;background:var(--tb-slot);font:inherit;font-size:2rem;line-height:1;color:inherit;cursor:pointer;padding:0;margin:0;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-.tb-slot.is-filled{background:#FFFFFF;border-color:var(--tb-ring)}
-/* token goal > 10: tool.js sets --cols / --s / --gap and the classes is-many (stage) + is-fit (slots) */
-.tb-stage.is-many .tb-board-wrap{max-width:760px}
-.tb-slots.is-fit{grid-template-columns:repeat(var(--cols,5),var(--s,48px));gap:var(--gap,8px)}
-.tb-slots.is-fit .tb-slot{width:var(--s,48px);font-size:calc(var(--s,48px) * .55)}
-@media(max-width:479px){.tb-board{padding:14px 12px 18px}.tb-slots{gap:8px}.tb-board-top{margin-bottom:14px}}
-.tb-skip{position:absolute;left:12px;top:-200px;z-index:100;padding:10px 18px;border-radius:999px;background:var(--tb-navy);color:#fff;font-weight:800;text-decoration:none}
-.tb-skip:focus{top:12px}
-.tb-sr{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
-.tb-stage[data-bg="white"]{background:#FFFFFF}
-.tb-stage[data-bg="blue"]{background:#D9ECFF}
-.tb-stage-btn{position:absolute;top:14px;z-index:5;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;cursor:pointer;color:#fff;background:rgba(0,0,0,.55);font-family:system-ui,-apple-system,sans-serif;font-weight:700;font-size:.95rem;line-height:1;transition:background .15s ease}
-.tb-stage-btn:hover{background:rgba(0,0,0,.65)}
-.tb-stage-btn svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;flex:0 0 22px}
-.tb-btn-fs{left:14px;height:44px;border-radius:999px;padding:0 16px 0 13px}
-.tb-btn-fs[hidden]{display:none}
-/* buttons under the board (2026-10-23, replace the ⚙ corner button): 🎨 Style = main action, ✨ Unlock all extras = light */
-.tb-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin:16px 0 0;max-width:100%}
-.tb-act{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;max-width:100%;padding:0 18px;border:2px solid var(--tb-accent);border-radius:999px;cursor:pointer;color:var(--tb-navy);font-family:system-ui,-apple-system,sans-serif;font-weight:700;font-size:.95rem;line-height:1;white-space:nowrap;transition:background .15s ease}
-.tb-act-style{min-width:140px;background:#1F6FD1;border-color:#1F6FD1;color:#fff}
-.tb-act-style:hover{background:#1A5FB4;border-color:#1A5FB4}
-.tb-act-style>span{font-size:1.15em}
-.tb-act-extras{background:#fff;border-width:1.5px;font-weight:400}
-.tb-act-extras:hover{background:#EEF5FF}
-.tbu-has-key .tb-act-extras{display:none}
-.tb-act[disabled]{cursor:default;opacity:.75;background:#fff}
-.tb-empty-hint{margin:12px 0 0;text-align:center;font-size:.9rem;font-weight:600;line-height:1.3;color:#5B6478}
-.tb-empty-hint[hidden]{display:none}
-.tb-status{position:absolute;left:50%;top:-48px;transform:translateX(-50%);width:max-content;max-width:90vw;pointer-events:none;background:rgba(30,42,68,.85);color:#fff;font-family:system-ui,-apple-system,sans-serif;font-weight:700;font-size:.9rem;line-height:1.2;padding:9px 16px;border-radius:999px;box-shadow:0 6px 18px rgba(0,0,0,.18);opacity:0;transition:opacity .2s ease}
-.tb-status.is-visible{opacity:1}
-.tb-privacy{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);width:max-content;max-width:calc(100% - 24px);text-align:center;font-size:.85rem;font-weight:700;line-height:1.3;color:var(--tb-navy);text-decoration:none;opacity:.85;padding:6px 10px;border-radius:999px}
-.tb-privacy:hover{opacity:1;text-decoration:underline}
-.tb-stage.is-dark .tb-privacy{color:#fff}
-.tb-panel{position:absolute;top:0;right:0;bottom:0;z-index:20;width:360px;max-width:100%;visibility:hidden;transform:translateX(100%)}
-.tb-complete{display:none}
-@media(max-width:699px){.tb-btn-fs{width:46px;height:46px;border-radius:50%;padding:0}.tb-btn-fs .tb-btn-fs-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}}
-@media(max-width:599px){.tb-brand-sub{display:none}}
-</style>
-<link rel="preload" as="style" href="tool-next.css?v=20261114c">
-<link rel="stylesheet" href="tool-next.css?v=20261114c" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="tool-next.css?v=20261114c"></noscript>
-<style>
-/* test panel only (this page is internal: noindex, never in the sitemap) */
-body{padding-bottom:250px}
-.tt-banner{margin:0;padding:6px 12px;background:#FFF3C4;color:#1E2A44;font:700 13px/1.4 system-ui,sans-serif;text-align:center}
-/* the stage ends above the 240 px signal log, so the panel bottom (toast, card, Done) is never hidden behind it */
-.tb-stage{min-height:max(480px,calc(100svh - var(--tb-header) - 240px))}
-body{padding-bottom:240px}
-.tt-panel{position:fixed;left:0;right:0;bottom:0;z-index:2000;height:240px;background:#111827;color:#e5e7eb;font:13px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;display:flex;flex-direction:column;border-top:3px solid #4DA3FF}
-.tt-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 12px}
-.tt-bar strong{margin-right:6px;color:#4DA3FF}
-.tt-bar button{font:inherit;font-weight:700;padding:6px 10px;border-radius:6px;border:1px solid #4DA3FF;background:#1f2937;color:#fff;cursor:pointer}
-.tt-bar button:hover{background:#374151}
-#tb-log{flex:1 1 auto;margin:0;padding:6px 12px 10px;overflow:auto;white-space:pre-wrap;word-break:break-word}
+  body{background:#fff}
+  .t-wrap{max-width:1080px;margin:0 auto;padding:16px 20px 60px}
+  .t-note{font-size:.92rem;color:var(--ink-soft);margin:10px 0 18px}
+  .t-pro{margin-top:28px;background:#fff;border:1px solid var(--line);border-radius:20px;padding:22px;max-width:34rem;transition:box-shadow .3s}
+  .t-pro.is-highlighted{box-shadow:0 0 0 4px rgba(53,86,224,.35)}
+  .t-pro p{color:var(--ink-soft);margin-bottom:12px}
+  .t-log{margin-top:24px;font:.82rem/1.5 ui-monospace,Menlo,monospace;color:var(--ink-soft);white-space:pre-wrap}
+  .t-ver{margin-top:28px;font:.72rem/1.5 ui-monospace,Menlo,monospace;color:var(--ink-soft);overflow-wrap:anywhere}
 </style>
 <script>
-// Staging page only (worker/README.md § 8.3, § 8.4.6): ring 1 = the mock API; ?dev=1 stores the dev flag that shows the unlock UI.
-window.__tbUnlockApi='https://tokenboard-unlock-test.keepquiet-unlock-worker.workers.dev';
-try{if(/[?&]dev=1(&|$)/.test(location.search))localStorage.setItem('tb-dev','1');}catch(e){}
-try{if(/^TB-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}$/.test(localStorage.getItem('tb-license')||''))document.documentElement.classList.add('tbu-has-key');}catch(e){}
+/* Ring-3 gate (UNLOCK-PLAN § 5.4): tool-test.html?dev=1 stores kq-dev = "1" once; without the flag this page behaves exactly as
+   today (interest card, no unlock UI). The unlock API for this page: "mock" (ring 1) → the test Worker URL (ring 2/3), README § 8.3.
+   Ring 3, lasting rule since 2026-11-13: this page ALWAYS links noise-meter-next.js / -next.css (every branch and main), and that
+   copy loads unlock-next.js — all three are copies made by `npm run ring3:copy` (git-ignored). index.html keeps the real names, so
+   the live homepage files stay untouched during a test. This page keeps the test Worker below, never the live API (§ 5.3).
+   With kq-dev the page shows the loaded ?v= values in a small line at the bottom (#t-ver). */
+(function(){try{var p=new URLSearchParams(location.search);if(p.get('dev')==='1'){localStorage.setItem('kq-dev','1');p.delete('dev');var q=p.toString();history.replaceState(null,'',location.pathname+(q?'?'+q:'')+location.hash);}}catch(e){}})();
+window.__kqUnlockApi='https://keepquiet-unlock-test.keepquiet-unlock-worker.workers.dev';   /* ring 3 (Step 6): the test Worker; never the live API */
+/* Unlock return / restore link — same script as index.html (worker/README § 8.1) */
 (function(){try{var s=location.search;if(!s||!/[?&](unlock|k)=/.test(s))return;var p=new URLSearchParams(s),u=p.get('unlock'),k=p.get('k'),src=p.get('src');
 var o={session:null,cancel:false,k:null,src:null};if(u==='cancel')o.cancel=true;else if(u&&u.length<=200)o.session=u;
-if(k&&k.length<=40)o.k=k;if(src==='mail')o.src='mail';window.__tbUnlock=o;
+if(k&&k.length<=40)o.k=k;if(src==='mail')o.src='mail';window.__kqUnlock=o;
 p.delete('unlock');p.delete('k');p.delete('src');var q=p.toString();history.replaceState(null,'',location.pathname+(q?'?'+q:'')+location.hash);}catch(e){}})();
 </script>
-<script>
-// Signal log: tool.js calls window.__tbLog(name, payload) for every signal (T1: no network).
-window.__tbLog = function (name, payload) {
-  var pre = document.getElementById('tb-log');
-  var line = name + ' ' + JSON.stringify(payload === undefined ? {} : payload);
-  if (pre) { pre.textContent += line + '\n'; pre.scrollTop = pre.scrollHeight; }
-  try { console.log('[tb]', line); } catch (e) {}
-};
-</script>
-<link rel="modulepreload" href="assets/tool-signals-next.js?v=20261114d">
-<script type="module" src="tool-next.js?v=20261115a"></script>
+<script defer src="https://cdn.telemetrydeck.com/websdk/telemetrydeck.min.js" data-app-id="43A2ECAF-E4DA-4440-B847-7A1FCE01600C"></script>
+<script type="module" src="noise-meter-next.js?v=20261113c"></script>
 </head>
-<body data-td-test="1" data-td-page="tool-test" data-tbu-gate>
-<a class="tb-skip" href="#board">Skip to the board</a>
-<p class="tt-banner">Test mode: signals are sent to TelemetryDeck as test data.</p>
+<body data-td-test="1" data-td-page="tool-test" data-kq-unlock-gate>
 
-<header class="tb-header">
-  <a class="tb-brand" href="index.html"><img src="assets/icon-72.jpg" alt="" width="36" height="36"> Token Board <span class="tb-brand-sub">– free classroom tools</span></a>
-  <nav class="tb-nav" aria-label="Main">
-    <a href="#board">Board</a>
-    <a href="#guides">Guides</a>
-    <a href="#pricing">Pricing</a>
-    <a href="#app">App</a>
-  </nav>
-</header>
-
-<main>
-
-<section id="board" class="tb-stage" data-tb-stage aria-label="Token board">
-  <button type="button" class="tb-stage-btn tb-btn-fs" data-tb="fullscreen" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span class="tb-btn-fs-label">Fullscreen</span></button>
-
-  <h1 class="tb-heading"><span class="tb-title">Free Online Token Board for Kids</span></h1>
-
-  <div class="tb-board-wrap">
-    <div class="tb-status" id="tb-status" role="status" aria-live="polite"></div>
-    <div class="tb-board" id="tb-board">
-      <div class="tb-board-top">
-        <p class="tb-board-title" id="tb-board-title">I am working for</p>
-        <div class="tb-reward" id="tb-reward" role="button" tabindex="0" aria-controls="tb-panel" aria-label="Reward: gift. Tap to change">🎁</div>
-      </div>
-      <div class="tb-slots" id="tb-slots" role="group" aria-label="Token slots">
-        <button type="button" class="tb-slot" data-index="0" aria-label="Token 1 of 10" aria-pressed="false"></button>
-        <button type="button" class="tb-slot" data-index="1" aria-label="Token 2 of 10" aria-pressed="false"></button>
-        <button type="button" class="tb-slot" data-index="2" aria-label="Token 3 of 10" aria-pressed="false"></button>
-        <button type="button" class="tb-slot" data-index="3" aria-label="Token 4 of 10" aria-pressed="false"></button>
-        <button type="button" class="tb-slot" data-index="4" aria-label="Token 5 of 10" aria-pressed="false"></button>
-        <button type="button" class="tb-slot" data-index="5" aria-label="Token 6 of 10" aria-pressed="false"></button>
-        <button type="button" class="tb-slot" data-index="6" aria-label="Token 7 of 10" aria-pressed="false"></button>
-        <button type="button" class="tb-slot" data-index="7" aria-label="Token 8 of 10" aria-pressed="false"></button>
-        <button type="button" class="tb-slot" data-index="8" aria-label="Token 9 of 10" aria-pressed="false"></button>
-        <button type="button" class="tb-slot" data-index="9" aria-label="Token 10 of 10" aria-pressed="false"></button>
-      </div>
-      <p class="tb-empty-hint" id="tb-empty-hint">Tap a circle to add a token</p>
-      <p class="tb-sr" id="tb-count" aria-live="polite">0 of 10 earned</p>
+<div id="noise-meter" class="nm is-fresh" data-assets="assets/tool/">
+  <div class="nm-stage">
+    <div class="nm-scenes">
+      <picture class="nm-scene is-active" data-level="1">
+        <source srcset="assets/tool/scene/city-1.webp" type="image/webp">
+        <img src="assets/tool/scene/city-1.jpg" alt="" width="1024" height="1024" fetchpriority="high">
+      </picture>
     </div>
-    <div class="tb-actions" id="tb-actions">
-      <button type="button" class="tb-act tb-act-style" data-tb="settings" aria-controls="tb-panel" aria-expanded="false"><span aria-hidden="true">🎨</span> Style</button>
-      <button type="button" class="tb-act tb-act-extras" data-tb="extras"><span aria-hidden="true">✨</span> <span class="tb-act-label">Unlock all extras</span></button>
+    <div class="nm-chars">
+      <picture class="nm-char is-active" data-state="1">
+        <source srcset="assets/tool/char/cat-1.webp" type="image/webp">
+        <img src="assets/tool/char/cat-1.png" alt="Cat, happy" width="1000" height="1200" fetchpriority="high">
+      </picture>
+    </div>
+    <div class="nm-indicator">
+      <svg class="nm-dial" viewBox="0 0 200 130" aria-hidden="true" focusable="false">
+        <defs>
+          <linearGradient id="nm-g" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#3ABF5A"/><stop offset=".45" stop-color="#F2D22B"/>
+            <stop offset=".72" stop-color="#F58A2A"/><stop offset="1" stop-color="#F0423B"/>
+          </linearGradient>
+        </defs>
+        <path d="M26.1 113A75 75 0 1 1 173.9 113" fill="none" stroke="url(#nm-g)" stroke-width="22" stroke-linecap="round"/>
+        <g class="nm-needle" transform="rotate(-100 100 100)">
+          <line x1="100" y1="100" x2="100" y2="48" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+          <path d="M100 34l-9 18h18z" fill="#fff"/>
+          <circle cx="100" cy="100" r="6" fill="#fff"/>
+        </g>
+      </svg>
+    </div>
+    <p class="nm-msg" role="status"></p>
+    <div class="nm-overlay">
+      <div class="nm-stack">
+        <h1><span class="kicker">Test page</span> <span class="big">Noise meter</span></h1>
+        <button class="nm-start" type="button" aria-label="Start the noise meter">▶ Start</button>
+      </div>
+      <p class="nm-privacy"><a href="#t-log">🔒 Privacy: sound is analysed in your browser, nothing is recorded or sent</a></p>
+    </div>
+    <div class="nm-bottom">
+      <button class="nm-play" type="button" aria-label="Pause">
+        <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3.5" width="5" height="17" rx="1.6"/><rect x="14" y="3.5" width="5" height="17" rx="1.6"/></svg>
+      </button>
     </div>
   </div>
-
-  <a class="tb-privacy" href="#faq-privacy">🔒 Privacy: Nothing is uploaded — your board stays on this device.</a>
-
-  <aside id="tb-panel" class="tb-panel" aria-label="Style your board" aria-hidden="true">
-    <div class="tb-panel-head">
-      <h2 class="tb-panel-title" id="tb-panel-title">Style your board</h2>
-      <button type="button" class="tb-panel-close" data-tb="close" aria-label="Close the style panel">×</button>
-    </div>
-    <div class="tb-panel-body" id="tb-panel-body">
-      <div class="tbu-card" id="tbu-card" hidden></div>
-      <section class="tb-set">
-        <label class="tb-set-label" for="tb-title-input">Board name</label>
-        <input class="tb-input" id="tb-title-input" type="text" maxlength="40" autocomplete="off" spellcheck="false">
-      </section>
-      <section class="tb-set">
-        <h3 class="tb-set-label" id="tb-goal-label">Token goal</h3>
-        <div class="tb-seg" role="radiogroup" aria-labelledby="tb-goal-label">
-          <label class="tb-seg-item"><input type="radio" name="tb-slots" value="3"><span>3</span></label>
-          <label class="tb-seg-item"><input type="radio" name="tb-slots" value="5"><span>5</span></label>
-          <label class="tb-seg-item"><input type="radio" name="tb-slots" value="10"><span>10</span></label>
-        </div>
-        <div class="tb-stepper">
-          <button type="button" class="tb-step-btn" data-goal="-1" aria-label="One token less" aria-controls="tb-goal-input">−</button>
-          <span class="tb-goal-box"><input class="tb-goal-input" id="tb-goal-input" type="number" min="3" max="100" step="1" inputmode="numeric" aria-label="Token goal, 3 to 100"><span class="tb-lock" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M17 9h-1V7a4 4 0 0 0-8 0v2H7a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2zm-7-2a2 2 0 0 1 4 0v2h-4V7z"/></svg></span></span>
-          <button type="button" class="tb-step-btn" data-goal="1" aria-label="One token more" aria-controls="tb-goal-input">+</button>
-          <span class="tb-goal-range" aria-hidden="true">3–100</span>
-        </div>
-        <p class="tb-hint tb-hint-below">🔒 Other numbers are locked — tap to unlock all extras.</p>
-      </section>
-      <section class="tb-set">
-        <h3 class="tb-set-label" id="tb-icons-label">Token icon</h3>
-        <p class="tb-hint">🔒 Locked — tap to unlock all extras.</p>
-        <div class="tb-grid" id="tb-icons" role="group" aria-labelledby="tb-icons-label"></div>
-      </section>
-      <section class="tb-set">
-        <h3 class="tb-set-label" id="tb-bgs-label">Background</h3>
-        <p class="tb-hint">🔒 Locked — tap to unlock all extras.</p>
-        <div class="tb-grid" id="tb-bgs" role="group" aria-labelledby="tb-bgs-label"></div>
-        <p class="tb-photo-msg" id="tb-photo-msg-background" role="status" aria-live="polite"></p>
-        <p class="tb-photo-note">🖼️ = your own photo. Photos stay in this browser only.</p>
-      </section>
-      <section class="tb-set">
-        <h3 class="tb-set-label" id="tb-rewards-label">Reward</h3>
-        <p class="tb-hint">🔒 Locked — tap to unlock all extras.</p>
-        <div class="tb-grid" id="tb-rewards" role="group" aria-labelledby="tb-rewards-label"></div>
-        <p class="tb-photo-msg" id="tb-photo-msg-reward" role="status" aria-live="polite"></p>
-        <p class="tb-photo-note">🖼️ = your own photo. Photos stay in this browser only.</p>
-      </section>
-      <section class="tb-set">
-        <label class="tb-switch" for="tb-sound">
-          <span class="tb-set-label">Sound</span>
-          <input type="checkbox" id="tb-sound" role="switch">
-          <span class="tb-switch-track" aria-hidden="true"></span>
-        </label>
-      </section>
-      <div class="tbu-line" id="tbu-line" hidden></div>
-      <div class="tb-feedback" id="tb-feedback" hidden>
-        <span class="tb-feedback-q" id="tb-feedback-q">Was it useful today?</span>
-        <button type="button" class="tb-feedback-btn" data-fb="up" aria-label="Yes, it was useful">👍</button>
-        <button type="button" class="tb-feedback-btn" data-fb="down" aria-label="No, not useful">👎</button>
-        <button type="button" class="tb-feedback-btn tb-feedback-x" data-fb="close" aria-label="Dismiss">×</button>
-      </div>
-    </div>
-    <div class="tb-panel-done"><button type="button" class="tb-done" data-tb="close">Done</button></div>
-  </aside>
-
-  <div class="tb-complete" id="tb-complete" role="dialog" aria-modal="true" aria-labelledby="tb-complete-title" aria-hidden="true">
-    <div class="tb-confetti" aria-hidden="true"></div>
-    <div class="tb-complete-reward" id="tb-complete-reward" aria-hidden="true"></div>
-    <p class="tb-complete-title" id="tb-complete-title">You did it!</p>
-    <p class="tb-complete-sub">Goal reached</p>
-    <button type="button" class="tb-hooray" data-tb="hooray">Hooray!</button>
-    <button type="button" class="tb-complete-extras" data-tb="celebrate-extras" hidden><span aria-hidden="true">✨</span> Unlock all extras</button>
-  </div>
-  <input type="file" accept="image/*" id="tb-photo-input" class="tb-sr" tabindex="-1" aria-hidden="true">
-</section>
-
-<section id="pricing" class="tb-section tb-wrap tbu-pricing" aria-labelledby="pricing-title">
-  <div class="tbu-pricing-grid">
-    <div class="tbu-pricing-info">
-      <p class="tbu-eyebrow">Pricing</p>
-      <h2 id="pricing-title">One-time unlock, no subscription</h2>
-      <p class="tbu-pricing-sub">Everything in the free token board stays free. The unlock adds:</p>
-      <h3 class="tbu-pricing-h3">What’s included</h3>
-      <ul class="tbu-pricing-list">
-        <li>Your own photos as the reward and the background</li>
-        <li>Any token goal from 3 to 100</li>
-        <li>All 59 rewards</li>
-        <li>All 23 token icons</li>
-        <li>All 8 backgrounds</li>
-        <li>Works on every device you use — no device limit</li>
-        <li>Restore by license key or email</li>
-        <li>Lifetime, one payment</li>
-      </ul>
-    </div>
-    <div class="tbu-price-card" id="pro-card" data-tbu-card>
-      <p class="tbu-price-name">Unlock all extras</p>
-      <p class="tbu-price-amount">$19.99</p>
-      <p class="tbu-price-term">one-time</p>
-      <div class="tbu-price-actions" data-tbu-actions>
-        <button class="tbu-btn" type="button" data-tbu-unlock data-tbu-primary><span class="tbu-u1">Unlock all extras</span><span class="tbu-u2">$19.99 one-time</span></button>
-        <p class="tbu-trust"><span class="tbu-trust-item"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3 3 7-7"/></svg>One-time payment</span><span class="tbu-trust-item"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3 3 7-7"/></svg>no subscription</span><span class="tbu-trust-item"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 015 0v2"/></svg>secure checkout by Link (Stripe)</span><span class="tbu-trust-item"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 1.5L3.5 9H8l-1 5.5L12.5 7H8z"/></svg>unlocks instantly, key also emailed</span></p>
-        <button class="tbu-ghost" type="button" data-tbu-restore>Already unlocked? Restore</button>
-        <p class="tbu-fine">Web version only — the iPhone, iPad and Mac app is sold separately in the App Store. Price in USD, plus tax where applicable. Your license key is shown after payment and sent by email. Charged by Link (Stripe). <a href="terms.html" target="_blank" rel="noopener">Terms</a> · <a href="privacy.html" target="_blank" rel="noopener">Privacy</a></p>
-      </div>
-    </div>
-  </div>
-</section>
-
-</main>
-
-<div class="tt-panel" aria-label="Test panel">
-  <div class="tt-bar">
-    <strong>tool-test</strong>
-    <button type="button" data-test="fillAll">fill all</button>
-    <button type="button" data-test="clearStorage">clear storage</button>
-    <button type="button" data-test="openPanel">open panel</button>
-    <button type="button" data-test="simulatePagehide">simulate pagehide</button>
-    <button type="button" data-test="resetTokens">reset tokens</button>
-    <button type="button" data-test="slots3">slots 3</button>
-    <button type="button" data-test="slots5">slots 5</button>
-    <button type="button" data-test="slots10">slots 10</button>
-    <button type="button" data-test="soundToggle">sound off/on</button>
-    <button type="button" data-test="setTitlePrompt">set title</button>
-    <button type="button" data-test="bgBlue">bg blue</button>
-    <button type="button" data-test="bgWhite">bg white</button>
-    <button type="button" data-test="unlockMock">unlock (mock key)</button>
-    <button type="button" data-test="lockAgain">lock again</button>
-    <button type="button" data-test="sessionPlus3">session +3 min</button>
-    <button type="button" data-test="resetHintSettings">reset hint + settings</button>
-  </div>
-  <pre id="tb-log" aria-live="polite"></pre>
+  <div class="nm-microw"></div>
 </div>
 
-<script>
-// Buttons call window.__tbTest[name]() when tool.js provides it; otherwise log a note.
-(function () {
-  var notYet = {};
-  document.querySelectorAll('[data-test]').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      var name = btn.getAttribute('data-test');
-      var fn = window.__tbTest && window.__tbTest[name];
-      if (typeof fn === 'function') { fn(); window.__tbLog('test:' + name, { ok: true }); }
-      else { window.__tbLog('test:' + name, { note: 'not implemented until ' + (notYet[name] || 'T2/T4') }); }
-    });
-  });
-  window.__tbLog('test-page', { ready: true });
-})();
-</script>
+<div class="t-wrap">
+  <h2 style="font-size:1.6rem;margin:12px 0 4px">Noise meter – device test page</h2>
+  <p class="t-note">Internal test page for Step 2 (noindex). Press START, allow the microphone, make noise. Pause shows the settings panel (character, background, indicator, microphone, sensitivity) and the Resume pill; the fullscreen button sits top-left in every state (pill while fresh/paused, round while running; on iPhone Safari it toggles the "expanded" mode instead). The <strong>🎨 Style</strong> button top-right toggles the settings panel in every state (also while running). The <strong>⏱ Timer</strong> button (left of Style) opens the quiet-time timer sheet (presets 1–30 min or a custom 1–90 min, Save; × or Escape closes it); Save shows a white pill under the top row with m:ss, a shrinking bar, ↻ restart and ✕ close (both only while the timer is not counting; the sheet also offers "Remove timer"). The timer counts only while the meter runs: before Start it waits (lighter pill), Pause freezes it (⏸), Resume continues; at 0:00 the meter pauses itself (Resume shown, settings panel as after a manual pause) and the pill turns red with an empty bar — no sound; ↻ then sets the full length again, Resume starts the count (signals timer-set, timer-start, timer-done, timer-cancel). On phones the paused sheet covers the stage: × closes it, the white bar at its bottom resumes. After a pause that ends a session of 2 minutes or more, a "Was it useful today?" line appears at the top of the panel (once per 30 days). Signals go to TelemetryDeck <strong>test mode</strong> and are listed in the log below (tool-start, tool-session, visit, pro-view, pro-click, setting-change, feedback, mic-error, mic-switch, fullscreen, unlock-click, unlock-success, unlock-cancel, unlock-fail, unlock-restore-attempt). <strong>Unlock UI</strong> (mock mode): open this page once with <code>?dev=1</code>; without that flag the page shows today's interest card and no unlock UI. With the flag: the panel shows the Unlock button (straight to the mock checkout) and the Restore link; a locked thumb opens the short unlock dialog (centred modal; Escape or × closes it).</p>
 
+  <div class="t-pro" id="pro-card">
+    <h2 style="font-size:1.25rem;margin-bottom:6px">Want more characters and backgrounds?</h2>
+    <p>Test stand-in for the card below the fold on index.html. A locked thumbnail click counts a pro-click and opens the inline interest card in the panel (no scroll) — with the kq-dev flag it opens the unlock dialog instead; this button counts pro-click {item:"interest", from:"card"}.</p>
+    <button class="btn small" type="button" data-kq-interest>I’m interested</button>
+    <p data-kq-interest-thanks hidden style="margin-top:10px;font-weight:700">Thanks — counted!</p>
+  </div>
+
+  <div class="t-log" id="t-log" aria-live="polite"></div>
+  <p class="t-ver" id="t-ver" hidden></p>
+</div>
+<script type="module">
+  // Test-only: show tool events on the page so device tests can be read without dev tools.
+  const log = document.getElementById('t-log');
+  const line = (t) => { log.textContent = new Date().toLocaleTimeString() + '  ' + t + '\n' + log.textContent; };
+  const nm = document.getElementById('noise-meter');
+  nm.addEventListener('kq:pro-click', (e) => line('pro-click ' + e.detail.item));
+  nm.addEventListener('kq:signal', (e) => { const p = Object.assign({}, e.detail.payload); delete p.page; delete p.source; delete p.path; delete p.tool; line('signal ' + e.detail.type + ' ' + JSON.stringify(p)); });
+  new MutationObserver(() => line('level ' + nm.getAttribute('data-level') + ' · indicator ' + nm.getAttribute('data-indicator') +
+    (nm.classList.contains('is-running') ? ' (running)' : ' (stopped)')))
+    .observe(nm, { attributes: true, attributeFilter: ['data-level', 'data-indicator', 'class'] });
+  const msg = nm.querySelector('.nm-msg');
+  new MutationObserver(() => { if (msg.textContent) line('message: ' + msg.textContent); }).observe(msg, { childList: true });
+  line('ua ' + navigator.userAgent);
+  line('secure ' + window.isSecureContext + ' · getUserMedia ' + !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) +
+       ' · wakeLock ' + ('wakeLock' in navigator) + ' · fullscreen ' + !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen));
+  // Dev mode only (kq-dev): which -next files this page runs, so an old upload is easy to spot (UNLOCK-PLAN § 5.4 point 7).
+  // js and css: the ?v= of this page's own tags. unlock: the ?v= of the import made by the loaded noise-meter-next.js (UNLOCK_V).
+  try {
+    if (localStorage.getItem('kq-dev') === '1') {
+      const ver = document.getElementById('t-ver');
+      const v = (u) => { try { return new URL(u, location.href).searchParams.get('v') || 'no ?v='; } catch (e) { return '?'; } };
+      const js = document.querySelector('script[src*="noise-meter-next.js"]');
+      const css = document.querySelector('link[href*="noise-meter-next.css"]');
+      const show = () => {
+        let un = '';
+        try { un = performance.getEntriesByType('resource').map((e) => e.name).filter((n) => /\/unlock-next\.js/.test(n)).pop() || ''; } catch (e) {}
+        ver.textContent = 'ring 3 · noise-meter-next.js ' + (js ? v(js.src) : 'NOT LINKED') + ' · noise-meter-next.css ' + (css ? v(css.href) : 'NOT LINKED') +
+          ' · unlock-next.js ' + (un ? v(un) : 'not loaded yet');
+      };
+      ver.hidden = false;
+      show();
+      try { new PerformanceObserver(show).observe({ type: 'resource', buffered: true }); } catch (e) { setTimeout(show, 3000); }
+    }
+  } catch (e) {}
+</script>
 </body>
 </html>
