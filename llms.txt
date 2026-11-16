@@ -19,7 +19,7 @@ The free online noise meter on the homepage works on Chromebook, Windows, Mac an
 - Web version only: the Noise Meter – Keep Quiet app for iPhone, iPad and Mac is sold separately in the App Store.
 - No account: Stripe asks for an email at checkout for the receipt; the license key is shown after payment and sent by email.
 - Restore: on every device you use yourself (no device limit) with the restore link, the license key, or the email you paid with. Sharing the key with others is not allowed.
-- Seller: sold and charged by Link (Stripe); the charge appears as LINK.COM* KEEPQUIET.
+- Seller: sold and charged by Link (Stripe); the charge appears as LINK.COM* APPS4PARENTS (Apps for Parents is the maker of Keep Quiet).
 - Refunds: write to support@keepquiet.app within 14 days for a full refund, no questions asked; the key then stops working.
 
 ## Noise Meter – Keep Quiet app (iPhone, iPad & Mac)
