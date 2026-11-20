@@ -207,3 +207,32 @@ section{padding:56px 0}
   .btn,.guide-card{transition:none}
 }
 :focus-visible{outline:3px solid var(--cta);outline-offset:2px;border-radius:6px}
+.vl-chart{margin:20px 0 14px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+.vl-chart .vl-title{font-family:var(--font-display);font-weight:600;font-size:1.25rem;text-align:center;margin:0 0 12px;color:var(--ink)}
+.vl-chart ol{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.vl-chart li{display:grid;grid-template-columns:52px 1fr;gap:4px 14px;align-items:center;margin:0;padding:12px 14px;border-radius:14px;border-left:8px solid var(--vl);background:#fff;background:color-mix(in srgb,var(--vl) 12%,#fff)}
+.vl-chart .vl-num{grid-row:span 2;width:52px;height:52px;border-radius:50%;background:var(--vl);color:#fff;font-family:var(--font-display);font-weight:600;font-size:1.6rem;display:flex;align-items:center;justify-content:center}
+.vl-chart .vl-name{font-family:var(--font-display);font-weight:600;font-size:1.1rem;color:var(--ink)}
+.vl-chart .vl-use{font-size:.95rem;color:#33405E}
+.vl-chart .vl-src{text-align:center;font-size:.8rem;color:var(--ink-soft);margin:12px 0 0}
+.vl-l0{--vl:#5B6B8C}.vl-l1{--vl:#23855A}.vl-l2{--vl:#4E8A1F}.vl-l3{--vl:#B86E00}.vl-l4{--vl:#D93F43}
+.vl-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:0 0 20px}
+.vl-actions button.btn{border:0;cursor:pointer;font-size:.9rem}
+@media print{
+  @page{margin:12mm}
+  html.print-chart body>*:not(main),html.print-chart main>*:not(.vl-chart){display:none !important}
+  html.print-chart main.article{padding:0;max-width:none}
+  html.print-chart .vl-chart{margin:0;box-shadow:none;border:0;break-inside:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  html.print-chart .vl-chart .vl-title{font-size:2rem;margin-bottom:18px}
+  html.print-chart .vl-chart li{padding:18px;gap:6px 20px;grid-template-columns:72px 1fr}
+  html.print-chart .vl-chart .vl-num{width:72px;height:72px;font-size:2.2rem}
+  html.print-chart .vl-chart .vl-name{font-size:1.5rem}
+  html.print-chart .vl-chart .vl-use{font-size:1.1rem}
+}
+.table-wrap{overflow-x:auto;margin:16px 0 8px}
+.cmp{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:14px;font-size:.95rem}
+.cmp th,.cmp td{padding:10px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);color:#33405E}
+.cmp thead th{font-family:var(--font-display);font-weight:600;color:var(--ink);background:var(--paper)}
+.cmp tbody th{font-weight:700;color:var(--ink);white-space:nowrap}
+.cmp tbody tr:last-child th,.cmp tbody tr:last-child td{border-bottom:0}
+.cmp caption{text-align:left;font-weight:700;color:var(--ink-soft);font-size:.9rem;padding:0 0 8px}

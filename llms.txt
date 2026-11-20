@@ -45,14 +45,15 @@ App Store: https://apps.apple.com/app/apple-store/id6744021866?pt=118868513&ct=w
 
 ## Guides
 
-- [Classroom Noise Monitor](https://keepquiet.app/guides/classroom-noise-monitor.html): How teachers use an on-screen noise monitor to manage volume during group work, tests and indoor recess.
-- [How to Keep Kids Quiet in Class Without Yelling](https://keepquiet.app/guides/how-to-keep-kids-quiet-in-class.html): Seven yell-free strategies for a quieter classroom, including visual noise feedback students respond to on their own.
+- [How to Use a Classroom Noise Monitor](https://keepquiet.app/guides/classroom-noise-monitor.html): How teachers use an on-screen noise monitor to manage volume during group work, tests and indoor recess.
+- [Classroom Noise Management: 7 Ways to Keep Kids Quiet Without Yelling](https://keepquiet.app/guides/how-to-keep-kids-quiet-in-class.html): Seven yell-free strategies for a quieter classroom, including visual noise feedback students respond to on their own.
 - [Sound Level Meter for the Classroom](https://keepquiet.app/guides/sound-level-meter-classroom.html): What classroom noise levels mean for learning, and how to calibrate the right level for each activity.
-- [Teaching Voice Levels](https://keepquiet.app/guides/voice-levels-inside-voices.html): Voice levels 0–4 explained, plus how a live meter makes "inside voices" concrete for kids.
+- [Voice Level Chart (0–4): Free Printable](https://keepquiet.app/guides/voice-levels-inside-voices.html): The 5 voice levels from 0 (silent) to 4 (outside voice) on a printable chart, plus how a live meter makes "inside voices" concrete for kids.
 - [Noise Meter for Kids](https://keepquiet.app/guides/noise-meter-for-kids.html): How parents teach volume awareness at home — dinner table, homework, car rides and nap time.
 - [Quiet Time Timer](https://keepquiet.app/guides/quiet-time-timer.html): Combining a countdown with a live noise meter so quiet time becomes a goal kids can see themselves winning.
 - [The Quiet Game for Kids](https://keepquiet.app/guides/quiet-game-for-kids.html): Seven fun variations of the quiet game, with the noise meter as the impartial referee.
 - [Noise Meters for Autistic Children & Sensory-Friendly Spaces](https://keepquiet.app/guides/noise-meter-autism-sensory.html): Using gentle visual feedback to make noise predictable and rooms calmer for sound-sensitive kids.
+- [Bouncy Balls Alternative](https://keepquiet.app/guides/bouncy-balls-alternative.html): A fair side-by-side comparison of Bouncy Balls and the free Keep Quiet online noise meter, and how to choose between them.
 
 ## Support
 
