@@ -325,6 +325,15 @@ html.nm-lock,html.nm-lock body{overflow:hidden}
 .kq-strip-thumb picture{display:block;width:100%;height:100%}
 .kq-strip-thumb img{display:block;width:100%;height:100%;max-width:none;object-fit:cover;object-position:50% 60%}
 .kq-strip-row:first-child img{object-fit:contain}   /* characters: whole figure */
+/* the tapped locked item in its 3 states, quiet → loud, above the strip (2026-11-21): three square tiles and the loudness
+   bar under them; the tiles shrink on narrow phones. The bar is the tool's own green-to-red gradient (the dialog lives
+   outside .nm, so the colours are written out). */
+.kq-states{display:grid;grid-template-columns:repeat(3,minmax(0,88px));justify-content:center;gap:6px 10px}   /* bottom margin: .kq-dialog-body>* */
+.kq-state{display:block;aspect-ratio:1;border-radius:12px;background:#eef1f5;overflow:hidden}
+.kq-state picture{display:block;width:100%;height:100%}
+.kq-state img{display:block;width:100%;height:100%;max-width:none;object-fit:cover;object-position:50% 60%}
+.kq-states-char .kq-state img{object-fit:contain}   /* characters: whole figure */
+.kq-states-bar{grid-column:1/-1;height:6px;border-radius:999px;background:linear-gradient(90deg,#3ABF5A 0%,#F2D22B 45%,#F58A2A 72%,#F0423B 100%)}
 .kq-dialog .kq-restore-toggle{text-align:center}
 /* the static unlock card below the fold (index.html #pro-card.kq-card: button → /checkout, Restore link → the dialog;
    "✓ Unlocked · Manage" once a key is stored) and the dialog itself */
@@ -406,6 +415,7 @@ html.kq-dialog-open,html.kq-dialog-open body{overflow:hidden}
   .kq-strip::-webkit-scrollbar{display:none}
   .kq-strip-row{display:contents}
   .kq-strip-thumb{flex:none;width:40px;height:40px}
+  .kq-states{grid-template-columns:repeat(3,minmax(0,72px))}   /* phones: smaller tiles keep the Unlock button on the first screen */
   .kq-btnrow{flex-wrap:nowrap}   /* thank-you: Show + Copy key side by side, two half-width ghost pills (2026-11-03) */
   .kq-btnrow .kq-ghost{flex:1 1 0;min-width:0}
   .kq-linkrow .kq-ghost{width:100%}   /* Copy link stays full width */

@@ -542,11 +542,15 @@ export default function init(api) {
     n.textContent = text;
     return n;
   }
-  // the locked-thumb dialog (2026-11-03): title, benefit line, thumb strip, the button, trust line, small print,
+  // the locked-thumb dialog (2026-11-03): title, benefit line, the tapped item in 3 states (2026-11-21), thumb strip, the button, trust line, small print,
   // "See what's included ↓", status slot, restore (collapsed link in the dialog unless restore mode), Questions
   function renderOffer(host, variant) {
     host.appendChild(title(variant, S.offerTitle));
     host.appendChild(p(dark(variant) ? '' : 'kq-lead', S.offerBenefit));
+    if (variant === 'dialog' && state.openHow === 'thumb' && api.itemStates) {   // the tapped locked item in its 3 states, quiet → loud (2026-11-21)
+      const states = api.itemStates(state.item);
+      if (states) host.appendChild(states);
+    }
     if (variant === 'dialog' && api.thumbStrip) {   // all 13 thumbs, unlocked look, lazy (the panel fallback has the real grids next to it)
       const strip = api.thumbStrip();
       if (strip) { strip.setAttribute('role', 'img'); strip.setAttribute('aria-label', S.offerStrip); host.appendChild(strip); }
