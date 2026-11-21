@@ -155,7 +155,7 @@
   var LS_TIMER = 'kq-nm-timer-seconds';
   var TIMER_PRESETS = [1, 2, 3, 5, 10, 15, 20, 30], TIMER_MAX_MIN = 90, TIMER_DEFAULT = 300;   // minutes / seconds
   var FREE_UNTIL = '';               // e.g. '2026-12-31': all characters and backgrounds free until then (UNLOCK-PLAN § 2.11); '' = off
-  var UNLOCK_V = '20261121c';        // ?v= of unlock.js — bump with every change to unlock.js
+  var UNLOCK_V = '20261121d';        // ?v= of unlock.js — bump with every change to unlock.js
   var STYLE_FACES = true;            // three faces of locked characters in the Style pill for visitors without a key; false = the 🎨 for everyone (one deploy switches it off)
 
   // Names are used ONLY in alt / aria-label text, never as visible labels.
@@ -1086,37 +1086,37 @@
     });
     return wrap;
   }
-  // offer dialog (unlock.js, 2026-11-21): the tapped locked item in its 3 states, quiet → loud, with the loudness bar
-  // under it — what "reacts to the noise" means. Built only when that dialog opens (no request before the tap): the
-  // 500 px character files / the scene files. itemId = "char-<id>" | "scene-<id>"; anything else → null. One image for
-  // screen readers (like the strip): role="img" + aria-label "<name>: quiet, getting loud, too loud", the tiles' alt is empty.
+  // offer dialog (unlock.js, 2026-11-21): 3 small scenes, quiet → loud — what "reacts to the noise" means: each tile is
+  // a character state on the background level of the same step. The character is always the free one (the cat, JG
+  // 2026-11-21); the background is the tapped one, or the first paid background when a character was tapped. Built only
+  // when that dialog opens (no request before the tap): the 500 px character files over the scene files. itemId =
+  // "char-<id>" | "scene-<id>"; anything else → null. One image for screen readers (like the strip): role="img" +
+  // aria-label with both names and "quiet, getting loud, too loud"; the pictures' alt is empty. No visible text.
+  function firstPaid(list) { for (var i = 0; i < list.length; i++) if (!list[i].free) return list[i]; return list[0]; }   // list[0] only if a list had no paid item
   function itemStates(itemId) {
     var m = /^(char|scene)-([a-z]+)$/.exec(itemId || '');
     if (!m) return null;
-    var isChar = m[1] === 'char', list = isChar ? CHARACTERS : SCENES, item = null;
+    var list = m[1] === 'char' ? CHARACTERS : SCENES, item = null;
     for (var i = 0; i < list.length; i++) if (list[i].id === m[2]) item = list[i];
     if (!item) return null;
-    var wrap = el('div', 'kq-states ' + (isChar ? 'kq-states-char' : 'kq-states-scene'));
+    var chr = CHARACTERS[0], scene = m[1] === 'scene' ? item : firstPaid(SCENES);   // CHARACTERS[0] = the free character
+    var wrap = el('div', 'kq-states');
     wrap.setAttribute('role', 'img');
-    wrap.setAttribute('aria-label', item.name + ': ' + LEVEL_TEXT.slice(1).join(', ').toLowerCase());
+    wrap.setAttribute('aria-label', scene.name + ', with the ' + chr.name.toLowerCase() + ': ' + LEVEL_TEXT.slice(1).join(', ').toLowerCase());   // "Beach, with the cat: quiet, getting loud, too loud"
     for (var n = 1; n <= 3; n++) {
-      var key = fileKey(item, n), pic;
-      if (isChar) {
-        pic = document.createElement('picture');
-        var src = document.createElement('source'), img = document.createElement('img');
-        src.type = 'image/webp'; src.srcset = ASSETS + 'char/' + key + '-500.webp';
-        img.src = ASSETS + 'char/' + key + '-500.png';
-        img.alt = ''; img.width = 500; img.height = 600; img.decoding = 'async';
-        pic.appendChild(src); pic.appendChild(img);
-      } else {
-        pic = makePicture(ASSETS + 'scene/' + key, 'jpg', '', 1024, 1024, '', !!JPEG_FIRST[key]);
-      }
+      var sKey = fileKey(scene, n), cKey = fileKey(chr, n);
+      var back = makePicture(ASSETS + 'scene/' + sKey, 'jpg', '', 1024, 1024, 'kq-state-scene', !!JPEG_FIRST[sKey]);
+      var pic = document.createElement('picture');
+      pic.className = 'kq-state-char';
+      var src = document.createElement('source'), img = document.createElement('img');
+      src.type = 'image/webp'; src.srcset = ASSETS + 'char/' + cKey + '-500.webp';
+      img.src = ASSETS + 'char/' + cKey + '-500.png';
+      img.alt = ''; img.width = 500; img.height = 600; img.decoding = 'async';
+      pic.appendChild(src); pic.appendChild(img);
       var cell = el('span', 'kq-state');
-      cell.appendChild(pic);
+      cell.appendChild(back); cell.appendChild(pic);
       wrap.appendChild(cell);
     }
-    var bar = el('span', 'kq-states-bar'); bar.setAttribute('aria-hidden', 'true');
-    wrap.appendChild(bar);
     return wrap;
   }
   function fillGrid(grid, kind, items) {
@@ -1181,7 +1181,7 @@
     freeUntil: FREE_UNTIL, freeWindow: freeWindow,
     mount: function () { return { line: unlockLine, card: interestCard, sticky: unlockSticky, scroller: panelBody }; },   // panel line, fallback card slot, sticky CTA slot, the panel's scroll area (IntersectionObserver root)
     thumbStrip: thumbStrip,                               // the offer dialog's strip: all 8 + 5 thumbs, unlocked look, lazy
-    itemStates: itemStates,                               // the offer dialog's row: the tapped item in its 3 states + the loudness bar
+    itemStates: itemStates,                               // the offer dialog's row: the cat on 3 background levels, quiet → loud
     itemIds: CHARACTERS.map(function (c) { return 'char-' + c.id; }).concat(SCENES.map(function (s) { return 'scene-' + s.id; })),   // the fixed list for {item} in unlock.js signals
     placeLine: placeUnlockLine,                           // true = unlocked row at the panel's end (small, muted)
     scrollPanelTo: scrollPanelTo,

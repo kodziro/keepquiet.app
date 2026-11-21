@@ -547,7 +547,7 @@ export default function init(api) {
   function renderOffer(host, variant) {
     host.appendChild(title(variant, S.offerTitle));
     host.appendChild(p(dark(variant) ? '' : 'kq-lead', S.offerBenefit));
-    if (variant === 'dialog' && state.openHow === 'thumb' && api.itemStates) {   // the tapped locked item in its 3 states, quiet → loud (2026-11-21)
+    if (variant === 'dialog' && state.openHow === 'thumb' && api.itemStates) {   // 3 small scenes, quiet → loud: the cat on the tapped (or first paid) background (2026-11-21)
       const states = api.itemStates(state.item);
       if (states) host.appendChild(states);
     }
