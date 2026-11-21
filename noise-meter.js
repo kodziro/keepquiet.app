@@ -15,9 +15,10 @@
     the app; never both. Saved in localStorage.
   - Privacy: audio never leaves the device — sound is analysed in the
     browser, nothing is recorded, stored or sent. The only network calls are
-    TelemetryDeck counts (tool-start, tool-session, visit, pro-view, pro-click,
-    setting-change, mic-error, mic-switch, fullscreen, timer-set, timer-start, timer-done, timer-cancel) with no audio, no IDs and no free text —
-    every value is a bucketed string.
+    TelemetryDeck counts (tool-start, tool-session, tool-minutes, visit, pro-view, pro-click,
+    setting-change, mic-error, mic-switch, fullscreen, feedback, feedback-shown, timer-set, timer-start, timer-done,
+    timer-cancel) with no audio, no IDs and no free text — every value is a bucketed string. Every signal also
+    carries device (desktop|chromebook|tablet|phone) and inapp (yes|no); known bots send nothing.
   - AudioContext is created and resumed only inside the first play click (iPad Safari;
     ensureAudioContext()). AGC / noise suppression / echo cancellation are off so the meter
     reflects the room, not the browser's voice processing.
@@ -154,8 +155,8 @@
   var LS_TIMER = 'kq-nm-timer-seconds';
   var TIMER_PRESETS = [1, 2, 3, 5, 10, 15, 20, 30], TIMER_MAX_MIN = 90, TIMER_DEFAULT = 300;   // minutes / seconds
   var FREE_UNTIL = '';               // e.g. '2026-12-31': all characters and backgrounds free until then (UNLOCK-PLAN § 2.11); '' = off
-  var UNLOCK_V = '20261113b';
-  var STYLE_FACES = true;            // three faces of locked characters in the Style pill for visitors without a key; false = the 🎨 for everyone (one deploy switches it off)        // ?v= of unlock.js — bump with every change to unlock.js
+  var UNLOCK_V = '20261121b';        // ?v= of unlock.js — bump with every change to unlock.js
+  var STYLE_FACES = true;            // three faces of locked characters in the Style pill for visitors without a key; false = the 🎨 for everyone (one deploy switches it off)
 
   // Names are used ONLY in alt / aria-label text, never as visible labels.
   var CHARACTERS = [
@@ -244,6 +245,31 @@
     try { if (crypto && crypto.randomUUID) return crypto.randomUUID(); } catch (e) {}
     return String(Date.now()) + '-' + Math.random().toString(36).slice(2);
   }
+  // Coarse device class + in-app browser flag on every signal (2026-11-21): fixed words only, nothing of the user-agent
+  // string itself is sent. iPadOS Safari reports a Mac user agent, so a Mac with a touch screen counts as a tablet.
+  var UA = '';
+  try { UA = String(navigator.userAgent || ''); } catch (e) {}
+  function deviceKind() {
+    var touch = 0;
+    try { touch = navigator.maxTouchPoints || 0; } catch (e) {}
+    if (/iPad/.test(UA) || (/Macintosh/.test(UA) && touch > 1)) return 'tablet';
+    if (/iPhone|iPod/.test(UA)) return 'phone';
+    if (/Android/.test(UA)) return /Mobile/.test(UA) ? 'phone' : 'tablet';
+    if (/CrOS/.test(UA)) return 'chromebook';
+    if (/Silk|Kindle|Tablet/.test(UA)) return 'tablet';
+    if (/Mobi|Windows Phone/.test(UA)) return 'phone';
+    if (/Linux/.test(UA) && touch > 1) return 'tablet';   // Android tablets ask for the desktop site: "X11; Linux", no "Android"
+    return 'desktop';
+  }
+  function inAppBrowser() {   // web views of other apps: the microphone often does not work there
+    return /FBAN|FBAV|FB_IAB|Instagram|TikTok|musical_ly|Bytedance|Snapchat|MicroMessenger|Line\/|GSA\/|Pinterest|LinkedInApp|; wv\)/.test(UA);
+  }
+  // Known bots and automated browsers render the page too: they send no signal (kq:signal events still fire for tests)
+  function isBot() {
+    try { if (navigator.webdriver === true) return true; } catch (e) {}
+    return (/bot\b|crawl|spider|headless|lighthouse|inspectiontool|webindexer|PTST\//i.test(UA)) && !/cubot/i.test(UA);
+  }
+  var DEVICE = deviceKind(), INAPP = inAppBrowser() ? 'yes' : 'no', BOT = isBot();
   // Test mode across the Stripe return (2026-11-13): the Worker's return URL carries no ?test=1, so unlock.js stores
   // sessionStorage kq-test-return = "1" just before the redirect when the page was in test mode. Read once here, deleted
   // at once, and honoured only on a page load that IS a Stripe return (window.__kqUnlock: session or cancel) — so it
@@ -262,13 +288,14 @@
     return /^localhost$|^127(\.\d+){0,2}\.\d+$|^\[::1?]$/.test(location.hostname) || location.protocol === 'file:';
   }
   function signal(type, payload) {
-    var body = { page: pageSlug(), source: source(), path: location.pathname, tool: 'noise-meter' };
+    var body = { page: pageSlug(), source: source(), path: location.pathname, tool: 'noise-meter', device: DEVICE, inapp: INAPP };
     for (var k in payload) if (Object.prototype.hasOwnProperty.call(payload, k)) body[k] = payload[k];
-    if (td) { try { td.signal(type, body).catch(function () {}); } catch (e) {} }
+    if (BOT) { /* nothing is sent */ }
+    else if (td) { try { td.signal(type, body).catch(function () {}); } catch (e) {} }
     else if (tdQueue.length < 20) tdQueue.push([type, body]);
     try { root.dispatchEvent(new CustomEvent('kq:signal', { detail: { type: type, payload: body } })); } catch (e) {}
   }
-  try {
+  if (!BOT) try {
     import(SDK_URL).then(function (mod) {
       var instance = new mod.default({ appID: APP_ID, clientUser: randomId(), testMode: isTestMode() });
       instance._post = function (body) {
@@ -394,6 +421,22 @@
     msg.className = 'nm-msg' + (kind ? ' is-' + kind : '');
   }
 
+  // Microphone blocked (2026-11-21): one short instruction for the visitor's own browser instead of one sentence
+  // for all of them. Web views of other apps (TikTok, the Google app …) often cannot use the microphone at all.
+  var OPEN_IN_BROWSER = 'This app\u2019s built-in browser may block the microphone. Open keepquiet.app in your browser (Safari, Chrome, Edge or Firefox), then press \u25B6 Start.';
+  function micBlockedText() {
+    if (INAPP === 'yes') return OPEN_IN_BROWSER;
+    var again = ' Then press \u25B6 again.';
+    var ios = /iPhone|iPod|iPad/.test(UA) || (DEVICE === 'tablet' && /Macintosh/.test(UA));
+    if (ios && /CriOS|FxiOS|EdgiOS/.test(UA)) return 'The microphone is blocked. Tap the icon at the left of the address bar \u2192 Microphone \u2192 Allow, or open the Settings app, choose this browser and switch Microphone on.' + again;
+    if (ios) return 'The microphone is blocked. Tap the page menu at the left of the address bar (aA) \u2192 Website Settings \u2192 Microphone \u2192 Allow.' + again;
+    if (DEVICE === 'chromebook') return 'The microphone is blocked. Click the icon at the left of the address bar and switch Microphone on (or choose Allow).' + again + ' On a school Chromebook the school may have blocked it \u2014 ask your IT admin.';
+    if (/Android/.test(UA) || (DEVICE === 'tablet' && /Linux/.test(UA))) return 'The microphone is blocked. Tap the icon next to the address \u2192 Permissions \u2192 Microphone \u2192 Allow.' + again;
+    if (/Firefox\//.test(UA)) return 'The microphone is blocked. Click the microphone icon at the left of the address bar and remove the block.' + again;
+    if (/Safari\//.test(UA) && !/Chrom|Edg\//.test(UA)) return 'The microphone is blocked. In the menu bar choose Safari \u2192 Settings for keepquiet.app \u2192 Microphone \u2192 Allow.' + again;
+    return 'The microphone is blocked. Click the icon at the left of the address bar and switch Microphone on (or choose Allow).' + again;
+  }
+
   function errorText(err) {
     var name = (err && err.name) || '';
     var text = (err && err.message) || '';
@@ -401,13 +444,13 @@
       if (/system|policy|denied by/i.test(text)) {
         return { reason: 'blocked-by-policy', text: 'The microphone is blocked on this device. On a school Chromebook, ask your IT admin to allow the microphone for keepquiet.app.' };
       }
-      return { reason: 'permission-denied', text: 'Allow the microphone in the address bar (iPhone and iPad: aA → Website Settings → Microphone), then press play again. On a managed Chromebook the school may have blocked it — ask your IT admin.' };
+      return { reason: 'permission-denied', text: micBlockedText() };
     }
-    if (name === 'NotFoundError' || name === 'DevicesNotFoundError') return { reason: 'no-mic', text: 'No microphone found. Plug one in or choose another device, then press play again.' };
-    if (name === 'NotReadableError' || name === 'TrackStartError' || name === 'AbortError') return { reason: 'mic-busy', text: 'The microphone is in use by another app or tab. Close it and press play again.' };
+    if (name === 'NotFoundError' || name === 'DevicesNotFoundError') return { reason: 'no-mic', text: 'No microphone found. Plug one in or choose another device, then press \u25B6 again' + (DEVICE === 'desktop' || DEVICE === 'chromebook' ? ' \u2014 or open keepquiet.app on a phone or tablet.' : '.') };
+    if (name === 'NotReadableError' || name === 'TrackStartError' || name === 'AbortError') return { reason: 'mic-busy', text: 'The microphone is in use by another app or tab. Close it and press \u25B6 again.' };
     if (name === 'OverconstrainedError' || name === 'ConstraintNotSatisfiedError') return { reason: 'mic-gone', text: 'The saved microphone is no longer available. Pick another one from the list.' };
     if (name === 'insecure') return { reason: 'insecure', text: 'The browser only allows the microphone on a secure (https) page.' };
-    if (name === 'unsupported') return { reason: 'unsupported', text: 'This browser cannot use the microphone. Try a current Chrome, Edge, Safari or Firefox.' };
+    if (name === 'unsupported') return { reason: 'unsupported', text: INAPP === 'yes' ? OPEN_IN_BROWSER : 'This browser cannot use the microphone. Try a current Chrome, Edge, Safari or Firefox.' };
     return { reason: 'other', text: 'The microphone could not be started. Reload the page and try again.' };
   }
 
@@ -458,6 +501,16 @@
     stream = null; track = null;
   }
 
+  // mic-error {reason, attempt}: attempt = the n-th microphone error of this page load ("1" | "2" | "3+");
+  // tool-start {afterError} then tells whether a start still worked after an error
+  var micErrors = 0;
+  function micError(reason, extra) {
+    micErrors += 1;
+    var body = { reason: reason, attempt: micErrors >= 3 ? '3+' : String(micErrors) };
+    for (var k in extra) if (Object.prototype.hasOwnProperty.call(extra, k)) body[k] = extra[k];
+    signal('mic-error', body);
+  }
+
   function setBusy(busy) { playBtn.disabled = busy; if (startBtn) startBtn.disabled = busy; }
   function setPlayState(on) {
     root.classList.toggle('is-running', on);   // CSS: overlay fades out, bottom bar (pause) appears
@@ -473,14 +526,14 @@
     if (running) { stop(); return; }
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       var e = errorText({ name: location.protocol === 'http:' ? 'insecure' : 'unsupported' });
-      setMessage(e.text, 'error'); signal('mic-error', { reason: e.reason }); return;
+      setMessage(e.text, 'error'); micError(e.reason); return;
     }
     setMessage('Starting…');
     setBusy(true);
     if (!ensureAudioContext()) {
       setBusy(false);
       var ue = errorText({ name: 'unsupported' });
-      setMessage(ue.text, 'error'); signal('mic-error', { reason: ue.reason }); return;
+      setMessage(ue.text, 'error'); micError(ue.reason); return;
     }
     getMic(lsGet(LS_MIC) || '').then(function (s) {
       attachStream(s);
@@ -488,7 +541,8 @@
       panelWhileRunning = false;   // Resume with the panel open: the panel hides like after any start
       removeFeedback();
       smoothed = 0;
-      sessionStart = Date.now(); sessionReported = false;
+      sessionStart = Date.now(); sessionReported = false; sessionCount += 1;
+      startMilestones();
       setPlayState(true);
       applyPanel();
       setBusy(false);
@@ -497,19 +551,23 @@
       fillMicList();
       requestWakeLock();
       onMeterStart();   // a set or paused quiet-time timer starts counting
-      signal('tool-start', { character: current.character, scene: current.scene, indicator: indicatorKind });
+      signal('tool-start', { character: current.character, scene: current.scene, indicator: indicatorKind, afterError: micErrors ? 'yes' : 'no' });
       rafId = requestAnimationFrame(tick);
     }).catch(function (err) {
       setBusy(false);
       var e2 = errorText(err);
       setMessage(e2.text, 'error');
-      signal('mic-error', { reason: e2.reason });
+      micError(e2.reason);
     });
   }
 
-  function stop(reason) {
+  // reason = an error text for the message line (the microphone ended), else empty;
+  // end = why the session ends, for tool-session {end}: pause (default) | leave | mic-ended | timer | checkout
+  function stop(reason, end) {
     var sessionMs = sessionStart ? Date.now() - sessionStart : 0;
-    reportSession();
+    end = end || 'pause';
+    reportSession(end);
+    clearInterval(milestoneTimer); milestoneTimer = 0;
     running = false;
     sheetClosed = false; panelWhileRunning = false;
     panelBy = 'pause';   // panel-open {by}: the panel shows itself after a pause
@@ -520,7 +578,7 @@
     if (ctx && ctx.state === 'running') ctx.suspend().catch(function () {});
     setPlayState(false);
     applyPanel();
-    if (!reason) maybeFeedback(sessionMs);   // only after a real pause, never pre-start or while running
+    if (!reason && (end === 'pause' || end === 'timer')) maybeFeedback(sessionMs);   // only after a real pause (or the timer's 0:00): never when the page closes or goes to checkout
     setBusy(false);
     smoothed = 0;
     showState(1);
@@ -529,26 +587,59 @@
   }
 
   /* ---------- tool-session: once per running session, bucketed minutes ---------- */
-  var sessionStart = 0, sessionReported = false;
+  // end: pause | leave (the page closes) | mic-ended | timer (quiet-time timer at 0:00) | checkout (redirect to Stripe);
+  // first: "yes" for the first session of this page load
+  var sessionStart = 0, sessionReported = false, sessionCount = 0;
   function minutesBucket(ms) {
     var m = ms / 60000;
     return m < 1 ? '<1' : (m < 5 ? '1-5' : (m < 15 ? '5-15' : (m < 30 ? '15-30' : '30+')));
   }
-  function reportSession() {
+  function reportSession(end) {
     if (!running || sessionReported || !sessionStart) return;
+    checkMilestones();   // a throttled background tab may be late: the milestones match the session length
     sessionReported = true;
     // Sent through the SDK's fetch(keepalive) post (same mechanism as appstore-click.js), which
     // survives pagehide; the hashed clientUser is cached, so no async work is left at that point.
-    signal('tool-session', { minutes: minutesBucket(Date.now() - sessionStart) });
+    signal('tool-session', { minutes: minutesBucket(Date.now() - sessionStart), end: end, first: sessionCount === 1 ? 'yes' : 'no' });
   }
-  window.addEventListener('pagehide', reportSession);
-  window.addEventListener('beforeunload', reportSession);
+  // pagehide only (2026-11-21): beforeunload also fires for links that do not leave the page (mailto: in Firefox)
+  // and would close the session's count while the meter keeps running
+  window.addEventListener('pagehide', function () { reportSession('leave'); });
+
+  /* ---------- tool-minutes {reached: "1"|"5"|"15"|"30"}: while a session runs, each step once per session ---------- */
+  // Does not depend on the page closing (tool-session is lost when a phone drops the pagehide request). Checked against
+  // the clock every 5 s by a timer, not in tick(): requestAnimationFrame stops in background tabs.
+  // Counts running time only: a gap of more than 90 s between two checks means the page was suspended (screen locked,
+  // phone asleep) and is left out — a throttled background tab still checks at least once a minute.
+  var MILESTONES = [1, 5, 15, 30], MILESTONE_GAP_MS = 90000;
+  var milestoneAt = 0, milestoneTimer = 0, milestoneMs = 0, milestoneLast = 0;
+  function startMilestones() {
+    milestoneAt = 0; milestoneMs = 0; milestoneLast = Date.now();
+    clearInterval(milestoneTimer);
+    milestoneTimer = setInterval(checkMilestones, 5000);
+  }
+  function checkMilestones() {
+    if (!running || sessionReported || !sessionStart) return;
+    var now = Date.now(), delta = now - milestoneLast;
+    milestoneLast = now;
+    if (delta > 0 && delta <= MILESTONE_GAP_MS) milestoneMs += delta;
+    var m = milestoneMs / 60000;
+    while (milestoneAt < MILESTONES.length && m >= MILESTONES[milestoneAt]) {
+      signal('tool-minutes', { reached: String(MILESTONES[milestoneAt]) });
+      milestoneAt += 1;
+    }
+    if (milestoneAt >= MILESTONES.length) { clearInterval(milestoneTimer); milestoneTimer = 0; }
+  }
 
   /* ---------- visit: once per page load, from localStorage counters ---------- */
   function visitBucket(n) { return n <= 1 ? '1' : (n === 2 ? '2' : (n <= 5 ? '3-5' : (n <= 10 ? '6-10' : '11+'))); }
   function daysBucket(d) { return d < 1 ? '0' : (d <= 7 ? '1-7' : (d <= 30 ? '8-30' : '31+')); }
   function reportVisit() {
     var nth = '1', days = '0';
+    // entry: external (another site or a utm_source link) | internal (from a page of this site) | direct (no referrer)
+    // | return (back from the Stripe checkout: paid or cancelled)
+    var ref = referrerHost(), back = window.__kqUnlock;
+    var entry = back && (back.session || back.cancel === true) ? 'return' : (source() !== 'none' ? 'external' : (ref ? 'internal' : 'direct'));
     try {
       var n = parseInt(localStorage.getItem(LS_VISITS), 10) || 0;
       n += 1;
@@ -558,7 +649,7 @@
       nth = visitBucket(n);
       days = daysBucket(Math.floor((Date.now() - first) / 86400000));
     } catch (e) { /* storage blocked: counts as a first visit */ }
-    signal('visit', { nth: nth, daysSinceFirst: days });
+    signal('visit', { nth: nth, daysSinceFirst: days, entry: entry });
   }
 
   /* ---------- pro-view: once per page load when #pro-card is ≥ 50 % visible ---------- */
@@ -626,8 +717,9 @@
 
   function onTrackEnded() {
     if (!running) return;
-    stop('The microphone was disconnected. Press play to try again.');
-    signal('mic-error', { reason: 'ended' });
+    var hidden = document.hidden ? 'yes' : 'no';   // yes = it ended while the tab was in the background or the screen was locked
+    stop('The microphone was disconnected. Press \u25B6 to try again.', 'mic-ended');
+    micError('ended', { hidden: hidden });
     fillMicList();
   }
 
@@ -899,7 +991,7 @@
       if (sensitivity === 1) return;
       sensitivity = 1; lsSet(LS_SENS, '1'); sensSlider.value = '100';
       updateSensDefault();
-      signal('setting-change', { what: 'sensitivity' });
+      signal('setting-change', { what: 'sensitivity', value: sensBucket() });
     });
     sensHead.appendChild(sensLab); sensHead.appendChild(sensDefaultBtn);
     panel.appendChild(sensHead);
@@ -913,7 +1005,7 @@
       updateSensDefault();
     });
     sensSlider.addEventListener('change', function () {       // once per drag end
-      signal('setting-change', { what: 'sensitivity' });
+      signal('setting-change', { what: 'sensitivity', value: sensBucket() });
     });
     panel.appendChild(el('p', 'nm-prestart', 'Available after Start'));
     panel.appendChild(sensSlider);
@@ -932,8 +1024,10 @@
     else if (unlockLineSlot && unlockLine.nextSibling !== unlockLineSlot) panelBody.insertBefore(unlockLine, unlockLineSlot);
   }
   function updateSensDefault() { if (sensDefaultBtn) sensDefaultBtn.hidden = (sensitivity === 1); }
+  function sensBucket() { return sensitivity < 1 ? 'lower' : (sensitivity > 1 ? 'higher' : 'default'); }   // where the slider ended, against the default
 
   /* ---------- feedback line: after a pause that ends a session of ≥ 2 min, at most once per 30 days ---------- */
+  var feedbackShownSent = false;
   function feedbackRecent() {
     try {
       var v = JSON.parse(lsGet(LS_FEEDBACK) || 'null');
@@ -967,6 +1061,7 @@
     });
     feedbackLine.appendChild(up); feedbackLine.appendChild(down); feedbackLine.appendChild(x);
     panelBody.insertBefore(feedbackLine, panelBody.firstChild);
+    if (!feedbackShownSent) { feedbackShownSent = true; signal('feedback-shown', { minutes: minutes }); }   // once per page load
   }
 
   function thumbPicture(kind, item) {
@@ -1031,7 +1126,7 @@
   /* ---------- locked tap → counted + the unlock dialog (or, without the unlock UI, the inline interest card) ---------- */
   function proClick(item) {
     signal('pro-click', { item: item });
-    if (unlockActive()) loadUnlock().then(function (ui) { if (ui) ui.show('thumb'); });
+    if (unlockActive()) loadUnlock().then(function (ui) { if (ui) ui.show('thumb', item); });
     else if (interestCard) { interestCard.hidden = false; scrollPanelTo(interestCard); }
     try { root.dispatchEvent(new CustomEvent('kq:pro-click', { bubbles: true, detail: { item: item } })); } catch (e) {}
   }
@@ -1053,6 +1148,7 @@
     freeUntil: FREE_UNTIL, freeWindow: freeWindow,
     mount: function () { return { line: unlockLine, card: interestCard, sticky: unlockSticky, scroller: panelBody }; },   // panel line, fallback card slot, sticky CTA slot, the panel's scroll area (IntersectionObserver root)
     thumbStrip: thumbStrip,                               // the offer dialog's strip: all 8 + 5 thumbs, unlocked look, lazy
+    itemIds: CHARACTERS.map(function (c) { return 'char-' + c.id; }).concat(SCENES.map(function (s) { return 'scene-' + s.id; })),   // the fixed list for {item} in unlock.js signals
     placeLine: placeUnlockLine,                           // true = unlocked row at the panel's end (small, muted)
     scrollPanelTo: scrollPanelTo,
     setUnlocked: refreshGrids,                            // key stored → badges off, every item selectable
@@ -1067,7 +1163,7 @@
     isPanelOpen: function () { return root.classList.contains('is-panel-open'); },
     isFullscreen: function () { return expanded || isFullscreen(); },   // the dialog hides its "See what's included" link then
     pauseForRedirect: function () {                       // before location.assign(Stripe)
-      if (running) stop();
+      if (running) stop('', 'checkout');
       if (expanded) leaveExpanded(false); else if (isFullscreen()) exitFullscreen();
     }
   };
@@ -1141,7 +1237,7 @@
     }).catch(function (err) {
       var e = errorText(err);
       setMessage(e.text, 'error');
-      signal('mic-error', { reason: e.reason });
+      micError(e.reason);
     });
   }
   if (navigator.mediaDevices && 'ondevicechange' in navigator.mediaDevices) {
@@ -1415,7 +1511,7 @@
     timerRemaining = 0;
     setTimerState('done');   // CSS: red pill, ↻ ✕ back
     signal('timer-done', {});
-    if (running) stop();
+    if (running) stop('', 'timer');
   }
   // ↻: remaining back to the full length, the state stays (running keeps counting, set / paused keep waiting);
   // after 0:00 it is a new run in the waiting state (the meter is paused then): Resume starts the count and sends
@@ -1466,5 +1562,5 @@
   reportVisit();
   watchProCard();
   if (unlockActive() && (window.__kqUnlock || lsGet(LS_LICENSE) || (document.body && document.body.hasAttribute('data-kq-unlock-gate')))) loadUnlock();
-  window.addEventListener('pagehide', function () { if (running) stop(); });
+  window.addEventListener('pagehide', function () { if (running) stop('', 'leave'); });
 })();

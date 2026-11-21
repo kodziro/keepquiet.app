@@ -69,7 +69,7 @@ const STRINGS = {
   unlockLine2: '{price} one-time',                          // … line 2 (smaller); index.html #pro-card mirrors both
   unlockBusy: 'Opening the payment page…',
   // trust line under the button (dialog; #pro-card mirrors it in index.html): [icon, text]
-  trust: [['check', 'One-time payment'], ['check', 'no subscription'], ['lock', 'secure checkout by Link (Stripe)'], ['bolt', 'unlocks instantly, key also emailed']],
+  trust: [['check', 'One-time payment'], ['check', 'no subscription'], ['check', 'full refund within 14 days'], ['lock', 'secure checkout by Link (Stripe)'], ['bolt', 'unlocks instantly, key also emailed']],
   caption: 'No subscription · instant access · web version',
   restoreEntry: 'Already unlocked? Restore',
   seeIncluded: 'See what’s included ↓',
@@ -301,6 +301,9 @@ export default function init(api) {
     pendingSession: null, // ?unlock=<session> kept for Retry (→ the "Payment received" view)
     busy: false,
     openedFrom: 'panel',  // opener of the dialog → unlock-click {from} for the dialog's own button
+    item: null,           // the locked thumb that opened the dialog (fixed list, else "unknown") → {item} on unlock-click / dialog-close
+    openHow: null,        // set while a dialog the visitor opened is showing: its dialog-open {from} → dialog-close {from}
+    openAt: 0,            // … and when it opened → dialog-close {seconds}
     returnFrom: 'unknown', // Stripe return only: the from of the Unlock press before the redirect (handleUrl)
     justBought: false,    // thank-you after a real purchase (verify → unlockedNow 'checkout'); cleared when the dialog closes
     preview: null,        // dev hook only (?dev-thanks=1): example key shown in the dialog, never stored
@@ -362,7 +365,7 @@ export default function init(api) {
     lock: '<rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 015 0v2"/>',
     bolt: '<path d="M9 1.5L3.5 9H8l-1 5.5L12.5 7H8z"/>'
   };
-  function trustLine(variant) {   // "✓ One-time payment · ✓ no subscription · 🔒 secure checkout … · ⚡ unlocks instantly …"
+  function trustLine(variant) {   // "✓ One-time payment · ✓ no subscription · ✓ full refund within 14 days · 🔒 secure checkout … · ⚡ unlocks instantly …"
     const n = el('p', dark(variant) ? 'nm-unlock-trust' : 'kq-trust');
     S.trust.forEach((t) => {
       const it = el('span', 'kq-trust-item');
@@ -416,10 +419,16 @@ export default function init(api) {
   }
   // the visitor opens the dialog (locked thumb, a Restore link, Manage): dialog-open {from: how}, then the dialog.
   // Everything that opens it without a tap (Stripe return, ?k= result, checkout error, dev hook) calls openDialog directly.
-  function userOpen(how, from, focusRestore) {
+  // item: only for how = "thumb" — the tapped locked item, checked against the tool's fixed list
+  function userOpen(how, from, focusRestore, item) {
     signal('dialog-open', { from: how });
+    if (how === 'thumb') state.item = cleanItem(item);   // kept until the next thumb open: the fallback card's button stays from "thumb"
+    state.openHow = DIALOG_OK ? how : null;   // the fallback card has no close moment
+    state.openAt = Date.now();
     openDialog(from, focusRestore);
   }
+  function cleanItem(item) { return api.itemIds && api.itemIds.indexOf(item) >= 0 ? item : 'unknown'; }
+  function secondsBucket(ms) { const s = ms / 1000; return s < 5 ? '<5' : (s < 30 ? '5-30' : '30+'); }
   // from: 'thumb' | 'panel' | 'card' (→ unlock-click {from} of the dialog's button); focusRestore: put the caret in the key field
   function openDialog(from, focusRestore, expandRestore) {
     state.openedFrom = from || 'panel';
@@ -440,6 +449,12 @@ export default function init(api) {
   function closeDialog() { if (dlg && dlg.open) { try { dlg.close(); } catch (e) { onDialogClosed(); } } }
   function onDialogClosed() {
     try { document.documentElement.classList.remove('kq-dialog-open'); } catch (e) {}
+    if (state.openHow) {   // dialog-close {from, seconds, item?}: only for a dialog the visitor opened (dialog-open was sent)
+      const body = { from: state.openHow, seconds: secondsBucket(Date.now() - state.openAt) };
+      if (state.openHow === 'thumb') body.item = state.item || 'unknown';
+      signal('dialog-close', body);
+      state.openHow = null;
+    }
     state.restoreOpen = false;   // the next locked-thumb open shows the collapsed "Already unlocked? Restore" link
     const wasThanks = state.justBought || !!state.preview;
     state.justBought = false; state.preview = null;   // the next open (Manage) is the plain view
@@ -799,13 +814,15 @@ export default function init(api) {
   async function checkout(from) {
     if (state.busy) return;
     if (FROM_VALUES.indexOf(from) < 0) from = 'unknown';   // same rule as unlock-cancel / unlock-success
-    signal('unlock-click', { from });
+    // item: only for the dialog a locked thumb opened (the panel and card buttons have no item)
+    signal('unlock-click', from === 'thumb' ? { from, item: state.item || 'unknown' } : { from });
     setBusy(true, null);
     try {
       const r = await call('POST', '/checkout', {});
       if (r.status === 200 && r.json && typeof r.json.url === 'string') {
         ssSet(SS_FROM, from);                                  // → unlock-cancel / unlock-success {from} after the return
         if (api.isTestMode && api.isTestMode()) ssSet(SS_TEST_RETURN, '1');   // the return page load stays in test mode
+        state.openHow = null;     // no dialog-close for a dialog that ends in the redirect (also not after a bfcache return)
         api.pauseForRedirect();   // exit expanded fullscreen (iPhone Safari), pause the meter
         location.assign(r.json.url);
         return;
@@ -946,7 +963,7 @@ export default function init(api) {
   } catch (e) {}
 
   return {
-    show(from) { userOpen('thumb', from || 'thumb'); },                // locked thumb tapped
+    show(from, item) { userOpen('thumb', from || 'thumb', false, item); },   // locked thumb tapped (item = "char-<id>" / "scene-<id>")
     panelClosed() {
       const thanks = !DIALOG_OK && state.justBought;   // fallback card: the purchase view ends with the panel
       if (thanks) state.justBought = false;

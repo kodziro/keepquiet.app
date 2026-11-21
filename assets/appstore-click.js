@@ -21,6 +21,7 @@
     keepalive POST and returns. If the SDK fails to load, nothing is sent and
     the links keep working as plain links.
   - Cookieless: clientUser is a random value per page load, never stored.
+  - Known bots and automated browsers send nothing (same check as noise-meter.js, 2026-11-21).
 */
 (function () {
   var APP_ID = '43A2ECAF-E4DA-4440-B847-7A1FCE01600C';
@@ -59,6 +60,13 @@
     } catch (e) {}
     return String(Date.now()) + '-' + Math.random().toString(36).slice(2);
   }
+
+  function isBot() {
+    var ua = '';
+    try { if (navigator.webdriver === true) return true; ua = String(navigator.userAgent || ''); } catch (e) {}
+    return (/bot\b|crawl|spider|headless|lighthouse|inspectiontool|webindexer|PTST\//i.test(ua)) && !/cubot/i.test(ua);
+  }
+  if (isBot()) return;
 
   function isTestMode() {
     // ?test=1 on any page = TelemetryDeck test mode (same switch as noise-meter.js)
